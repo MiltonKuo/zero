@@ -3,230 +3,118 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>冰水管路流速流量查詢器</title>
+<title>冰水管路流速流量計算器</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
 min-height: 100vh;
 padding: 16px;
-color: #e0e0e0;
+color: #e6edf3;
 }
-.container {
-max-width: 480px;
-margin: 0 auto;
-}
-h1 {
-text-align: center;
-font-size: 1.3rem;
-margin-bottom: 6px;
-color: #4fc3f7;
-}
-.subtitle {
-text-align: center;
-font-size: 0.8rem;
-color: #888;
-margin-bottom: 20px;
-}
-.input-group {
-background: rgba(255,255,255,0.05);
+.container { max-width: 500px; margin: 0 auto; }
+h1 { text-align: center; font-size: 1.3rem; margin-bottom: 4px; color: #58a6ff; }
+.subtitle { text-align: center; font-size: 0.78rem; color: #8b949e; margin-bottom: 20px; }
+.section {
+background: rgba(255,255,255,0.04);
 border-radius: 12px;
 padding: 16px;
 margin-bottom: 12px;
 border: 1px solid rgba(255,255,255,0.08);
 }
-label {
-display: block;
-font-size: 0.85rem;
-margin-bottom: 8px;
-color: #aaa;
-}
+label { display: block; font-size: 0.82rem; margin-bottom: 6px; color: #8b949e; }
 select, input[type="number"] {
-width: 100%;
-padding: 12px;
-border-radius: 8px;
-border: 1px solid rgba(255,255,255,0.15);
-background: rgba(0,0,0,0.3);
-color: #fff;
-font-size: 1rem;
-outline: none;
+width: 100%; padding: 11px 12px;
+border-radius: 8px; border: 1px solid rgba(255,255,255,0.12);
+background: rgba(0,0,0,0.35); color: #fff; font-size: 1rem; outline: none;
 }
-select:focus, input:focus {
-border-color: #4fc3f7;
+select:focus, input:focus { border-color: #58a6ff; }
+select option { background: #161b22; }
+.mode-tabs {
+display: flex; gap: 8px; margin-bottom: 16px;
 }
-select option {
-background: #1a1a2e;
+.tab {
+flex: 1; padding: 10px; text-align: center; border-radius: 8px;
+border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.04);
+color: #8b949e; font-size: 0.85rem; cursor: pointer; transition: all 0.2s;
 }
-.mode-switch {
-display: flex;
-gap: 8px;
-margin-bottom: 16px;
+.tab.active { background: rgba(88,166,255,0.2); border-color: #58a6ff; color: #58a6ff; }
+.preset-row { display: flex; gap: 5px; margin-top: 8px; flex-wrap: wrap; }
+.preset-btn {
+padding: 5px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);
+background: rgba(255,255,255,0.04); color: #8b949e; font-size: 0.72rem; cursor: pointer;
 }
-.mode-btn {
-flex: 1;
-padding: 10px;
-border: 1px solid rgba(255,255,255,0.15);
-border-radius: 8px;
-background: rgba(255,255,255,0.05);
-color: #aaa;
-font-size: 0.85rem;
-cursor: pointer;
-text-align: center;
-}
-.mode-btn.active {
-background: rgba(79,195,247,0.2);
-border-color: #4fc3f7;
-color: #4fc3f7;
-}
+.preset-btn:hover { background: rgba(88,166,255,0.15); border-color: #58a6ff; color: #58a6ff; }
+.btn-row { display: flex; gap: 8px; margin-top: 12px; }
 .btn {
-width: 100%;
-padding: 14px;
-border: none;
-border-radius: 10px;
-background: linear-gradient(135deg, #4fc3f7, #0288d1);
-color: #fff;
-font-size: 1.05rem;
-font-weight: 600;
-cursor: pointer;
-margin-top: 8px;
+flex: 1; padding: 12px; border: none; border-radius: 8px;
+font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: opacity 0.2s;
 }
-.btn:hover { opacity: 0.9; }
+.btn:hover { opacity: 0.85; }
+.btn-calc { background: linear-gradient(135deg, #58a6ff, #1f6feb); color: #fff; }
+.btn-clear { background: rgba(255,255,255,0.08); color: #8b949e; border: 1px solid rgba(255,255,255,0.12); }
 .result-box {
-background: rgba(79,195,247,0.1);
-border: 1px solid rgba(79,195,247,0.3);
-border-radius: 12px;
-padding: 16px;
-margin-top: 16px;
-display: none;
+margin-top: 14px; background: rgba(88,166,255,0.08);
+border: 1px solid rgba(88,166,255,0.25); border-radius: 10px;
+padding: 14px; display: none;
 }
 .result-box.show { display: block; }
-.result-title {
-font-size: 0.8rem;
-color: #4fc3f7;
-margin-bottom: 12px;
-text-transform: uppercase;
-letter-spacing: 1px;
+.result-title { font-size: 0.75rem; color: #58a6ff; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+.result-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.result-item { background: rgba(0,0,0,0.25); border-radius: 8px; padding: 10px; }
+.result-label { font-size: 0.72rem; color: #8b949e; margin-bottom: 3px; }
+.result-value { font-size: 1.1rem; font-weight: 700; color: #fff; }
+.result-value.highlight { color: #58a6ff; }
+.advice {
+margin-top: 10px; padding: 8px 10px; border-radius: 6px;
+font-size: 0.78rem; display: none;
 }
-.result-grid {
-display: grid;
-grid-template-columns: repeat(2, 1fr);
-gap: 10px;
+.advice.show { display: block; }
+.formula {
+margin-top: 12px; background: rgba(0,0,0,0.25); border-radius: 8px;
+padding: 10px; font-size: 0.72rem; color: #8b949e; text-align: center; line-height: 1.8;
 }
-.result-item {
-background: rgba(0,0,0,0.25);
-border-radius: 8px;
-padding: 12px;
-}
-.result-label {
-font-size: 0.75rem;
-color: #888;
-margin-bottom: 4px;
-}
-.result-value {
-font-size: 1.15rem;
-font-weight: 700;
-color: #fff;
-}
-.result-value.highlight { color: #4fc3f7; }
-.preset-btns {
-display: flex;
-gap: 6px;
-margin-top: 8px;
-flex-wrap: wrap;
-}
-.preset-btn {
-padding: 6px 10px;
-border-radius: 6px;
-border: 1px solid rgba(255,255,255,0.12);
-background: rgba(255,255,255,0.04);
-color: #aaa;
-font-size: 0.75rem;
-cursor: pointer;
-}
-.preset-btn:hover, .preset-btn.active {
-background: rgba(79,195,247,0.15);
-border-color: #4fc3f7;
-color: #4fc3f7;
-}
-.table-toggle {
-text-align: center;
-margin-top: 16px;
-}
-.table-toggle button {
-background: none;
-border: none;
-color: #4fc3f7;
-font-size: 0.9rem;
-cursor: pointer;
-text-decoration: underline;
+.formula code { color: #7ee787; font-family: monospace; }
+.toggle-table { text-align: center; margin-top: 12px; }
+.toggle-table button {
+background: none; border: none; color: #58a6ff; font-size: 0.85rem;
+cursor: pointer; text-decoration: underline;
 }
 .table-box {
-margin-top: 14px;
-display: none;
-overflow-x: auto;
-background: rgba(255,255,255,0.03);
-border-radius: 10px;
-padding: 10px;
+margin-top: 12px; display: none; overflow-x: auto;
+background: rgba(255,255,255,0.03); border-radius: 10px; padding: 8px;
 }
 .table-box.show { display: block; }
-table {
-width: 100%;
-border-collapse: collapse;
-font-size: 0.7rem;
-min-width: 650px;
-}
+table { width: 100%; border-collapse: collapse; font-size: 0.68rem; min-width: 650px; }
 th {
-background: rgba(79,195,247,0.15);
-color: #4fc3f7;
-padding: 8px 4px;
-text-align: center;
-border: 1px solid rgba(255,255,255,0.06);
-white-space: nowrap;
+background: rgba(88,166,255,0.15); color: #58a6ff; padding: 7px 3px;
+text-align: center; border: 1px solid rgba(255,255,255,0.06); white-space: nowrap;
 }
-td {
-padding: 6px 4px;
-text-align: center;
-border: 1px solid rgba(255,255,255,0.05);
-color: #c9d1d9;
-}
-tr:hover td { background: rgba(79,195,247,0.08); }
-.highlight { background: rgba(240,136,62,0.25) !important; color: #f0883e !important; font-weight: 700; }
-.formula-box {
-margin-top: 16px;
-background: rgba(0,0,0,0.25);
-border-radius: 10px;
-padding: 12px;
-font-size: 0.75rem;
-color: #888;
-text-align: center;
-line-height: 1.8;
-}
-.formula-box code { color: #aed581; font-family: monospace; }
-.note {
-margin-top: 12px;
-font-size: 0.7rem;
-color: #555;
-text-align: center;
-}
+td { padding: 5px 3px; text-align: center; border: 1px solid rgba(255,255,255,0.05); color: #c9d1d9; }
+tr:hover td { background: rgba(88,166,255,0.08); }
+.highlight-row td { background: rgba(88,166,255,0.18) !important; color: #fff; font-weight: 600; }
+.highlight-cell { background: rgba(240,136,62,0.25) !important; color: #f0883e !important; font-weight: 700; }
+.note { margin-top: 10px; font-size: 0.68rem; color: #484f58; text-align: center; }
+.hidden { display: none; }
 </style>
 </head>
 <body>
 <div class="container">
-<h1>🔧 冰水管路流速流量查詢</h1>
-<div class="subtitle">Pipe Velocity & Flow Rate Calculator</div>
+<h1>🔧 冰水管路流速流量計算器</h1>
+<div class="subtitle">Chiller Pipe Velocity & Flow Calculator</div>
 
 <!-- 模式切換 -->
-<div class="mode-switch">
-<div class="mode-btn active" onclick="setMode('qv')">Q→V (查流速)</div>
-<div class="mode-btn" onclick="setMode('vq')">V→Q (查流量)</div>
+<div class="mode-tabs">
+<div class="tab active" onclick="setMode('qv')">V→Q (查流量)</div>
+<div class="tab" onclick="setMode('vq')">Q→V (查流速)</div>
 </div>
 
-<!-- 計算模式 A: 輸入流量查流速 -->
-<div id="modeQV">
+<!-- 模式A: 輸入管徑+流速 → 查流量 -->
+<div id="modeQV" class="section">
 <div class="input-group">
 <label>選擇管徑</label>
-<select id="pipeSelect">
+<select id="pipeSelectQV">
 <option value="">-- 請選擇 --</option>
 <option value="20">1/2" (DN20)</option>
 <option value="25">1" (DN25)</option>
@@ -248,54 +136,17 @@ text-align: center;
 <option value="600">24" (DN600)</option>
 </select>
 </div>
-<div class="input-group">
-<label>流量 (L/min)</label>
-<input type="number" id="flowInput" placeholder="例：315" step="any" min="0">
-<div class="preset-btns">
-<button class="preset-btn" onclick="setFlow(84)">84</button>
-<button class="preset-btn" onclick="setFlow(100)">100</button>
-<button class="preset-btn" onclick="setFlow(150)">150</button>
-<button class="preset-btn" onclick="setFlow(315)">315</button>
-<button class="preset-btn" onclick="setFlow(500)">500</button>
-<button class="preset-btn" onclick="setFlow(1000)">1000</button>
-</div>
-</div>
-</div>
-
-<!-- 計算模式 B: 輸入流速查流量 -->
-<div id="modeVQ" style="display:none;">
-<div class="input-group">
-<label>選擇管徑</label>
-<select id="pipeSelectV">
-<option value="">-- 請選擇 --</option>
-<option value="20">1/2" (DN20)</option>
-<option value="25">1" (DN25)</option>
-<option value="32">1-1/4" (DN32)</option>
-<option value="40">1-1/2" (DN40)</option>
-<option value="50">2" (DN50)</option>
-<option value="65">2-1/2" (DN65)</option>
-<option value="80">3" (DN80)</option>
-<option value="100">4" (DN100)</option>
-<option value="125">5" (DN125)</option>
-<option value="150">6" (DN150)</option>
-<option value="200">8" (DN200)</option>
-<option value="250">10" (DN250)</option>
-<option value="300">12" (DN300)</option>
-<option value="350">14" (DN350)</option>
-<option value="400">16" (DN400)</option>
-<option value="450">18" (DN450)</option>
-<option value="500">20" (DN500)</option>
-<option value="600">24" (DN600)</option>
-</select>
-</div>
-<div class="input-group">
+<div class="input-group" style="margin-top:10px;">
 <label>流速 (m/s)</label>
-<input type="number" id="velocityInput" placeholder="例：1.5" step="0.1" min="0">
-<div class="preset-btns">
-<button class="preset-btn" onclick="setVel(0.5)">0.5</button>
+<input type="number" id="velocityInput" placeholder="例：1.5" step="0.1" min="0" max="5">
+<div class="preset-row">
+<button class="preset-btn" onclick="setVel(0.4)">0.4</button>
+<button class="preset-btn" onclick="setVel(0.6)">0.6</button>
 <button class="preset-btn" onclick="setVel(0.8)">0.8</button>
 <button class="preset-btn" onclick="setVel(1.0)">1.0</button>
+<button class="preset-btn" onclick="setVel(1.2)">1.2</button>
 <button class="preset-btn" onclick="setVel(1.5)">1.5</button>
+<button class="preset-btn" onclick="setVel(1.8)">1.8</button>
 <button class="preset-btn" onclick="setVel(2.0)">2.0</button>
 <button class="preset-btn" onclick="setVel(2.5)">2.5</button>
 <button class="preset-btn" onclick="setVel(3.0)">3.0</button>
@@ -303,7 +154,50 @@ text-align: center;
 </div>
 </div>
 
-<button class="btn" onclick="calculate()">計算</button>
+<!-- 模式B: 輸入管徑+流量 → 查流速 -->
+<div id="modeVQ" class="section hidden">
+<div class="input-group">
+<label>選擇管徑</label>
+<select id="pipeSelectVQ">
+<option value="">-- 請選擇 --</option>
+<option value="20">1/2" (DN20)</option>
+<option value="25">1" (DN25)</option>
+<option value="32">1-1/4" (DN32)</option>
+<option value="40">1-1/2" (DN40)</option>
+<option value="50">2" (DN50)</option>
+<option value="65">2-1/2" (DN65)</option>
+<option value="80">3" (DN80)</option>
+<option value="100">4" (DN100)</option>
+<option value="125">5" (DN125)</option>
+<option value="150">6" (DN150)</option>
+<option value="200">8" (DN200)</option>
+<option value="250">10" (DN250)</option>
+<option value="300">12" (DN300)</option>
+<option value="350">14" (DN350)</option>
+<option value="400">16" (DN400)</option>
+<option value="450">18" (DN450)</option>
+<option value="500">20" (DN500)</option>
+<option value="600">24" (DN600)</option>
+</select>
+</div>
+<div class="input-group" style="margin-top:10px;">
+<label>流量 (L/min)</label>
+<input type="number" id="flowInput" placeholder="例：315" step="any" min="0">
+<div class="preset-row">
+<button class="preset-btn" onclick="setFlow(100)">100</button>
+<button class="preset-btn" onclick="setFlow(200)">200</button>
+<button class="preset-btn" onclick="setFlow(315)">315</button>
+<button class="preset-btn" onclick="setFlow(500)">500</button>
+<button class="preset-btn" onclick="setFlow(1000)">1000</button>
+<button class="preset-btn" onclick="setFlow(2000)">2000</button>
+</div>
+</div>
+</div>
+
+<div class="btn-row">
+<button class="btn btn-calc" onclick="calculate()">計算</button>
+<button class="btn btn-clear" onclick="clearAll()">清除</button>
+</div>
 
 <div class="result-box" id="resultBox">
 <div class="result-title">計算結果</div>
@@ -325,30 +219,30 @@ text-align: center;
 <div class="result-value" id="resM3">-</div>
 </div>
 </div>
-<div id="velocityAdvice" style="margin-top:12px; padding:10px; border-radius:8px; font-size:0.82rem; display:none;"></div>
+<div class="advice" id="advice"></div>
 </div>
 
-<div class="formula-box">
-<code>Q = π × (D/2)² × v × 60,000</code><br>
-D = 內徑 (mm) | v = 流速 (m/s) | Q = 流量 (L/min)
+<div class="formula">
+<code>Q = π × D² × v × 0.015</code><br>
+D = 內徑(mm) | v = 流速(m/s) | Q = 流量(L/min)
 </div>
 
-<div class="table-toggle">
-<button onclick="toggleTable()">📊 查看完整表格</button>
+<div class="toggle-table">
+<button onclick="toggleTable()">📊 查看完整對照表</button>
 </div>
 
 <div class="table-box" id="tableBox">
 <table>
 <thead>
 <tr>
-<th>管徑</th>
+<th>inch</th>
 <th>DN</th>
 <th>0.4</th><th>0.6</th><th>0.8</th><th>1.0</th><th>1.2</th><th>1.4</th><th>1.6</th><th>1.8</th><th>2.0</th><th>2.2</th><th>2.4</th><th>2.6</th><th>2.8</th><th>3.0</th>
 </tr>
 </thead>
 <tbody id="tableBody"></tbody>
 </table>
-<div style="margin-top:10px;font-size:0.72rem;color:#666;text-align:center;">
+<div style="margin-top:8px;font-size:0.68rem;color:#484f58;text-align:center;">
 單位：L/min | 建議流速：0.8~2.4 m/s
 </div>
 </div>
@@ -357,68 +251,66 @@ D = 內徑 (mm) | v = 流速 (m/s) | Q = 流量 (L/min)
 </div>
 
 <script>
-// 管徑資料（含內徑與流量表）
+// 管徑資料：DN、內徑、流量表（從 PDF 提取）
 const pipes = [
-{ dn: 20,  id: 20.9, flows: [8,12,15,18,23,27,30,33,38,42,45,48,53,57] },
-{ dn: 25,  id: 26.9, flows: [12,18,23,30,35,42,47,53,58,65,70,77,82,88] },
-{ dn: 32,  id: 35.2, flows: [20,28,38,48,58,68,77,87,97,107,115,125,135,145] },
-{ dn: 40,  id: 41.0, flows: [30,45,60,75,90,105,120,135,150,167,182,197,212,227] },
-{ dn: 50,  id: 52.5, flows: [47,70,95,118,142,165,188,212,235,260,283,307,330,353] },
-{ dn: 65,  id: 68.1, flows: [80,120,160,198,238,278,318,358,398,438,478,518,557,597] },
-{ dn: 80,  id: 81.4, flows: [120,182,242,302,362,422,483,543,603,663,723,783,845,905] },
-{ dn: 100, id: 102.3, flows: [188,283,377,472,565,660,753,848,942,1037,1132,1225,1320,1413] },
-{ dn: 125, id: 128.2, flows: [295,442,588,737,883,1032,1178,1325,1473,1620,1767,1915,2062,2208] },
-{ dn: 150, id: 154.1, flows: [423,637,848,1060,1272,1485,1697,1908,2120,2333,2545,2757,2968,3182] },
-{ dn: 200, id: 203.2, flows: [753,1132,1508,1885,2262,2638,3017,3393,3770,4147,4523,4902,5278,5655] },
-{ dn: 250, id: 254.5, flows: [1178,1767,2357,2945,3535,4123,4712,5302,5890,6480,7068,7658,8247,8835] },
-{ dn: 300, id: 304.8, flows: [1697,2545,3393,4242,5090,5938,6785,7633,8482,9330,10178,11027,11875,12723] },
-{ dn: 350, id: 355.6, flows: [2308,3463,4618,5773,6927,8082,9237,10390,11545,12700,13855,15008,16163,17318] },
-{ dn: 400, id: 406.4, flows: [3017,4523,6032,7540,9048,10555,12063,13572,15080,16588,18095,19603,21112,22620] },
-{ dn: 450, id: 457.2, flows: [3817,5725,7633,9543,11452,13360,15268,17177,19085,20993,22902,24810,26720,28628] },
-{ dn: 500, id: 508.0, flows: [4712,7068,9425,11782,14137,16493,18850,21205,23562,25918,28275,30630,32987,35343] },
-{ dn: 600, id: 609.6, flows: [6785,10178,13572,16965,20357,23750,27143,30537,33928,37322,40715,44108,47500,50893] },
+{ dn:20,  id:20.9,  flows:[8,12,15,18,23,27,30,33,38,42,45,48,53,57] },
+{ dn:25,  id:26.9,  flows:[12,18,23,30,35,42,47,53,58,65,70,77,82,88] },
+{ dn:32,  id:35.2,  flows:[20,28,38,48,58,68,77,87,97,107,115,125,135,145] },
+{ dn:40,  id:41.0,  flows:[30,45,60,75,90,105,120,135,150,167,182,197,212,227] },
+{ dn:50,  id:52.5,  flows:[47,70,95,118,142,165,188,212,235,260,283,307,330,353] },
+{ dn:65,  id:68.1,  flows:[80,120,160,198,238,278,318,358,398,438,478,518,557,597] },
+{ dn:80,  id:81.4,  flows:[120,182,242,302,362,422,483,543,603,663,723,783,845,905] },
+{ dn:100, id:102.3, flows:[188,283,377,472,565,660,753,848,942,1037,1132,1225,1320,1413] },
+{ dn:125, id:128.2, flows:[295,442,588,737,883,1032,1178,1325,1473,1620,1767,1915,2062,2208] },
+{ dn:150, id:154.1, flows:[423,637,848,1060,1272,1485,1697,1908,2120,2333,2545,2757,2968,3182] },
+{ dn:200, id:203.2, flows:[753,1132,1508,1885,2262,2638,3017,3393,3770,4147,4523,4902,5278,5655] },
+{ dn:250, id:254.5, flows:[1178,1767,2357,2945,3535,4123,4712,5302,5890,6480,7068,7658,8247,8835] },
+{ dn:300, id:304.8, flows:[1697,2545,3393,4242,5090,5938,6785,7633,8482,9330,10178,11027,11875,12723] },
+{ dn:350, id:355.6, flows:[2308,3463,4618,5773,6927,8082,9237,10390,11545,12700,13855,15008,16163,17318] },
+{ dn:400, id:406.4, flows:[3017,4523,6032,7540,9048,10555,12063,13572,15080,16588,18095,19603,21112,22620] },
+{ dn:450, id:457.2, flows:[3817,5725,7633,9543,11452,13360,15268,17177,19085,20993,22902,24810,26720,28628] },
+{ dn:500, id:508.0, flows:[4712,7068,9425,11782,14137,16493,18850,21205,23562,25918,28275,30630,32987,35343] },
+{ dn:600, id:609.6, flows:[6785,10178,13572,16965,20357,23750,27143,30537,33928,37322,40715,44108,47500,50893] },
 ];
-const velocities = [0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0];
+const velocities = [0.4,0.6,0.8,1.0,1.2,1.4,1.6,1.8,2.0,2.2,2.4,2.6,2.8,3.0];
 
 function setMode(mode) {
-document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-if (mode === 'qv') {
-document.querySelectorAll('.mode-btn')[0].classList.add('active');
-document.getElementById('modeQV').style.display = 'block';
-document.getElementById('modeVQ').style.display = 'none';
-} else {
-document.querySelectorAll('.mode-btn')[1].classList.add('active');
-document.getElementById('modeQV').style.display = 'none';
-document.getElementById('modeVQ').style.display = 'block';
-}
+document.querySelectorAll('.tab').forEach((t,i) => {
+t.classList.toggle('active', (mode==='qv'&&i===0)||(mode==='vq'&&i===1));
+});
+document.getElementById('modeQV').classList.toggle('hidden', mode!=='qv');
+document.getElementById('modeVQ').classList.toggle('hidden', mode!=='vq');
 document.getElementById('resultBox').classList.remove('show');
 }
 
-function setFlow(val) { document.getElementById('flowInput').value = val; }
-function setVel(val) { document.getElementById('velocityInput').value = val; }
+function setVel(v) { document.getElementById('velocityInput').value = v; }
+function setFlow(f) { document.getElementById('flowInput').value = f; }
 
 function calculate() {
-const isQV = document.getElementById('modeQV').style.display !== 'none';
-let pipeDN, flow, velocity;
+const isQV = !document.getElementById('modeQV').classList.contains('hidden');
+let pipeDN, inputVal, computedVal;
 
 if (isQV) {
-pipeDN = parseInt(document.getElementById('pipeSelect').value);
-flow = parseFloat(document.getElementById('flowInput').value);
-if (!pipeDN || !flow) { alert('請輸入管徑與流量'); return; }
+pipeDN = parseInt(document.getElementById('pipeSelectQV').value);
+inputVal = parseFloat(document.getElementById('velocityInput').value);
+if (!pipeDN || !inputVal) { alert('請選擇管徑並輸入流速'); return; }
 const p = pipes.find(x => x.dn === pipeDN);
-velocity = (flow * 1000) / (Math.PI * Math.pow(p.id/2, 2) * 60);
+// 線性插值計算流量
+computedVal = interpolateFlow(p, inputVal);
 } else {
-pipeDN = parseInt(document.getElementById('pipeSelectV').value);
-velocity = parseFloat(document.getElementById('velocityInput').value);
-if (!pipeDN || !velocity) { alert('請輸入管徑與流速'); return; }
+pipeDN = parseInt(document.getElementById('pipeSelectVQ').value);
+inputVal = parseFloat(document.getElementById('flowInput').value);
+if (!pipeDN || !inputVal) { alert('請選擇管徑並輸入流量'); return; }
 const p = pipes.find(x => x.dn === pipeDN);
-flow = Math.PI * Math.pow(p.id/2, 2) * velocity * 60 / 1000;
+// 反推流速
+const velocity = inputVal / (Math.PI * Math.pow(p.id/2, 2) * 0.015);
+computedVal = velocity;
 }
 
-const flowLmin = flow;
-const flowLs = flowLmin / 60;
+const p = pipes.find(x => x.dn === pipeDN);
+const flowLmin = isQV ? computedVal : (Math.PI * Math.pow(p.id/2, 2) * inputVal * 0.015);
+const velocity = isQV ? inputVal : computedVal;
 const flowM3 = flowLmin * 60 / 1000;
-const pipe = pipes.find(x => x.dn === pipeDN);
 
 document.getElementById('resPipe').textContent = pipeDN + 'mm';
 document.getElementById('resMainLabel').textContent = isQV ? '流速' : '流量';
@@ -429,17 +321,47 @@ document.getElementById('resM3').textContent = flowM3.toFixed(2) + ' m³/hr';
 document.getElementById('resultBox').classList.add('show');
 
 // 流速建議
-const advice = document.getElementById('velocityAdvice');
+const adv = document.getElementById('advice');
 let msg, color;
-if (velocity < 0.5) { msg = '⚠️ 流速偏低，可能積氣'; color = '#f0883e'; }
+if (velocity < 0.5) { msg = '⚠️ 流速偏低 (<0.5 m/s)，可能積氣'; color = '#f0883e'; }
 else if (velocity <= 2.0) { msg = '✅ 流速正常 (0.8~2.0 m/s)'; color = '#3fb950'; }
-else if (velocity <= 3.0) { msg = '⚠️ 流速偏高，注意水頭損失'; color = '#f0883e'; }
-else { msg = '❌ 流速過高，建議調整'; color = '#f85149'; }
-advice.textContent = msg;
-advice.style.display = 'block';
-advice.style.background = color === '#3fb950' ? 'rgba(63,185,80,0.15)' : 'rgba(240,136,62,0.15)';
-advice.style.color = color;
-advice.style.border = '1px solid ' + color;
+else if (velocity <= 3.0) { msg = '⚠️ 流速偏高 (>2.0 m/s)，注意水頭損失'; color = '#f0883e'; }
+else { msg = '❌ 流速過高 (>3.0 m/s)，建議調整'; color = '#f85149'; }
+adv.textContent = msg; adv.style.display='block';
+adv.style.background = color==='#3fb950'?'rgba(63,185,80,0.15)':'rgba(240,136,62,0.15)';
+adv.style.color = color; adv.style.border = '1px solid '+color;
+
+// 高亮表格
+document.querySelectorAll('tr').forEach(r=>r.classList.remove('highlight-row'));
+document.querySelectorAll('td').forEach(c=>c.classList.remove('highlight-cell'));
+const rowIdx = pipes.findIndex(x=>x.dn===pipeDN);
+document.getElementById('row-'+rowIdx)?.classList.add('highlight-row');
+const velIdx = velocities.findIndex(v=>Math.abs(v-velocity)<0.01);
+if (velIdx>=0) document.getElementById('cell-'+rowIdx+'-'+velIdx)?.classList.add('highlight-cell');
+}
+
+// 線性插值
+function interpolateFlow(pipe, vel) {
+if (vel <= 0.4) return Math.PI * Math.pow(pipe.id/2, 2) * 0.4 * 0.015;
+if (vel >= 3.0) return Math.PI * Math.pow(pipe.id/2, 2) * 3.0 * 0.015;
+// 找到速度区间
+for (let i = 0; i < velocities.length - 1; i++) {
+if (vel >= velocities[i] && vel <= velocities[i+1]) {
+const ratio = (vel - velocities[i]) / (velocities[i+1] - velocities[i]);
+return pipe.flows[i] + ratio * (pipe.flows[i+1] - pipe.flows[i]);
+}
+}
+return pipe.flows[pipe.flows.length-1];
+}
+
+function clearAll() {
+document.getElementById('pipeSelectQV').value = '';
+document.getElementById('pipeSelectVQ').value = '';
+document.getElementById('velocityInput').value = '';
+document.getElementById('flowInput').value = '';
+document.getElementById('resultBox').classList.remove('show');
+document.querySelectorAll('tr').forEach(r=>r.classList.remove('highlight-row'));
+document.querySelectorAll('td').forEach(c=>c.classList.remove('highlight-cell'));
 }
 
 function toggleTable() {
@@ -451,11 +373,9 @@ function initTable() {
 const tbody = document.getElementById('tableBody');
 let html = '';
 pipes.forEach((p, idx) => {
-html += `<tr id="row-${idx}">
-<td>${p.dn}</td>
-<td>${p.id}</td>`;
+html += `<tr id="row-${idx}"><td>${p.dn}</td>`;
 velocities.forEach((v, vi) => {
-html += `<td id="cell-${idx}-${vi}">${p.flows[vi]}</td>`;
+html += `<td id="cell-${idx}-${vi}">${p.flows[vi].toLocaleString()}</td>`;
 });
 html += '</tr>';
 });
@@ -463,6 +383,10 @@ tbody.innerHTML = html;
 }
 
 initTable();
+
+// Enter 鍵計算
+document.getElementById('velocityInput').addEventListener('keydown', e => { if(e.key==='Enter') calculate(); });
+document.getElementById('flowInput').addEventListener('keydown', e => { if(e.key==='Enter') calculate(); });
 </script>
 </body>
 </html>
