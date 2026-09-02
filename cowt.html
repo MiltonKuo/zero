@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>冰水主機流量計算器</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
+min-height: 100vh;
+display: flex;
+justify-content: center;
+align-items: flex-start;
+padding: 16px;
+color: #e6edf3;
+}
+.container {
+background: rgba(255,255,255,0.04);
+border-radius: 16px;
+padding: 20px;
+width: 100%;
+max-width: 480px;
+border: 1px solid rgba(255,255,255,0.08);
+backdrop-filter: blur(10px);
+}
+h1 {
+text-align: center;
+font-size: 1.3rem;
+margin-bottom: 20px;
+color: #58a6ff;
+}
+/* 輸入區塊 */
+.input-group {
+margin-bottom: 14px;
+}
+label {
+display: block;
+font-size: 0.85rem;
+margin-bottom: 6px;
+color: #8b949e;
+}
+input[type="number"] {
+width: 100%;
+padding: 12px 14px;
+border-radius: 10px;
+border: 1px solid rgba(255,255,255,0.12);
+background: rgba(0,0,0,0.3);
+color: #fff;
+font-size: 1.1rem;
+outline: none;
+transition: border-color 0.2s;
+}
+input[type="number"]:focus {
+border-color: #58a6ff;
+}
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+-webkit-appearance: none;
+}
+/* 快速按鈕 */
+.preset-grid {
+display: grid;
+grid-template-columns: repeat(4, 1fr);
+gap: 6px;
+margin-top: 8px;
+}
+.preset-btn {
+padding: 8px 4px;
+border-radius: 8px;
+border: 1px solid rgba(255,255,255,0.1);
+background: rgba(255,255,255,0.04);
+color: #8b949e;
+font-size: 0.75rem;
+cursor: pointer;
+transition: all 0.2s;
+}
+.preset-btn:hover, .preset-btn.active {
+background: rgba(88, 166, 255, 0.15);
+border-color: #58a6ff;
+color: #58a6ff;
+}
+/* 主要按鈕 */
+.btn-row {
+display: flex;
+gap: 8px;
+margin-top: 12px;
+}
+.btn {
+flex: 1;
+padding: 13px;
+border: none;
+border-radius: 10px;
+font-size: 1rem;
+font-weight: 600;
+cursor: pointer;
+transition: opacity 0.2s;
+}
+.btn:hover { opacity: 0.85; }
+.btn:active { opacity: 0.7; }
+.btn-primary {
+background: linear-gradient(135deg, #58a6ff, #1f6feb);
+color: #fff;
+}
+.btn-secondary {
+background: rgba(255,255,255,0.08);
+color: #8b949e;
+border: 1px solid rgba(255,255,255,0.12);
+}
+/* 結果區塊 */
+.result-box {
+margin-top: 16px;
+background: rgba(88, 166, 255, 0.08);
+border: 1px solid rgba(88, 166, 255, 0.2);
+border-radius: 12px;
+padding: 16px;
+display: none;
+}
+.result-box.show { display: block; }
+.result-title {
+font-size: 0.8rem;
+color: #58a6ff;
+margin-bottom: 12px;
+text-transform: uppercase;
+letter-spacing: 1px;
+}
+.result-grid {
+display: grid;
+grid-template-columns: repeat(2, 1fr);
+gap: 10px;
+}
+.result-item {
+background: rgba(0,0,0,0.2);
+border-radius: 8px;
+padding: 10px;
+}
+.result-label {
+font-size: 0.75rem;
+color: #8b949e;
+margin-bottom: 4px;
+}
+.result-value {
+font-size: 1.15rem;
+font-weight: 700;
+color: #fff;
+}
+.result-value.highlight { color: #58a6ff; }
+/* 歷史記錄 */
+.history-box {
+margin-top: 16px;
+display: none;
+}
+.history-box.show { display: block; }
+.history-title {
+font-size: 0.85rem;
+color: #8b949e;
+margin-bottom: 10px;
+display: flex;
+justify-content: space-between;
+align-items: center;
+}
+.history-title span { font-size: 0.75rem; cursor: pointer; color: #f85149; }
+.history-title span:hover { text-decoration: underline; }
+.history-list {
+max-height: 200px;
+overflow-y: auto;
+}
+.history-item {
+background: rgba(0,0,0,0.2);
+border-radius: 8px;
+padding: 10px 12px;
+margin-bottom: 6px;
+font-size: 0.85rem;
+display: flex;
+justify-content: space-between;
+align-items: center;
+}
+.history-item:hover {
+background: rgba(255,255,255,0.06);
+}
+.history-delete {
+color: #f85149;
+cursor: pointer;
+padding: 4px 8px;
+font-size: 0.75rem;
+}
+.history-delete:hover { background: rgba(248, 81, 73, 0.1); border-radius: 4px; }
+/* 公式 */
+.formula-box {
+margin-top: 14px;
+background: rgba(0,0,0,0.25);
+border-radius: 10px;
+padding: 12px;
+font-size: 0.75rem;
+color: #8b949e;
+text-align: center;
+line-height: 1.8;
+}
+.formula-box code {
+color: #7ee787;
+font-family: "SF Mono", "Courier New", monospace;
+}
+/* 備註 */
+.note {
+margin-top: 12px;
+font-size: 0.75rem;
+color: #6e7681;
+text-align: center;
+line-height: 1.6;
+}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>🧊 冰水主機流量計算器</h1>
+
+<!-- 輸入區 -->
+<div class="input-group">
+<label>制冷量 (RT)</label>
+<input type="number" id="rtInput" placeholder="輸入 RT 數值" step="any" min="0">
+</div>
+
+<div class="input-group">
+<label>進出水溫差 (°C)</label>
+<input type="number" id="dtInput" placeholder="輸入 ΔT" step="any" min="0">
+<div class="preset-grid">
+<button class="preset-btn" onclick="setDT(4.4, this)">4.4°C</button>
+<button class="preset-btn active" onclick="setDT(5.6, this)">5.6°C</button>
+<button class="preset-btn" onclick="setDT(6.7, this)">6.7°C</button>
+<button class="preset-btn" onclick="setDT(8.3, this)">8.3°C</button>
+</div>
+</div>
+
+<div class="btn-row">
+<button class="btn btn-primary" onclick="calculate()">計算</button>
+<button class="btn btn-secondary" onclick="clearAll()">清除</button>
+</div>
+
+<!-- 結果區 -->
+<div class="result-box" id="resultBox">
+<div class="result-title">計算結果</div>
+<div class="result-grid">
+<div class="result-item">
+<div class="result-label">制冷量</div>
+<div class="result-value" id="resKw">-</div>
+</div>
+<div class="result-item">
+<div class="result-label">流量 (L/min)</div>
+<div class="result-value highlight" id="resLmin">-</div>
+</div>
+<div class="result-item">
+<div class="result-label">流量 (L/s)</div>
+<div class="result-value" id="resLs">-</div>
+</div>
+<div class="result-item">
+<div class="result-label">流量 (m³/hr)</div>
+<div class="result-value" id="resM3">-</div>
+</div>
+<div class="result-item">
+<div class="result-label">流量 (GPM)</div>
+<div class="result-value" id="resGpm">-</div>
+</div>
+<div class="result-item">
+<div class="result-label">流量 (L/hr)</div>
+<div class="result-value" id="resLhr">-</div>
+</div>
+</div>
+<button class="btn btn-secondary" style="width:100%; margin-top:12px;" onclick="saveResult()">💾 儲存記錄</button>
+</div>
+
+<!-- 歷史記錄 -->
+<div class="history-box show" id="historyBox">
+<div class="history-title">
+<span>📋 歷史記錄</span>
+<span onclick="clearHistory()">清除全部</span>
+</div>
+<div class="history-list" id="historyList"></div>
+</div>
+
+<div class="formula-box">
+<code>Q = P × 60 ÷ (4.186 × ΔT)</code><br>
+P(kW) = RT × 3.517 &nbsp;|&nbsp; 建議管路備裕 10~15%
+</div>
+<div class="note">資料來源：D:\SynologyDrive\示範\冰水主機流量計算</div>
+</div>
+
+<script>
+// 初始化
+let history = JSON.parse(localStorage.getItem('chillerHistory') || '[]');
+renderHistory();
+
+function setDT(val, btn) {
+document.getElementById('dtInput').value = val;
+document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+if (btn) btn.classList.add('active');
+}
+
+function calculate() {
+const rt = parseFloat(document.getElementById('rtInput').value);
+const dt = parseFloat(document.getElementById('dtInput').value);
+if (isNaN(rt) || isNaN(dt) || dt <= 0 || rt <= 0) {
+alert('請輸入有效的制冷量(RT)與溫差(°C)');
+return;
+}
+
+const kw = rt * 3.517;
+const lmin = kw * 60 / (4.186 * dt);
+const ls = lmin / 60;
+const gpm = lmin / 3.78541;
+const m3hr = lmin * 60 / 1000;
+const lhr = lmin * 60;
+
+document.getElementById('resKw').textContent = kw.toFixed(2) + ' kW';
+document.getElementById('resLmin').textContent = lmin.toFixed(1) + ' L/min';
+document.getElementById('resLs').textContent = ls.toFixed(2) + ' L/s';
+document.getElementById('resGpm').textContent = gpm.toFixed(1) + ' GPM';
+document.getElementById('resM3').textContent = m3hr.toFixed(2) + ' m³/hr';
+document.getElementById('resLhr').textContent = lhr.toFixed(0) + ' L/hr';
+document.getElementById('resultBox').classList.add('show');
+}
+
+function clearAll() {
+document.getElementById('rtInput').value = '';
+document.getElementById('dtInput').value = '';
+document.getElementById('resultBox').classList.remove('show');
+}
+
+function saveResult() {
+const rt = document.getElementById('rtInput').value;
+const dt = document.getElementById('dtInput').value;
+const lmin = document.getElementById('resLmin').textContent;
+if (!rt || !dt) return;
+
+const entry = {
+time: new Date().toLocaleString('zh-TW'),
+rt: rt,
+dt: dt,
+lmin: lmin
+};
+history.unshift(entry);
+if (history.length > 20) history.pop();
+localStorage.setItem('chillerHistory', JSON.stringify(history));
+renderHistory();
+alert('已儲存！');
+}
+
+function renderHistory() {
+const list = document.getElementById('historyList');
+if (history.length === 0) {
+list.innerHTML = '<div style="color:#6e7681;font-size:0.8rem;text-align:center;padding:20px;">尚無記錄</div>';
+return;
+}
+list.innerHTML = history.map((h, i) => `
+<div class="history-item">
+<div>
+<div style="font-weight:600;">${h.rt} RT / ΔT=${h.dt}°C</div>
+<div style="font-size:0.75rem;color:#8b949e;">${h.time}</div>
+</div>
+<div style="text-align:right;">
+<div style="color:#58a6ff;font-weight:700;">${h.lmin}</div>
+<div class="history-delete" onclick="deleteItem(${i})">刪除</div>
+</div>
+`).join('');
+}
+
+function deleteItem(index) {
+history.splice(index, 1);
+localStorage.setItem('chillerHistory', JSON.stringify(history));
+renderHistory();
+}
+
+function clearHistory() {
+if (confirm('確定清除所有記錄？')) {
+history = [];
+localStorage.setItem('chillerHistory', JSON.stringify(history));
+renderHistory();
+}
+}
+
+// 鍵盤支援
+document.getElementById('rtInput').addEventListener('keydown', e => { if (e.key === 'Enter') calculate(); });
+document.getElementById('dtInput').addEventListener('keydown', e => { if (e.key === 'Enter') calculate(); });
+</script>
+</body>
+</html>
