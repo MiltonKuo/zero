@@ -223,8 +223,8 @@ tr:hover td { background: rgba(88,166,255,0.08); }
 </div>
 
 <div class="formula">
-<code>Q = π × D² × v × 0.015</code><br>
-D = 內徑(mm) | v = 流速(m/s) | Q = 流量(L/min)
+<code>Q = π × DN² × v × 0.015</code><br>
+DN = 管徑(mm) | v = 流速(m/s) | Q = 流量(L/min)
 </div>
 
 <div class="toggle-table">
@@ -251,26 +251,26 @@ D = 內徑(mm) | v = 流速(m/s) | Q = 流量(L/min)
 </div>
 
 <script>
-// 管徑資料：DN、內徑、流量表（從 PDF 提取）
+// 管徑資料：使用 DN 值作為內徑（與 PDF 表格一致）
 const pipes = [
-{ dn:20,  inch:'1/2',  id:20.9,  flows:[8,12,15,18,23,27,30,33,38,42,45,48,53,57] },
-{ dn:25,  inch:'1',    id:26.9,  flows:[12,18,23,30,35,42,47,53,58,65,70,77,82,88] },
-{ dn:32,  inch:'1-1/4',id:35.2,  flows:[20,28,38,48,58,68,77,87,97,107,115,125,135,145] },
-{ dn:40,  inch:'1-1/2',id:41.0,  flows:[30,45,60,75,90,105,120,135,150,167,182,197,212,227] },
-{ dn:50,  inch:'2',    id:52.5,  flows:[47,70,95,118,142,165,188,212,235,260,283,307,330,353] },
-{ dn:65,  inch:'2-1/2',id:68.1,  flows:[80,120,160,198,238,278,318,358,398,438,478,518,557,597] },
-{ dn:80,  inch:'3',    id:81.4,  flows:[120,182,242,302,362,422,483,543,603,663,723,783,845,905] },
-{ dn:100, inch:'4',    id:102.3, flows:[188,283,377,472,565,660,753,848,942,1037,1132,1225,1320,1413] },
-{ dn:125, inch:'5',    id:128.2, flows:[295,442,588,737,883,1032,1178,1325,1473,1620,1767,1915,2062,2208] },
-{ dn:150, inch:'6',    id:154.1, flows:[423,637,848,1060,1272,1485,1697,1908,2120,2333,2545,2757,2968,3182] },
-{ dn:200, inch:'8',    id:203.2, flows:[753,1132,1508,1885,2262,2638,3017,3393,3770,4147,4523,4902,5278,5655] },
-{ dn:250, inch:'10',   id:254.5, flows:[1178,1767,2357,2945,3535,4123,4712,5302,5890,6480,7068,7658,8247,8835] },
-{ dn:300, inch:'12',   id:304.8, flows:[1697,2545,3393,4242,5090,5938,6785,7633,8482,9330,10178,11027,11875,12723] },
-{ dn:350, inch:'14',   id:355.6, flows:[2308,3463,4618,5773,6927,8082,9237,10390,11545,12700,13855,15008,16163,17318] },
-{ dn:400, inch:'16',   id:406.4, flows:[3017,4523,6032,7540,9048,10555,12063,13572,15080,16588,18095,19603,21112,22620] },
-{ dn:450, inch:'18',   id:457.2, flows:[3817,5725,7633,9543,11452,13360,15268,17177,19085,20993,22902,24810,26720,28628] },
-{ dn:500, inch:'20',   id:508.0, flows:[4712,7068,9425,11782,14137,16493,18850,21205,23562,25918,28275,30630,32987,35343] },
-{ dn:600, inch:'24',   id:609.6, flows:[6785,10178,13572,16965,20357,23750,27143,30537,33928,37322,40715,44108,47500,50893] },
+{ dn:20,  inch:'1/2',  id:20,   flows:[8,12,15,18,23,27,30,33,38,42,45,48,53,57] },
+{ dn:25,  inch:'1',    id:25,   flows:[12,18,23,30,35,42,47,53,58,65,70,77,82,88] },
+{ dn:32,  inch:'1-1/4',id:32,   flows:[20,28,38,48,58,68,77,87,97,107,115,125,135,145] },
+{ dn:40,  inch:'1-1/2',id:40,   flows:[30,45,60,75,90,105,120,135,150,167,182,197,212,227] },
+{ dn:50,  inch:'2',    id:50,   flows:[47,70,95,118,142,165,188,212,235,260,283,307,330,353] },
+{ dn:65,  inch:'2-1/2',id:65,   flows:[80,120,160,198,238,278,318,358,398,438,478,518,557,597] },
+{ dn:80,  inch:'3',    id:80,   flows:[120,182,242,302,362,422,483,543,603,663,723,783,845,905] },
+{ dn:100, inch:'4',    id:100,  flows:[188,283,377,472,565,660,753,848,942,1037,1132,1225,1320,1413] },
+{ dn:125, inch:'5',    id:125,  flows:[295,442,588,737,883,1032,1178,1325,1473,1620,1767,1915,2062,2208] },
+{ dn:150, inch:'6',    id:150,  flows:[423,637,848,1060,1272,1485,1697,1908,2120,2333,2545,2757,2968,3182] },
+{ dn:200, inch:'8',    id:200,  flows:[753,1132,1508,1885,2262,2638,3017,3393,3770,4147,4523,4902,5278,5655] },
+{ dn:250, inch:'10',   id:250,  flows:[1178,1767,2357,2945,3535,4123,4712,5302,5890,6480,7068,7658,8247,8835] },
+{ dn:300, inch:'12',   id:300,  flows:[1697,2545,3393,4242,5090,5938,6785,7633,8482,9330,10178,11027,11875,12723] },
+{ dn:350, inch:'14',   id:350,  flows:[2308,3463,4618,5773,6927,8082,9237,10390,11545,12700,13855,15008,16163,17318] },
+{ dn:400, inch:'16',   id:400,  flows:[3017,4523,6032,7540,9048,10555,12063,13572,15080,16588,18095,19603,21112,22620] },
+{ dn:450, inch:'18',   id:450,  flows:[3817,5725,7633,9543,11452,13360,15268,17177,19085,20993,22902,24810,26720,28628] },
+{ dn:500, inch:'20',   id:500,  flows:[4712,7068,9425,11782,14137,16493,18850,21205,23562,25918,28275,30630,32987,35343] },
+{ dn:600, inch:'24',   id:600,  flows:[6785,10178,13572,16965,20357,23750,27143,30537,33928,37322,40715,44108,47500,50893] },
 ];
 const velocities = [0.4,0.6,0.8,1.0,1.2,1.4,1.6,1.8,2.0,2.2,2.4,2.6,2.8,3.0];
 
@@ -294,21 +294,18 @@ if (isQV) {
 pipeDN = parseInt(document.getElementById('pipeSelectQV').value);
 inputVal = parseFloat(document.getElementById('velocityInput').value);
 if (!pipeDN || !inputVal) { alert('請選擇管徑並輸入流速'); return; }
-const p = pipes.find(x => x.dn === pipeDN);
-// 線性插值計算流量
-computedVal = interpolateFlow(p, inputVal);
+computedVal = interpolateFlow(pipeDN, inputVal);
 } else {
 pipeDN = parseInt(document.getElementById('pipeSelectVQ').value);
 inputVal = parseFloat(document.getElementById('flowInput').value);
 if (!pipeDN || !inputVal) { alert('請選擇管徑並輸入流量'); return; }
-const p = pipes.find(x => x.dn === pipeDN);
-// 反推流速
-const velocity = inputVal / (Math.PI * Math.pow(p.id/2, 2) * 0.015);
-computedVal = velocity;
+computedVal = inputVal / (Math.PI * (pipeDN**2) * 0.015);
 }
 
 const p = pipes.find(x => x.dn === pipeDN);
-const flowLmin = isQV ? computedVal : (Math.PI * Math.pow(p.id/2, 2) * inputVal * 0.015);
+// Q→V 模式：inputVal 就是流量，直接顯示；v 需要反算
+// V→Q 模式：inputVal 是流速，flowLmin 需要計算
+const flowLmin = isQV ? computedVal : inputVal;
 const velocity = isQV ? inputVal : computedVal;
 const flowM3 = flowLmin * 60 / 1000;
 
@@ -340,18 +337,19 @@ const velIdx = velocities.findIndex(v=>Math.abs(v-velocity)<0.01);
 if (velIdx>=0) document.getElementById('cell-'+rowIdx+'-'+velIdx)?.classList.add('highlight-cell');
 }
 
-// 線性插值
-function interpolateFlow(pipe, vel) {
-if (vel <= 0.4) return Math.PI * Math.pow(pipe.id/2, 2) * 0.4 * 0.015;
-if (vel >= 3.0) return Math.PI * Math.pow(pipe.id/2, 2) * 3.0 * 0.015;
-// 找到速度区间
-for (let i = 0; i < velocities.length - 1; i++) {
-if (vel >= velocities[i] && vel <= velocities[i+1]) {
-const ratio = (vel - velocities[i]) / (velocities[i+1] - velocities[i]);
-return pipe.flows[i] + ratio * (pipe.flows[i+1] - pipe.flows[i]);
-}
-}
-return pipe.flows[pipe.flows.length-1];
+// 線性插值（使用 DN 值作為內徑）
+function interpolateFlow(dn, vel) {
+    if (vel <= 0.4) return Math.PI * (dn**2) * 0.4 * 0.015;
+    if (vel >= 3.0) return Math.PI * (dn**2) * 3.0 * 0.015;
+    for (let i = 0; i < velocities.length - 1; i++) {
+        if (vel >= velocities[i] && vel <= velocities[i+1]) {
+            const pipe = pipes.find(p => p.dn === dn);
+            const ratio = (vel - velocities[i]) / (velocities[i+1] - velocities[i]);
+            return pipe.flows[i] + ratio * (pipe.flows[i+1] - pipe.flows[i]);
+        }
+    }
+    const pipe = pipes.find(p => p.dn === dn);
+    return pipe.flows[pipe.flows.length-1];
 }
 
 function clearAll() {
