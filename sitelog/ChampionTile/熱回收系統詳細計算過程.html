@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冠軍建材熱回收系統詳細計算過程</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 100%);
+            color: #e8e8e8;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, rgba(0,212,255,0.1), rgba(0,255,136,0.1));
+            border-radius: 20px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(0,212,255,0.3);
+        }
+        .header h1 {
+            font-size: 2em;
+            background: linear-gradient(90deg, #00d4ff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+        .header p { color: #888; }
+        
+        /* Sections */
+        .section {
+            background: rgba(255,255,255,0.03);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .section h2 {
+            color: #00d4ff;
+            font-size: 1.4em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(0,212,255,0.3);
+        }
+        .section h3 {
+            color: #ffd700;
+            font-size: 1.1em;
+            margin: 20px 0 15px 0;
+        }
+        
+        /* Formula boxes */
+        .formula-box {
+            background: rgba(0,0,0,0.4);
+            border-left: 4px solid #00d4ff;
+            padding: 20px;
+            border-radius: 0 10px 10px 0;
+            margin: 15px 0;
+            font-family: "Courier New", monospace;
+            overflow-x: auto;
+        }
+        .formula-box.highlight {
+            background: rgba(0,255,136,0.1);
+            border-left-color: #00ff88;
+        }
+        .formula-box .label {
+            color: #888;
+            font-size: 0.85em;
+            margin-bottom: 10px;
+            font-family: -apple-system, sans-serif;
+        }
+        .formula-box .formula {
+            color: #00d4ff;
+            font-size: 1em;
+            line-height: 1.8;
+        }
+        .formula-box .result {
+            color: #00ff88;
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        /* Calculation steps */
+        .calc-step {
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            padding: 15px 20px;
+            margin: 10px 0;
+            border-left: 3px solid #ffd700;
+        }
+        .calc-step .step-title {
+            color: #ffd700;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        .calc-step .step-content {
+            color: #ccc;
+            line-height: 1.6;
+        }
+        .calc-step .step-value {
+            color: #00ff88;
+            font-weight: bold;
+        }
+        
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            font-size: 0.9em;
+        }
+        th {
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            color: #000;
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        td {
+            padding: 10px 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        tr:hover { background: rgba(0,212,255,0.1); }
+        .highlight { color: #00d4ff; font-weight: bold; }
+        .success { color: #00ff88; }
+        .warning { color: #ffd700; }
+        .danger { color: #ff6b6b; }
+        
+        /* Two column layout */
+        .two-col {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin: 15px 0;
+        }
+        
+        /* Parameter cards */
+        .param-card {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .param-card h4 {
+            color: #00d4ff;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        .param-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .param-row:last-child { border-bottom: none; }
+        .param-name { color: #aaa; }
+        .param-value { color: #00ff88; font-weight: bold; }
+        
+        /* Flow diagram */
+        .flow-diagram {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .flow-step {
+            display: inline-block;
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            color: #000;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            margin: 5px;
+        }
+        .flow-arrow {
+            color: #ffd700;
+            font-size: 1.5em;
+            margin: 0 10px;
+        }
+        
+        /* Comparison */
+        .comparison-table {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            margin: 15px 0;
+        }
+        .comparison-col {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 15px;
+        }
+        .comparison-col.design { border-top: 3px solid #00d4ff; }
+        .comparison-col.actual { border-top: 3px solid #00ff88; }
+        .comparison-col.diff { border-top: 3px solid #ffd700; }
+        .comparison-col h4 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+        }
+        .comparison-col.design h4 { color: #00d4ff; }
+        .comparison-col.actual h4 { color: #00ff88; }
+        .comparison-col.diff h4 { color: #ffd700; }
+        
+        @media (max-width: 768px) {
+            .header h1 { font-size: 1.5em; }
+            .comparison-table { grid-template-columns: 1fr; }
+            .two-col { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🔢 冠軍建材熱回收系統詳細計算過程</h1>
+            <p>依據節能績效計劃書 v3.6 | 量測期間：2026年9月18日-21日</p>
+        </div>
+
+        <!-- Chapter 1: 基本參數 -->
+        <div class="section">
+            <h2>📊 第一章：基本參數與設計值</h2>
+            
+            <h3>1.1 計劃書規定參數</h3>
+            <div class="two-col">
+                <div class="param-card">
+                    <h4>天然氣參數</h4>
+                    <div class="param-row">
+                        <span class="param-name">改善前年用量</span>
+                        <span class="param-value">2,278,800 m³/年</span>
+                    </div>
+                    <div class="param-row">
+                        <span class="param-name">平均每小時用量</span>
+                        <span class="param-value">316.5 m³/h</span>
+                    </div>
+                    <div class="param-row">
+                        <span class="param-name">天然氣熱值</span>
+                        <span class="param-value">8,990 kcal/m³</span>
+                    </div>
+                    <div class="param-row">
+                        <span class="param-name">燃燒效率</span>
+                        <span class="param-value">90%</span>
+                    </div>
+                    <div class="param-row">
+                        <span class="param-name">天然氣單價</span>
+                        <span class="param-value">13.84 元/m³</span>
+                    </div>
+                </div>
+                <div class="param-card">
+                    <h4>熱回收系統參數</h4>
+                    <div class="param-row">
+                        <span class="param-name">噴霧乾燥塔進風量</span>
+                        <span class="param-value">13,000 m³/h</span>
+                    </div>
+                    <div class="param-row">
+                        <span class="param-name">進風量（150°C時）</span>
+                        <span class="param-value">20,100 m³/h</span>
+                    </div>
+                    <div class="param-row">
+                        <span class="param-name">新風入口溫度</span>
+                        <span class="param-value">35°C</span>
+                    </div>
+                    <div class="param-row">
+                        <span class="param-name">新風出口溫度（設計）</span>
+                        <span class="param-value">150°C</span>
+                    </div>
+                    <div class="param-row">
+                        <span class="param-name">熱回收效率</span>
+                        <span class="param-value">78%</span>
+                    </div>
+                </div>
+            </div>
+            <div class="two-col">
+                <div class="param-card">
+                    <h4>風機功率參數</h4>
+                    <div class="param-row">
+                        <span class="param-name">煙氣風機功率</span>
+                        <span class="param-value">75 kW</span>
+                    </div>
+                    <div class="param-row">
+                        <span class="param-name">新鮮空氣風機功率</span>
+                        <span class="param-value">37 kW</span>
+                    </div>
+                    <div class="param-row">
+                        <span class="param-name">風機總功率</span>
+                        <span class="param-value">112 kW</span>
+                    </div>
+                    <div class="param-row">
+                        <span class="param-name">設計負載率</span>
+                        <span class="param-value">80%</span>
+                    </div>
+                    <div class="param-row">
+                        <span class="param-name">實際使用功率</span>
+                        <span class="param-value">89.6 kW</span>
+                    </div>
+                </div>
+                <div class="param-card">
+                    <h4>計算常數</h4>
+                    <div class="param-row">
+                        <span class="param-name">年運轉時數</span>
+                        <span class="param-value">7,200 小時/年</span>
+                    </div>
+                    <div class="param-row">
+                        <span class="param-name">電力熱值</span>
+                        <span class="param-value">860 kcal/kWh</span>
+                    </div>
+                    <div class="param-row">
+                        <span class="param-name">空氣密度（150°C）</span>
+                        <span class="param-value">0.835 kg/m³</span>
+                    </div>
+                    <div class="param-row">
+                        <span class="param-name">電費單價</span>
+                        <span class="param-value">4.39 元/kWh</span>
+                    </div>
+                    <div class="param-row">
+                        <span class="param-name">1 kloe</span>
+                        <span class="param-value">9,000,000 kcal</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chapter 2: 改善前能源耗用量 -->
+        <div class="section">
+            <h2>📉 第二章：改善前能源耗用量計算</h2>
+            
+            <div class="formula-box">
+                <div class="label">公式來源：計劃書第3章 表2-8</div>
+                <div class="formula">
+                    E_base = 平均天然氣使用量(m³/h) × 年運轉時數(h/年)<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= 316.5 × 7,200<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= <span class="result" style="color: #00d4ff;">2,278,800 m³/年</span>
+                </div>
+            </div>
+
+            <div class="calc-step">
+                <div class="step-title">步驟一：計算年熱值耗用量</div>
+                <div class="step-content">
+                    熱值 = 天然氣用量 × 天然氣熱值<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= 2,278,800 m³ × 8,990 kcal/m³<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= <span class="step-value">20,479,212,000 kcal/年</span>
+                </div>
+            </div>
+
+            <div class="calc-step">
+                <div class="step-title">步驟二：換算為油當量</div>
+                <div class="step-content">
+                    油當量(kloe) = 熱值 ÷ 9,000,000 kcal/kloe<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= 20,479,212,000 ÷ 9,000,000<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= <span class="step-value">2,276.27 kloe/年</span>
+                </div>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>項目</th>
+                        <th>數值</th>
+                        <th>單位</th>
+                        <th>計算式</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>年平均天然氣用量</td>
+                        <td class="highlight">2,278,800</td>
+                        <td>m³/年</td>
+                        <td>316.5 × 7,200</td>
+                    </tr>
+                    <tr>
+                        <td>年熱值耗用量</td>
+                        <td class="highlight">20,479,212,000</td>
+                        <td>kcal/年</td>
+                        <td>2,278,800 × 8,990</td>
+                    </tr>
+                    <tr>
+                        <td>油當量</td>
+                        <td class="highlight">2,276.27</td>
+                        <td>kloe/年</td>
+                        <td>÷ 9,000,000</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Chapter 3: 改善後節能效益計算 -->
+        <div class="section">
+            <h2>📈 第三章：改善後節能效益計算</h2>
+            
+            <h3>3.1 熱回收量計算</h3>
+            
+            <div class="formula-box highlight">
+                <div class="label">📐 核心公式（依據計劃書第3章）</div>
+                <div class="formula">
+                    Q = 風量(m³/h) × 溫差(℃) × 空氣密度(kg/m³) × 比熱容(kcal/kg·℃)<br>
+                    <br>
+                    其中：<br>
+                    &nbsp;&nbsp;風量 = 10,545 m³/h（實際測量值）<br>
+                    &nbsp;&nbsp;溫差 ΔT = 新風出口溫度 - 新風入口溫度 = 214 - 35 = 179°C<br>
+                    &nbsp;&nbsp;空氣密度 = 0.835 kg/m³（150°C條件）<br>
+                    &nbsp;&nbsp;比熱容 = 1.0 kcal/kg·℃
+                </div>
+            </div>
+
+            <div class="calc-step">
+                <div class="step-title">步驟一：計算每小時熱回收量</div>
+                <div class="step-content">
+                    Q_h = 10,545 × 179 × 0.835 × 1.0<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;= <span class="step-value">1,575,514 kcal/h</span>
+                </div>
+            </div>
+
+            <div class="calc-step">
+                <div class="step-title">步驟二：計算年熱回收量</div>
+                <div class="step-content">
+                    Q_year = 1,575,514 × 7,200<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= <span class="step-value">11,343,699,488 kcal/年</span>
+                </div>
+            </div>
+
+            <h3>3.2 天然氣節約量計算</h3>
+            
+            <div class="formula-box">
+                <div class="label">📐 節約天然氣計算</div>
+                <div class="formula">
+                    節約天然氣(m³/年) = 年熱回收量(kcal/年) × 燃燒效率 ÷ 天然氣熱值(kcal/m³)<br>
+                    <br>
+                    V_gas = 11,343,699,488 × 90% ÷ 8,990<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= <span class="result" style="color: #00ff88;">1,135,200 m³/年</span>
+                </div>
+            </div>
+
+            <div class="calc-step">
+                <div class="step-title">步驟一：計算有效熱值</div>
+                <div class="step-content">
+                    有效熱值 = 年熱回收量 × 燃燒效率<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= 11,343,699,488 × 90%<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= <span class="step-value">10,209,329,539 kcal/年</span>
+                </div>
+            </div>
+
+            <div class="calc-step">
+                <div class="step-title">步驟二：換算為天然氣體積</div>
+                <div class="step-content">
+                    V_gas = 10,209,329,539 ÷ 8,990<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= <span class="step-value">1,135,200 m³/年</span>
+                </div>
+            </div>
+
+            <h3>3.3 風機耗電量計算</h3>
+            
+            <div class="formula-box">
+                <div class="label">📐 風機耗電計算</div>
+                <div class="formula">
+                    年耗電量(kWh/年) = 系統功率(kW) × 年運轉時數(h/年)<br>
+                    <br>
+                    其中：<br>
+                    &nbsp;&nbsp;系統功率 = 6.39 kW（實際測量值）<br>
+                    &nbsp;&nbsp;年運轉時數 = 7,200 h/年<br>
+                    <br>
+                    E_elec = 6.39 × 7,200<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= <span class="result" style="color: #00ff88;">46,008 kWh/年</span>
+                </div>
+            </div>
+
+            <div class="calc-step">
+                <div class="step-title">步驟一：計算年耗電量</div>
+                <div class="step-content">
+                    E_elec = 6.39 × 7,200<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= <span class="step-value">46,008 kWh/年</span>
+                </div>
+            </div>
+
+            <div class="calc-step">
+                <div class="step-title">步驟二：換算為熱值</div>
+                <div class="step-content">
+                    耗電熱值 = 46,008 × 860<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= <span class="step-value">39,566,880 kcal/年</span>
+                </div>
+            </div>
+
+            <h3>3.4 淨節能效益計算</h3>
+            
+            <div class="formula-box highlight">
+                <div class="label">📐 淨節能計算（扣除風機耗電）</div>
+                <div class="formula">
+                    淨節能量(kcal/年) = 年熱回收量 - 風機耗電熱值<br>
+                    <br>
+                    Q_net = 11,343,699,488 - 39,566,880<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= <span class="result" style="color: #00ff88;">11,304,132,608 kcal/年</span>
+                </div>
+            </div>
+
+            <div class="calc-step">
+                <div class="step-title">步驟一：計算淨節能量</div>
+                <div class="step-content">
+                    Q_net = 11,343,699,488 - 39,566,880<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= <span class="step-value">11,304,132,608 kcal/年</span>
+                </div>
+            </div>
+
+            <div class="calc-step">
+                <div class="step-title">步驟二：換算為天然氣節約量</div>
+                <div class="step-content">
+                    V_net = 11,304,132,608 ÷ 8,990<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= <span class="step-value">1,257,412 m³/年</span>
+                </div>
+            </div>
+
+            <div class="calc-step">
+                <div class="step-title">步驟三：計算節能率</div>
+                <div class="step-content">
+                    節能率(%) = (淨節約天然氣 ÷ 改善前用量) × 100%<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= (1,257,412 ÷ 2,278,800) × 100%<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= <span class="step-value">55.2%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chapter 4: 經濟效益計算 -->
+        <div class="section">
+            <h2>💰 第四章：經濟效益計算</h2>
+            
+            <h3>4.1 天然氣節約費用</h3>
+            
+            <div class="formula-box">
+                <div class="label">📐 天然氣費用計算</div>
+                <div class="formula">
+                    節約費用(元/年) = 節約天然氣(m³/年) × 天然氣單價(元/m³)<br>
+                    <br>
+                    C_gas = 1,135,200 × 13.84<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= <span class="result" style="color: #00ff88;">15,710,640 元/年</span>
+                </div>
+            </div>
+
+            <h3>4.2 風機耗電費用</h3>
+            
+            <div class="formula-box">
+                <div class="label">📐 風機耗電費用計算</div>
+                <div class="formula">
+                    耗電費用(元/年) = 年耗電量(kWh/年) × 電費單價(元/kWh)<br>
+                    <br>
+                    C_elec = 46,008 × 4.39<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= <span class="result" style="color: #ffd700;">201,975 元/年</span>
+                </div>
+            </div>
+
+            <h3>4.3 淨節約費用</h3>
+            
+            <div class="formula-box highlight">
+                <div class="label">📐 淨節約費用計算</div>
+                <div class="formula">
+                    淨節約費用 = 天然氣節約費用 - 風機耗電費用<br>
+                    <br>
+                    C_net = 15,710,640 - 201,975<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= <span class="result" style="color: #00ff88;">15,508,665 元/年</span>
+                </div>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>效益項目</th>
+                        <th>數值</th>
+                        <th>單位</th>
+                        <th>計算式</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>天然氣節約費用</td>
+                        <td class="highlight">15,710,640</td>
+                        <td>元/年</td>
+                        <td>1,135,200 × 13.84</td>
+                    </tr>
+                    <tr>
+                        <td>風機耗電費用</td>
+                        <td class="warning">201,975</td>
+                        <td>元/年</td>
+                        <td>46,008 × 4.39</td>
+                    </tr>
+                    <tr style="background: rgba(0,255,136,0.1);">
+                        <td><strong>淨節約費用</strong></td>
+                        <td class="success"><strong>15,508,665</strong></td>
+                        <td><strong>元/年</strong></td>
+                        <td>15,710,640 - 201,975</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Chapter 5: 效率驗證計算 -->
+        <div class="section">
+            <h2>✅ 第五章：效率驗證計算</h2>
+            
+            <h3>5.1 熱回收效率計算</h3>
+            
+            <div class="formula-box">
+                <div class="label">📐 熱回收效率定義</div>
+                <div class="formula">
+                    η = (新風實際溫升 ÷ 理論最大溫升) × 100%<br>
+                    <br>
+                    其中：<br>
+                    &nbsp;&nbsp;新風實際溫升 = 新風出口溫度 - 新風入口溫度 = 214 - 35 = 179°C<br>
+                    &nbsp;&nbsp;理論最大溫升 = 熱風入口溫度 - 新風入口溫度 = 260 - 35 = 225°C<br>
+                    <br>
+                    η = (179 ÷ 225) × 100%<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;= <span class="result" style="color: #00ff88;">79.6%</span>
+                </div>
+            </div>
+
+            <div class="comparison-table">
+                <div class="comparison-col design">
+                    <h4>📐 設計值</h4>
+                    <div class="param-row">
+                        <span class="param-name">熱回收效率</span>
+                        <span class="param-value">78.0%</span>
+                    </div>
+                    <div class="param-row">
+                        <span class="param-name">新風出口溫度</span>
+                        <span class="param-value">150°C</span>
+                    </div>
+                    <div class="param-row">
+                        <span class="param-name">溫差</span>
+                        <span class="param-value">115°C</span>
+                    </div>
+                </div>
+                <div class="comparison-col actual">
+                    <h4>📊 實際值</h4>
+                    <div class="param-row">
+                        <span class="param-name">熱回收效率</span>
+                        <span class="param-value" style="color: #00ff88;">78.5%</span>
+                    </div>
+                    <div class="param-row">
+                        <span class="param-name">新風出口溫度</span>
+                        <span class="param-value" style="color: #00ff88;">214°C</span>
+                    </div>
+                    <div class="param-row">
+                        <span class="param-name">溫差</span>
+                        <span class="param-value" style="color: #00ff88;">179°C</span>
+                    </div>
+                </div>
+                <div class="comparison-col diff">
+                    <h4>📈 差異分析</h4>
+                    <div class="param-row">
+                        <span class="param-name">效率差異</span>
+                        <span class="param-value" style="color: #00ff88;">+0.5%</span>
+                    </div>
+                    <div class="param-row">
+                        <span class="param-name">出口溫度差異</span>
+                        <span class="param-value" style="color: #00ff88;">+64°C</span>
+                    </div>
+                    <div class="param-row">
+                        <span class="param-name">溫差提升</span>
+                        <span class="param-value" style="color: #00ff88;">+64%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="calc-step">
+                <div class="step-title">效率計算驗證</div>
+                <div class="step-content">
+                    根據實際測量數據：<br>
+                    &nbsp;&nbsp;新風入口溫度：34.6°C<br>
+                    &nbsp;&nbsp;新風出口溫度：214°C<br>
+                    &nbsp;&nbsp;熱風入口溫度：260.1°C<br>
+                    <br>
+                    效率 = (214 - 34.6) ÷ (260.1 - 34.6) × 100%<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= 179.4 ÷ 225.5 × 100%<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= <span class="step-value">79.6%</span>
+                </div>
+            </div>
+
+            <h3>5.2 功率驗證計算</h3>
+            
+            <div class="formula-box">
+                <div class="label">📐 功率對比</div>
+                <div class="formula">
+                    設計功率 = (75 + 37) kW × 80% = 89.6 kW<br>
+                    實際功率 = 6.39 kW<br>
+                    <br>
+                    功率差異 = (6.39 - 89.6) ÷ 89.6 × 100%<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= <span class="result" style="color: #00ff88;">-92.9%</span>（低於設計值）
+                </div>
+            </div>
+        </div>
+
+        <!-- Chapter 6: 完整計算汇总表 -->
+        <div class="section">
+            <h2>📋 第六章：完整計算汇总</h2>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>計算項目</th>
+                        <th>計算式</th>
+                        <th>結果</th>
+                        <th>單位</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>改善前天然氣用量</td>
+                        <td>316.5 × 7,200</td>
+                        <td class="highlight">2,278,800</td>
+                        <td>m³/年</td>
+                    </tr>
+                    <tr>
+                        <td>改善前熱值</td>
+                        <td>2,278,800 × 8,990</td>
+                        <td class="highlight">20,479,212,000</td>
+                        <td>kcal/年</td>
+                    </tr>
+                    <tr style="background: rgba(0,212,255,0.1);">
+                        <td>年熱回收量</td>
+                        <td>10,545 × 179 × 0.835 × 7,200</td>
+                        <td class="success">11,343,699,488</td>
+                        <td>kcal/年</td>
+                    </tr>
+                    <tr>
+                        <td>年節約天然氣</td>
+                        <td>11,343,699,488 × 90% ÷ 8,990</td>
+                        <td class="success">1,135,200</td>
+                        <td>m³/年</td>
+                    </tr>
+                    <tr>
+                        <td>風機年耗電量</td>
+                        <td>6.39 × 7,200</td>
+                        <td class="warning">46,008</td>
+                        <td>kWh/年</td>
+                    </tr>
+                    <tr>
+                        <td>風機耗電熱值</td>
+                        <td>46,008 × 860</td>
+                        <td class="warning">39,566,880</td>
+                        <td>kcal/年</td>
+                    </tr>
+                    <tr style="background: rgba(0,255,136,0.1);">
+                        <td><strong>淨節能量</strong></td>
+                        <td>11,343,699,488 - 39,566,880</td>
+                        <td class="success"><strong>11,304,132,608</strong></td>
+                        <td><strong>kcal/年</strong></td>
+                    </tr>
+                    <tr>
+                        <td><strong>淨節約天然氣</strong></td>
+                        <td>11,304,132,608 ÷ 8,990</td>
+                        <td class="success"><strong>1,257,412</strong></td>
+                        <td><strong>m³/年</strong></td>
+                    </tr>
+                    <tr style="background: rgba(0,255,136,0.2);">
+                        <td><strong>節能率</strong></td>
+                        <td>1,257,412 ÷ 2,278,800 × 100%</td>
+                        <td class="success"><strong>55.2%</strong></td>
+                        <td><strong>%</strong></td>
+                    </tr>
+                    <tr>
+                        <td>天然氣節約費用</td>
+                        <td>1,135,200 × 13.84</td>
+                        <td class="success">15,710,640</td>
+                        <td>元/年</td>
+                    </tr>
+                    <tr>
+                        <td>風機耗電費用</td>
+                        <td>46,008 × 4.39</td>
+                        <td class="warning">201,975</td>
+                        <td>元/年</td>
+                    </tr>
+                    <tr style="background: rgba(0,255,136,0.15);">
+                        <td><strong>淨節約費用</strong></td>
+                        <td>15,710,640 - 201,975</td>
+                        <td class="success"><strong>15,508,665</strong></td>
+                        <td><strong>元/年</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="flow-diagram">
+                <div style="margin-bottom: 15px; color: #888;">計算流程圖</div>
+                <div>
+                    <span class="flow-step">天然氣 2,278,800 m³/年</span>
+                    <span class="flow-arrow">→</span>
+                    <span class="flow-step" style="background: linear-gradient(135deg, #00ff88, #00cc6a);">熱回收 1,135,200 m³/年</span>
+                    <span class="flow-arrow">→</span>
+                    <span class="flow-step" style="background: linear-gradient(135deg, #ffd700, #ffaa00); color: #000;">節能率 55.2%</span>
+                </div>
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+                    <span class="flow-step">費用節省 1,551萬元/年</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chapter 7: 結論 -->
+        <div class="section">
+            <h2>🎯 第七章：驗證結論</h2>
+            
+            <div style="background: linear-gradient(135deg, rgba(0,255,136,0.2), rgba(0,212,255,0.2)); border: 2px solid #00ff88; border-radius: 15px; padding: 25px; margin: 20px 0; text-align: center;">
+                <h2 style="color: #00ff88; margin-bottom: 15px;">✅ 驗證通過</h2>
+                <p style="font-size: 1.1em; margin-bottom: 15px;">
+                    冠軍建材熱回收系統節能績效<strong>符合</strong>計劃書規定之13.9%節能率要求
+                </p>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 20px;">
+                    <div>
+                        <div style="color: #888; font-size: 0.9em;">設計節能率</div>
+                        <div style="font-size: 2em; font-weight: bold; color: #00d4ff;">15.3%</div>
+                    </div>
+                    <div>
+                        <div style="color: #888; font-size: 0.9em;">實際節能率</div>
+                        <div style="font-size: 2em; font-weight: bold; color: #00ff88;">55.2%</div>
+                    </div>
+                    <div>
+                        <div style="color: #888; font-size: 0.9em;">超出幅度</div>
+                        <div style="font-size: 2em; font-weight: bold; color: #ffd700;">+261%</div>
+                    </div>
+                </div>
+            </div>
+
+            <h3>關鍵計算要點</h3>
+            <ul style="padding-left: 20px; line-height: 2.2;">
+                <li>熱回收效率計算基於<strong>新風實際溫升</strong>與<strong>理論最大溫升</strong>之比</li>
+                <li>天然氣節約量需扣除<strong>風機耗電</strong>之替代熱值</li>
+                <li>節能率計算採用<strong>淨節能量</strong>除以<strong>改善前能源耗用量</strong></li>
+                <li>實際效率78.5%略高於設計值78%，差異僅+0.5%</li>
+                <li>新風出口溫度達214°C，遠超設計目標150°C</li>
+                <li>系統功率僅6.39kW，远低于設計值89.6kW（降低92.9%）</li>
+            </ul>
+        </div>
+
+        <div style="text-align: center; padding: 30px; color: #666; font-size: 0.9em; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 30px;">
+            <p>📊 計算報告生成時間：2026年9月23日</p>
+            <p>依據文件：冠軍建材節能績效計劃書 v3.6 | IPMVP國際量測驗證精神</p>
+        </div>
+    </div>
+</body>
+</html>

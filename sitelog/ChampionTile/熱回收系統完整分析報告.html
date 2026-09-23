@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冠軍磁磚熱回收系統完整分析報告</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 100%);
+            color: #e8e8e8;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header {
+            text-align: center;
+            padding: 40px 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .header h1 {
+            font-size: 2.5em;
+            background: linear-gradient(90deg, #00d4ff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+        .header p { color: #888; font-size: 1.1em; }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .summary-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s;
+        }
+        .summary-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,212,255,0.2);
+        }
+        .summary-card .icon { font-size: 2em; margin-bottom: 10px; }
+        .summary-card h3 {
+            color: #00d4ff;
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+        .summary-card .value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #fff;
+        }
+        .summary-card .unit { font-size: 0.45em; color: #888; margin-left: 5px; }
+        .section {
+            background: rgba(255,255,255,0.03);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .section h2 {
+            color: #00ff88;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(0,255,136,0.3);
+        }
+        .section h3 {
+            color: #ffd700;
+            font-size: 1.1em;
+            margin: 20px 0 15px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            font-size: 0.9em;
+        }
+        th {
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            color: #000;
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        td {
+            padding: 10px 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        tr:hover { background: rgba(0,212,255,0.1); }
+        .highlight { color: #00d4ff; font-weight: bold; }
+        .warning { color: #ff6b6b; }
+        .success { color: #00ff88; }
+        .chart-container {
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .bar-chart {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            height: 280px;
+            padding: 20px 0;
+            border-bottom: 2px solid rgba(255,255,255,0.2);
+        }
+        .bar-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+        }
+        .bar {
+            width: 50px;
+            background: linear-gradient(180deg, #00d4ff, #0099cc);
+            border-radius: 5px 5px 0 0;
+            position: relative;
+            transition: height 0.5s ease;
+        }
+        .bar.efficiency {
+            background: linear-gradient(180deg, #00ff88, #00cc6a);
+        }
+        .bar.power {
+            background: linear-gradient(180deg, #ffd700, #ffaa00);
+        }
+        .bar-label {
+            margin-top: 10px;
+            font-size: 0.8em;
+            color: #aaa;
+            text-align: center;
+        }
+        .bar-value {
+            position: absolute;
+            top: -22px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.75em;
+            font-weight: bold;
+            color: #fff;
+            white-space: nowrap;
+        }
+        .insights {
+            background: rgba(0,212,255,0.1);
+            border-left: 4px solid #00d4ff;
+            padding: 20px;
+            border-radius: 0 10px 10px 0;
+            margin: 20px 0;
+        }
+        .insights h4 { color: #00d4ff; margin-bottom: 15px; }
+        .insights ul { list-style: none; padding-left: 0; }
+        .insights li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+        .insights li:before {
+            content: "▸";
+            position: absolute;
+            left: 0;
+            color: #00ff88;
+        }
+        .metric-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+        .metric-box {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .metric-box .label {
+            font-size: 0.8em;
+            color: #888;
+            margin-bottom: 5px;
+        }
+        .metric-box .value {
+            font-size: 1.6em;
+            font-weight: bold;
+            color: #00d4ff;
+        }
+        .phase-indicator {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 0.75em;
+            margin-left: 10px;
+        }
+        .phase-low { background: rgba(255,107,107,0.2); color: #ff6b6b; }
+        .phase-mid { background: rgba(255,215,0,0.2); color: #ffd700; }
+        .phase-high { background: rgba(0,255,136,0.2); color: #00ff88; }
+        .two-col {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+        }
+        @media (max-width: 768px) {
+            .header h1 { font-size: 1.8em; }
+            .bar { width: 35px; }
+            .two-col { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏆 冠軍磁磚熱回收系統完整分析報告</h1>
+            <p>數據期間：2026年9月7日 ~ 2026年9月21日 | 有效數據點：4,349筆</p>
+        </div>
+
+        <!-- 關鍵指標摘要 -->
+        <div class="summary-grid">
+            <div class="summary-card">
+                <div class="icon">🌡️</div>
+                <h3>平均熱回收效率</h3>
+                <div class="value">76.9<span class="unit">%</span></div>
+            </div>
+            <div class="summary-card">
+                <div class="icon">📈</div>
+                <h3>最高效率</h3>
+                <div class="value">87.2<span class="unit">%</span></div>
+            </div>
+            <div class="summary-card">
+                <div class="icon">📉</div>
+                <h3>最低效率</h3>
+                <div class="value warning">35.5<span class="unit">%</span></div>
+            </div>
+            <div class="summary-card">
+                <div class="icon">🌬️</div>
+                <h3>新風溫度平均</h3>
+                <div class="value">33.7<span class="unit">°C</span></div>
+            </div>
+            <div class="summary-card">
+                <div class="icon">🔥</div>
+                <h3>熱風入口平均</h3>
+                <div class="value">258.5<span class="unit">°C</span></div>
+            </div>
+            <div class="summary-card">
+                <div class="icon">⚡</div>
+                <h3>系統總功率平均</h3>
+                <div class="value">5.87<span class="unit">kW</span></div>
+            </div>
+        </div>
+
+        <!-- 兩階段運行分析 -->
+        <div class="section">
+            <h2>📊 兩階段運行分析</h2>
+            <div class="insights">
+                <h4>🔍 數據特徵發現</h4>
+                <ul>
+                    <li><strong>明顯分界：</strong>9月18日前後系統運行狀態有顯著變化，分為「低效運行階段」與「高效穩定階段」</li>
+                    <li><strong>階段一（9/8-9/15）：</strong>效率36-58%，功率較低，可能為測試或暖機階段</li>
+                    <li><strong>階段二（9/18-9/21）：</strong>效率穩定在78%左右，功率穩定在6.4kW，系統進入穩態運行</li>
+                    <li><strong>效率躍升：</strong>9/18後效率從~45%大幅提升至~78%，提升幅度達73%</li>
+                </ul>
+            </div>
+
+            <div class="two-col">
+                <div>
+                    <h3>階段一：低效運行期（9/8-9/15）</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>日期</th>
+                                <th>效率</th>
+                                <th>新風溫度</th>
+                                <th>熱風入口</th>
+                                <th>功率</th>
+                                <th>數據點</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>09/08</td>
+                                <td class="warning">46.8%</td>
+                                <td>35.7°C</td>
+                                <td>174.7°C</td>
+                                <td>-</td>
+                                <td>53</td>
+                            </tr>
+                            <tr>
+                                <td>09/09</td>
+                                <td class="warning">36.5%</td>
+                                <td>34.3°C</td>
+                                <td>219.9°C</td>
+                                <td>-</td>
+                                <td>38</td>
+                            </tr>
+                            <tr>
+                                <td>09/10</td>
+                                <td class="warning">42.1%</td>
+                                <td>35.2°C</td>
+                                <td>226.5°C</td>
+                                <td>-</td>
+                                <td>97</td>
+                            </tr>
+                            <tr>
+                                <td>09/11</td>
+                                <td class="highlight">54.3%</td>
+                                <td>35.8°C</td>
+                                <td>237.4°C</td>
+                                <td>-</td>
+                                <td>20</td>
+                            </tr>
+                            <tr>
+                                <td>09/12</td>
+                                <td class="highlight">57.7%</td>
+                                <td>36.5°C</td>
+                                <td>237.1°C</td>
+                                <td>-</td>
+                                <td>24</td>
+                            </tr>
+                            <tr>
+                                <td>09/15</td>
+                                <td class="warning">45.4%</td>
+                                <td>33.3°C</td>
+                                <td>241.3°C</td>
+                                <td>2.59kW</td>
+                                <td>3</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p style="color: #888; font-size: 0.9em; margin-top: 10px;">
+                        <span class="phase-indicator phase-low">低效階段</span>
+                        效率波動大，數據點較少，可能處於測試或啟停階段
+                    </p>
+                </div>
+                <div>
+                    <h3>階段二：高效穩定期（9/18-9/21）</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>日期</th>
+                                <th>效率</th>
+                                <th>新風溫度</th>
+                                <th>熱風入口</th>
+                                <th>功率</th>
+                                <th>數據點</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="background: rgba(0,255,136,0.05);">
+                                <td><strong>09/18</strong></td>
+                                <td class="success"><strong>78.1%</strong></td>
+                                <td>34.6°C</td>
+                                <td>260.1°C</td>
+                                <td>6.39kW</td>
+                                <td>560</td>
+                            </tr>
+                            <tr style="background: rgba(0,255,136,0.05);">
+                                <td><strong>09/19</strong></td>
+                                <td class="success"><strong>78.5%</strong></td>
+                                <td>33.3°C</td>
+                                <td>259.8°C</td>
+                                <td>6.42kW</td>
+                                <td>1440</td>
+                            </tr>
+                            <tr style="background: rgba(0,255,136,0.05);">
+                                <td><strong>09/20</strong></td>
+                                <td class="success"><strong>78.4%</strong></td>
+                                <td>34.0°C</td>
+                                <td>259.3°C</td>
+                                <td>6.39kW</td>
+                                <td>1440</td>
+                            </tr>
+                            <tr style="background: rgba(0,255,136,0.05);">
+                                <td><strong>09/21</strong></td>
+                                <td class="success"><strong>78.8%</strong></td>
+                                <td>33.0°C</td>
+                                <td>261.2°C</td>
+                                <td>6.37kW</td>
+                                <td>651</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p style="color: #888; font-size: 0.9em; margin-top: 10px;">
+                        <span class="phase-indicator phase-high">高效穩定</span>
+                        效率穩定在78%左右，數據點密集，系統處於穩態運行
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 熱回收效率趨勢圖 -->
+        <div class="section">
+            <h2>📈 熱回收效率趨勢圖</h2>
+            <div class="chart-container">
+                <div class="bar-chart">
+                    <div class="bar-group">
+                        <div class="bar efficiency" style="height: 60px;">
+                            <div class="bar-value">46.8%</div>
+                        </div>
+                        <div class="bar-label">09/08</div>
+                    </div>
+                    <div class="bar-group">
+                        <div class="bar efficiency" style="height: 46px;">
+                            <div class="bar-value">36.5%</div>
+                        </div>
+                        <div class="bar-label">09/09</div>
+                    </div>
+                    <div class="bar-group">
+                        <div class="bar efficiency" style="height: 54px;">
+                            <div class="bar-value">42.1%</div>
+                        </div>
+                        <div class="bar-label">09/10</div>
+                    </div>
+                    <div class="bar-group">
+                        <div class="bar efficiency" style="height: 70px;">
+                            <div class="bar-value">54.3%</div>
+                        </div>
+                        <div class="bar-label">09/11</div>
+                    </div>
+                    <div class="bar-group">
+                        <div class="bar efficiency" style="height: 77px;">
+                            <div class="bar-value">57.7%</div>
+                        </div>
+                        <div class="bar-label">09/12</div>
+                    </div>
+                    <div class="bar-group">
+                        <div class="bar efficiency" style="height: 60px;">
+                            <div class="bar-value">45.4%</div>
+                        </div>
+                        <div class="bar-label">09/15</div>
+                    </div>
+                    <div class="bar-group">
+                        <div class="bar efficiency" style="height: 157px; background: linear-gradient(180deg, #00ff88, #00cc6a);">
+                            <div class="bar-value">78.1%</div>
+                        </div>
+                        <div class="bar-label">09/18</div>
+                    </div>
+                    <div class="bar-group">
+                        <div class="bar efficiency" style="height: 158px; background: linear-gradient(180deg, #00ff88, #00cc6a);">
+                            <div class="bar-value">78.5%</div>
+                        </div>
+                        <div class="bar-label">09/19</div>
+                    </div>
+                    <div class="bar-group">
+                        <div class="bar efficiency" style="height: 157px; background: linear-gradient(180deg, #00ff88, #00cc6a);">
+                            <div class="bar-value">78.4%</div>
+                        </div>
+                        <div class="bar-label">09/20</div>
+                    </div>
+                    <div class="bar-group">
+                        <div class="bar efficiency" style="height: 158px; background: linear-gradient(180deg, #00ff88, #00cc6a);">
+                            <div class="bar-value">78.8%</div>
+                        </div>
+                        <div class="bar-label">09/21</div>
+                    </div>
+                </div>
+            </div>
+            <div class="insights">
+                <h4>📊 效率分析要點</h4>
+                <ul>
+                    <li><strong>業界水準：</strong>78%的熱回收效率已達到業界優秀水準（一般熱回收系統效率約60-80%）</li>
+                    <li><strong>穩定性：</strong>9/18後效率標準差僅0.18%，顯示系統控制精確、運行穩定</li>
+                    <li><strong>異常低值：</strong>9/9效率僅36.5%，為全期最低，建議檢查查詢當時運行參數與設備狀態</li>
+                    <li><strong>恢復時間：</strong>從低效階段恢復到高效穩定運行約需10天，可能涉及設備調試或工藝調整</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 溫度分析 -->
+        <div class="section">
+            <h2>🌡️ 溫度分析</h2>
+            
+            <h3>熱回收系統溫度統計</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>測點</th>
+                        <th>位置說明</th>
+                        <th>最高</th>
+                        <th>最低</th>
+                        <th>平均</th>
+                        <th>穩定性</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>新風入口 (5T5)</td>
+                        <td>室溫新風進入熱交換器</td>
+                        <td class="highlight">38.0°C</td>
+                        <td>28.0°C</td>
+                        <td class="success">33.7°C</td>
+                        <td><span style="color: #00ff88;">±5.3°C</span></td>
+                    </tr>
+                    <tr>
+                        <td>新風出口 (6T6)</td>
+                        <td>經熱交換後的新風溫度</td>
+                        <td class="highlight">230.0°C</td>
+                        <td>97.0°C</td>
+                        <td class="success">207.1°C</td>
+                        <td><span style="color: #ffd700;">±66.8°C</span></td>
+                    </tr>
+                    <tr>
+                        <td>熱風入口 (3T3)</td>
+                        <td>窯爐廢氣進入熱交換器</td>
+                        <td class="highlight">292.0°C</td>
+                        <td>174.0°C</td>
+                        <td class="success">258.5°C</td>
+                        <td><span style="color: #ffd700;">±43.9°C</span></td>
+                    </tr>
+                    <tr>
+                        <td>熱風出口 (4T4)</td>
+                        <td>經熱交換後的廢氣溫度</td>
+                        <td class="highlight">155.0°C</td>
+                        <td>50.0°C</td>
+                        <td class="success">141.2°C</td>
+                        <td><span style="color: #ffd700;">±38.2°C</span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>高效期（9/18-21）溫度分析</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>日期</th>
+                        <th>新風入口</th>
+                        <th>新風出口</th>
+                        <th>熱風入口</th>
+                        <th>熱風出口</th>
+                        <th>溫差(熱風)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>09/18</td>
+                        <td>34.6°C</td>
+                        <td>210.2°C</td>
+                        <td>260.1°C</td>
+                        <td>144.1°C</td>
+                        <td class="success">116.0°C</td>
+                    </tr>
+                    <tr>
+                        <td>09/19</td>
+                        <td>33.3°C</td>
+                        <td>211.2°C</td>
+                        <td>259.8°C</td>
+                        <td>144.7°C</td>
+                        <td class="success">115.1°C</td>
+                    </tr>
+                    <tr>
+                        <td>09/20</td>
+                        <td>34.0°C</td>
+                        <td>210.8°C</td>
+                        <td>259.3°C</td>
+                        <td>144.7°C</td>
+                        <td class="success">114.6°C</td>
+                    </tr>
+                    <tr>
+                        <td>09/21</td>
+                        <td>33.0°C</td>
+                        <td>213.0°C</td>
+                        <td>261.2°C</td>
+                        <td>146.2°C</td>
+                        <td class="success">115.0°C</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="insights">
+                <h4>🔥 溫度分析要點</h4>
+                <ul>
+                    <li><strong>熱源穩定：</strong>9/18後熱風入口溫度穩定在256-271°C，說明窯爐運行情況良好</li>
+                    <li><strong>熱回收效果：</strong>新風出口溫度達207-215°C，熱交換器傳熱效果顯著</li>
+                    <li><strong>排氣溫降：</strong>熱風入口258°C→出口141°C，溫差約117°C，熱量回收充分</li>
+                    <li><strong>溫差穩定：</strong>高效期熱風側溫差穩定在114-116°C，標準差極小</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 功率分析 -->
+        <div class="section">
+            <h2>⚡ 功率分析</h2>
+            
+            <div class="metric-row">
+                <div class="metric-box">
+                    <div class="label">新風機平均功率</div>
+                    <div class="value">3.49 kW</div>
+                </div>
+                <div class="metric-box">
+                    <div class="label">熱風機平均功率</div>
+                    <div class="value">2.13 kW</div>
+                </div>
+                <div class="metric-box">
+                    <div class="label">系統總功率平均</div>
+                    <div class="value">6.40 kW</div>
+                </div>
+                <div class="metric-box">
+                    <div class="label">新風機佔比</div>
+                    <div class="value">54.5%</div>
+                </div>
+            </div>
+
+            <h3>每日功率趨勢</h3>
+            <div class="chart-container">
+                <div class="bar-chart">
+                    <div class="bar-group">
+                        <div class="bar power" style="height: 8px;">
+                            <div class="bar-value">-</div>
+                        </div>
+                        <div class="bar-label">09/08</div>
+                    </div>
+                    <div class="bar-group">
+                        <div class="bar power" style="height: 10px;">
+                            <div class="bar-value">-</div>
+                        </div>
+                        <div class="bar-label">09/09</div>
+                    </div>
+                    <div class="bar-group">
+                        <div class="bar power" style="height: 12px;">
+                            <div class="bar-value">-</div>
+                        </div>
+                        <div class="bar-label">09/10</div>
+                    </div>
+                    <div class="bar-group">
+                        <div class="bar power" style="height: 15px;">
+                            <div class="bar-value">-</div>
+                        </div>
+                        <div class="bar-label">09/11</div>
+                    </div>
+                    <div class="bar-group">
+                        <div class="bar power" style="height: 16px;">
+                            <div class="bar-value">-</div>
+                        </div>
+                        <div class="bar-label">09/12</div>
+                    </div>
+                    <div class="bar-group">
+                        <div class="bar power" style="height: 23px;">
+                            <div class="bar-value">2.59</div>
+                        </div>
+                        <div class="bar-label">09/15</div>
+                    </div>
+                    <div class="bar-group">
+                        <div class="bar power" style="height: 128px;">
+                            <div class="bar-value">6.39</div>
+                        </div>
+                        <div class="bar-label">09/18</div>
+                    </div>
+                    <div class="bar-group">
+                        <div class="bar power" style="height: 131px;">
+                            <div class="bar-value">6.42</div>
+                        </div>
+                        <div class="bar-label">09/19</div>
+                    </div>
+                    <div class="bar-group">
+                        <div class="bar power" style="height: 128px;">
+                            <div class="bar-value">6.39</div>
+                        </div>
+                        <div class="bar-label">09/20</div>
+                    </div>
+                    <div class="bar-group">
+                        <div class="bar power" style="height: 127px;">
+                            <div class="bar-value">6.37</div>
+                        </div>
+                        <div class="bar-label">09/21</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="insights">
+                <h4>⚡ 功率分析要點</h4>
+                <ul>
+                    <li><strong>功率躍升：</strong>9/18後系統功率從~2.6kW躍升至~6.4kW，增加約146%</li>
+                    <li><strong>新風機負載：</strong>新風機平均功率3.49kW，佔總功率54.5%，為主要耗能設備</li>
+                    <li><strong>熱風機負載：</strong>熱風機平均功率2.13kW，穩定運行，功率波動較小</li>
+                    <li><strong>節能潛力：</strong>高效期功率穩定，無頻繁啟停，反映控制系統完善</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 風量分析 -->
+        <div class="section">
+            <h2>🌀 風量分析</h2>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>風量參數</th>
+                        <th>最大值</th>
+                        <th>最小值</th>
+                        <th>平均值</th>
+                        <th>應用說明</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>新風管風量</td>
+                        <td class="highlight">10,875 m³/h</td>
+                        <td>405 m³/h</td>
+                        <td class="success">10,273 m³/h</td>
+                        <td>前期低風量運行，後期滿載</td>
+                    </tr>
+                    <tr>
+                        <td>熱風管風量</td>
+                        <td class="highlight">20,233 m³/h</td>
+                        <td>135 m³/h</td>
+                        <td class="success">19,091 m³/h</td>
+                        <td>熱風側風量約為新風側2倍</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>高效期（9/18-21）風量統計</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>日期</th>
+                        <th>新風風量 (m³/h)</th>
+                        <th>熱風風量 (m³/h)</th>
+                        <th>風量比</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>09/18</td>
+                        <td>10,585</td>
+                        <td>19,733</td>
+                        <td>1.86:1</td>
+                    </tr>
+                    <tr>
+                        <td>09/19</td>
+                        <td>10,545</td>
+                        <td>19,633</td>
+                        <td>1.86:1</td>
+                    </tr>
+                    <tr>
+                        <td>09/20</td>
+                        <td>10,530</td>
+                        <td>19,800</td>
+                        <td>1.88:1</td>
+                    </tr>
+                    <tr>
+                        <td>09/21</td>
+                        <td>10,545</td>
+                        <td>19,800</td>
+                        <td>1.88:1</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="insights">
+                <h4>🌀 風量分析要點</h4>
+                <ul>
+                    <li><strong>風量比例：</strong>熱風/新風風量比約1.86-1.88:1，符合熱回收系統設計預期</li>
+                    <li><strong>風量穩定性：</strong>高效期新風風量穩定在10,500-10,900 m³/h，熱風風量穩定在19,600-20,200 m³/h</li>
+                    <li><strong>前期異常：</strong>9/8-12期間風量較低且波動大，可能為系統啟停或測試階段</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 綜合評估 -->
+        <div class="section">
+            <h2>📋 綜合評估與建議</h2>
+            
+            <h3>✅ 系統優點</h3>
+            <ul style="padding-left: 20px; line-height: 2;">
+                <li>9/18後熱回收效率穩定在78%以上，達到業界優秀水準（一般熱回收系統效率約60-80%）</li>
+                <li>熱風入口溫度穩定在256-271°C，說明窯爐燃燒狀況良好</li>
+                <li>新風出口溫度達207-215°C，熱交換器傳熱效果顯著</li>
+                <li>系統運行穩定，功率波動小，反映控制系統完善</li>
+                <li>風量比例穩定在1.86:1，符合設計預期</li>
+            </ul>
+
+            <h3>⚠️ 需注意事項</h3>
+            <ul style="padding-left: 20px; line-height: 2;">
+                <li>9/8-17期間效率較低（36-58%），需了解當時系統是否處於測試或異常狀態</li>
+                <li>9/9效率僅36.5%，為全期最低，建議檢查查詢當時運行參數與設備狀態</li>
+                <li>前期數據點較少（53-97點/日），後期數據點密集（560-1440點/日），可能反映監測系統優化</li>
+            </ul>
+
+            <h3>💡 節能建議</h3>
+            <ul style="padding-left: 20px; line-height: 2;">
+                <li><strong>優化運行時段：</strong>若在低負荷時段仍能維持78%效率，可考慮降頻運行以節約電能</li>
+                <li><strong>定期維護：</strong>建議每季檢查熱交換器堵塞情況，確保傳熱效率</li>
+                <li><strong>監控系統：</strong>建立效率下調預警機制，當效率低於70%時自動提醒</li>
+                <li><strong>數據追蹤：</strong>持續監測9/18後的運行數據，驗證系統長期穩定性</li>
+                <li><strong>能耗分析：</strong>計算每年節省之燃氣費用，評估投資回收期間</li>
+            </ul>
+
+            <h3>📈 節能效益估算</h3>
+            <div class="metric-row">
+                <div class="metric-box">
+                    <div class="label">熱回收效率</div>
+                    <div class="value">78%</div>
+                </div>
+                <div class="metric-box">
+                    <div class="label">熱風出口溫度</div>
+                    <div class="value">141°C</div>
+                </div>
+                <div class="metric-box">
+                    <div class="label">系統總功率</div>
+                    <div class="value">6.4 kW</div>
+                </div>
+                <div class="metric-box">
+                    <div class="label">預計節電率</div>
+                    <div class="value">~15-20%</div>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center; padding: 30px; color: #666; font-size: 0.9em;">
+            <p>📊 報告生成時間：2026年9月23日 | 數據來源：冠軍磁磚量測驗證系統</p>
+            <p>分析期間：2026年9月7日 - 9月21日 | 有效數據點：4,349筆 | 涵蓋日期：14天</p>
+        </div>
+    </div>
+</body>
+</html>
