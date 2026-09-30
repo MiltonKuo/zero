@@ -62,6 +62,10 @@ tr.baseline td{background:rgba(88,166,255,.05)}
 .device-select{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
 .device-btn{padding:6px 12px;background:#21262d;border:1px solid #30363d;border-radius:6px;cursor:pointer;font-size:.85em;color:#8b949e}
 .device-btn.active{background:#3881e8;color:#fff;border-color:#3881e8}
+.preset-row{display:flex;gap:5px;flex-wrap:wrap;margin:6px 0}
+.pipe-table{min-width:650px}
+.pipe-table th{background:rgba(88,166,255,.15);color:#58a6ff}
+.pipe-table td,.pipe-table th{text-align:center}
 .calc-chain{background:#161b22;border-radius:6px;padding:12px;margin:10px 0}
 .calc-step{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #21262d;font-size:.85em}
 .calc-step:last-child{border-bottom:none}
@@ -70,10 +74,45 @@ tr.baseline td{background:rgba(88,166,255,.05)}
 .section-note{font-size:.78em;color:#8b949e;margin:8px 0;padding:8px 12px;background:#161b22;border-radius:6px;border-left:3px solid #30363d;line-height:1.6}
 .section-note b{color:#58a6ff}
 .mode-note{font-size:.75em;color:#6e7681;margin:6px 0;padding:6px 10px;background:#161b22;border-radius:4px}
+.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:10px 0}
+.table-scroll table{display:block;margin:0}
 @media(max-width:600px){
-  .input-grid{grid-template-columns:1fr 1fr}
-  .result-grid{grid-template-columns:1fr 1fr}
+  body{padding:10px}
+  .container{max-width:100%}
   h1{font-size:1.2em}
+  .subtitle{font-size:.78em}
+  /* Tabs: stack-friendly, smaller, full width scrollable */
+  .tabs{gap:4px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px}
+  .tab-btn{padding:9px 10px;font-size:.74em;white-space:nowrap;flex-shrink:0}
+  .tab-panel{padding:14px;border-radius:0 8px 8px 8px}
+  .section{margin-bottom:18px}
+  .section-title{font-size:.95em}
+  .formula-box{font-size:.78em;padding:10px}
+  .section-note{font-size:.72em;padding:8px 10px}
+  .mode-note{font-size:.7em}
+  /* All input grids: force 1 column on mobile regardless of inline repeat() */
+  .input-grid{grid-template-columns:1fr !important;gap:8px}
+  .input-group input,.input-group select{font-size:16px;padding:11px 10px}
+  /* Flow value + unit: let unit grow so 7-char units (cm³/s) don't clip */
+  .flow-row .flow-unit{width:64px}
+  .result-grid{grid-template-columns:1fr 1fr !important;gap:8px}
+  .result-card{padding:10px}
+  .result-card .value{font-size:1.05em}
+  .result-card .label{font-size:.64em}
+  /* Buttons full width, bigger touch targets */
+  .btn{width:100%;padding:13px;font-size:.95em;margin:10px 0}
+  /* Calc chain: stack result under label */
+  .calc-step{flex-wrap:wrap}
+  .calc-step .step-result{margin-left:30px;order:3;width:100%;font-size:.85em}
+  /* Quick-ref & breakdown tables: horizontal scroll via .table-scroll wrapper */
+  .table-scroll table{font-size:.72em}
+  .ov-table{font-size:.72em;margin:0}
+  th,td{padding:6px 7px}
+  .verdict{font-size:.9em;padding:10px}
+}
+/* Very narrow phones (<360px): result cards single column too */
+@media(max-width:360px){
+  .result-grid{grid-template-columns:1fr !important}
 }
 </style>
 </head>
@@ -88,6 +127,8 @@ tr.baseline td{background:rgba(88,166,255,.05)}
 <button class="tab-btn" onclick="switchTab('ch1')">② 冰水主機</button>
 <button class="tab-btn" onclick="switchTab('ah')">③ 空調箱</button>
 <button class="tab-btn" onclick="switchTab('overall')">④ 整體節能效益</button>
+<button class="tab-btn" onclick="switchTab('flow')">⑤ 流量計算</button>
+<button class="tab-btn" onclick="switchTab('pipe')">⑥ 管路流速</button>
 </div>
 
 <!-- ============ TAB 1: RT CALCULATOR ============ -->
@@ -97,8 +138,8 @@ tr.baseline td{background:rgba(88,166,255,.05)}
 
 <div class="formula-box">
 <div class="formula">
-RT = 流量(L/min) × 溫差(℃) × 4.186(kcal/kg·℃) ÷ 60 ÷ 3.517(kW/RT)<br>
-1 RT = 3.517 kW = 12,000 BTU/hr = 3,024 kcal/hr
+RT = 流量(L/min) × 溫差(℃) × 4.186(kcal/kg·℃) ÷ 60 ÷ 3.5168(kW/RT)<br>
+1 RT = 3.5168 kW = 12,000 BTU/hr = 3,024 kcal/hr
 </div>
 <div class="source">RT 依實測流量與溫差計算，不預設條件。</div>
 </div>
@@ -120,7 +161,7 @@ RT = 流量(L/min) × 溫差(℃) × 4.186(kcal/kg·℃) ÷ 60 ÷ 3.517(kW/RT)<b
 <div id="rt-chain" class="calc-chain" style="display:none">
 <div class="calc-step"><span class="step-num">1</span>溫差 ΔT = 進水 − 出水<span class="step-result" id="rt_dt"></span></div>
 <div class="calc-step"><span class="step-num">2</span>瞬时製冷量 Q = 流量 × ΔT × 4.186 ÷ 60 (kW)<span class="step-result" id="rt_qkw"></span></div>
-<div class="calc-step"><span class="step-num">3</span>冷凍噸 RT = Q ÷ 3.517<span class="step-result" id="rt_rt"></span></div>
+<div class="calc-step"><span class="step-num">3</span>冷凍噸 RT = Q ÷ 3.5168<span class="step-result" id="rt_rt"></span></div>
 <div class="calc-step"><span class="step-num">4</span>kW/RT = 功率平均 ÷ RT<span class="step-result" id="rt_kwrt"></span></div>
 </div>
 
@@ -134,10 +175,12 @@ RT = 流量(L/min) × 溫差(℃) × 4.186(kcal/kg·℃) ÷ 60 ÷ 3.517(kW/RT)<b
 
 <!-- RT quick reference table -->
 <div class="section-title" style="font-size:.9em">快速對照表（流量固定，不同溫差）</div>
+<div class="table-scroll">
 <table>
 <thead><tr><th>流量 L/min</th><th>ΔT=3℃ RT</th><th>ΔT=4℃ RT</th><th>ΔT=5℃ RT</th><th>ΔT=6℃ RT</th></tr></thead>
 <tbody id="rt-table"></tbody>
 </table>
+</div>
 </div>
 </div>
 
@@ -148,7 +191,7 @@ RT = 流量(L/min) × 溫差(℃) × 4.186(kcal/kg·℃) ÷ 60 ÷ 3.517(kW/RT)<b
 
 <div class="section-note">
 <b>定位：驗收驗算工具（通用，不預設本案條件）</b> — 各欄皆空白，填入該主機的<b>有效資料平均值</b>後計算。<br>
-<b>方法：</b>改善前 kW/RT 取自<b>基測報告</b>（比較基準）；改善後 RT 依「改善後流量 × 改善後溫差 × 4.186 ÷ 60 ÷ 3.517」計算（溫差只取改善後）；改善前/後耗電以「kW/RT × 有效資料筆數 N ÷ 60」換算（N = 量測期間有效分鐘數，1 小時 = 60 筆）。
+<b>方法：</b>改善前 kW/RT 取自<b>基測報告</b>（比較基準）；改善後 RT 依「改善後流量 × 改善後溫差 × 4.186 ÷ 60 ÷ 3.5168」計算（溫差只取改善後）；功率節省 = (改善前 kW/RT − 改善後 kW/RT) × 改善後 RT，節能率 = 功率節省 ÷ 改善前功率。
 </div>
 
 <div class="input-grid" style="grid-template-columns:repeat(4,1fr)">
@@ -162,7 +205,7 @@ RT = 流量(L/min) × 溫差(℃) × 4.186(kcal/kg·℃) ÷ 60 ÷ 3.517(kW/RT)<b
 <button class="btn" onclick="calcCH1()">▶ 計算冰水主機節能效益</button>
 
 <div id="ch1-chain" class="calc-chain" style="display:none">
-<div class="calc-step"><span class="step-num">1</span>改善後 RT = 流量 × ΔT × 4.186 ÷ 60 ÷ 3.517<span class="step-result" id="ch1_rta"></span></div>
+<div class="calc-step"><span class="step-num">1</span>改善後 RT = 流量 × ΔT × 4.186 ÷ 60 ÷ 3.5168<span class="step-result" id="ch1_rta"></span></div>
 <div class="calc-step"><span class="step-num">2</span>功率節省 = (kW/RT_b − kW/RT_a) × RT_a<span class="step-result" id="ch1_saving"></span></div>
 <div class="calc-step"><span class="step-num">3</span>節能率 = 功率節省 ÷ (kW/RT_b × RT_a) × 100%<span class="step-result" id="ch1_rate"></span></div>
 </div>
@@ -188,7 +231,7 @@ RT = 流量(L/min) × 溫差(℃) × 4.186(kcal/kg·℃) ÷ 60 ÷ 3.517(kW/RT)<b
 
 <div class="section-note">
 <b>定位：驗收驗算工具（通用，不預設本案條件）</b> — 各欄皆空白，填入該空調箱<b>有效資料平均值</b>後計算。<br>
-<b>方法：</b>改善前 kW/RT 取自<b>基測報告</b>；改善後 RT 依「改善後流量 × 改善後溫差 × 4.186 ÷ 60 ÷ 3.517」計算（溫差只取改善後）；改善前/後耗電以「kW/RT × 有效資料筆數 N ÷ 60」換算（N = 量測期間有效分鐘數）。
+<b>方法：</b>改善前 kW/RT 取自<b>基測報告</b>；改善後 RT 依「改善後流量 × 改善後溫差 × 4.186 ÷ 60 ÷ 3.5168」計算（溫差只取改善後）；功率節省 = (改善前 kW/RT − 改善後 kW/RT) × 改善後 RT，節能率 = 功率節省 ÷ 改善前功率。
 </div>
 
 <div class="input-grid" style="grid-template-columns:repeat(4,1fr)">
@@ -202,7 +245,7 @@ RT = 流量(L/min) × 溫差(℃) × 4.186(kcal/kg·℃) ÷ 60 ÷ 3.517(kW/RT)<b
 <button class="btn" onclick="calcAH()">▶ 計算空調箱節能效益</button>
 
 <div id="ah-chain" class="calc-chain" style="display:none">
-<div class="calc-step"><span class="step-num">1</span>改善後 RT = 流量 × ΔT × 4.186 ÷ 60 ÷ 3.517<span class="step-result" id="ah_rta"></span></div>
+<div class="calc-step"><span class="step-num">1</span>改善後 RT = 流量 × ΔT × 4.186 ÷ 60 ÷ 3.5168<span class="step-result" id="ah_rta"></span></div>
 <div class="calc-step"><span class="step-num">2</span>功率節省 = (kW/RT_b − kW/RT_a) × RT_a<span class="step-result" id="ah_saving"></span></div>
 <div class="calc-step"><span class="step-num">3</span>節能率 = 功率節省 ÷ (kW/RT_b × RT_a) × 100%<span class="step-result" id="ah_rate"></span></div>
 </div>
@@ -246,14 +289,139 @@ RT = 流量(L/min) × 溫差(℃) × 4.186(kcal/kg·℃) ÷ 60 ÷ 3.517(kW/RT)<b
 <div class="result-card success"><div class="label">整體節能率</div><div class="value" id="ov_rate">—</div><div class="sub">%</div></div>
 </div>
 
-<table>
+<div class="table-scroll">
+<table class="ov-table">
 <thead><tr><th>設備</th><th class="num">改善前 kW</th><th class="num">改善後 kW</th><th class="num">節省 kW</th><th class="num">節能率</th></tr></thead>
 <tbody id="ov-breakdown-tbody"></tbody>
 <tfoot><tr class="total" id="ov-total-row"></tr></tfoot>
 </table>
+</div>
 
 <div id="ov-verdict"></div>
 </div>
+</div>
+</div>
+
+<!-- ============ TAB 5: FLOW CALCULATOR ============ -->
+<div id="tab-flow" class="tab-panel">
+<div class="section">
+<div class="section-title">冰水主機流量計算器 — RT → 管路流量</div>
+
+<div class="formula-box">
+<div class="formula">
+P(kW) = RT × 3.5168<br>
+流量 Q(L/min) = P × 60 ÷ (4.186 × ΔT)<br>
+建議管路備裕 10~15%
+</div>
+<div class="source">依冷凍噸與進出水溫差換算管路流量，並提供多單位輸出（L/min、L/s、m³/hr、GPM、L/hr）。</div>
+</div>
+
+<div class="input-grid" style="grid-template-columns:repeat(2,1fr)">
+<div class="input-group"><label>制冷量 RT</label><input type="number" id="flow_rt" value="" step="any" min="0"><div class="hint">欲計算的主機冷凍噸</div></div>
+<div class="input-group"><label>進出水溫差 ΔT <span class="unit">℃</span></label><input type="number" id="flow_dt" value="" step="0.1" min="0"><div class="hint">可用下方快速鍵</div></div>
+</div>
+
+<div class="device-select" style="margin:6px 0 10px">
+<span style="font-size:.75em;color:#8b949e;margin-right:4px">快速 ΔT：</span>
+<button class="device-btn" onclick="setFlowDT(4.4,this)">4.4℃</button>
+<button class="device-btn" onclick="setFlowDT(5.6,this)">5.6℃</button>
+<button class="device-btn" onclick="setFlowDT(6.7,this)">6.7℃</button>
+<button class="device-btn" onclick="setFlowDT(8.3,this)">8.3℃</button>
+</div>
+
+<button class="btn" onclick="calcFlow()">▶ 計算管路流量</button>
+
+<div id="flow-results" style="display:none">
+<div class="result-grid">
+<div class="result-card"><div class="label">冷房功率 P</div><div class="value" id="r_flow_kw">—</div><div class="sub">kW</div></div>
+<div class="result-card success"><div class="label">流量 L/min</div><div class="value" id="r_flow_lmin">—</div></div>
+<div class="result-card"><div class="label">流量 L/s</div><div class="value" id="r_flow_ls">—</div></div>
+<div class="result-card"><div class="label">流量 m³/hr</div><div class="value" id="r_flow_m3">—</div></div>
+<div class="result-card"><div class="label">流量 GPM</div><div class="value" id="r_flow_gpm">—</div></div>
+<div class="result-card"><div class="label">流量 L/hr</div><div class="value" id="r_flow_lhr">—</div></div>
+</div>
+<div id="flow-verdict"></div>
+</div>
+
+<div class="section-note" style="margin-top:14px">
+<b>備註：</b>流量為理論值，實際管路設計建議另加 10~15% 備裕。快速鍵為常見進出水溫差設定（標準 5/10℃ 對流時多採 5~6℃，大溫差 8℃ 可縮小管徑）。
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- ============ TAB 6: PIPE VELOCITY ============ -->
+<div id="tab-pipe" class="tab-panel">
+<div class="section">
+<div class="section-title">冰水管路流速流量計算器 — 管徑 × 流速 × 流量</div>
+
+<div class="formula-box">
+<div class="formula">
+Q(L/min) = π × DN²(mm) × v(m/s) × 0.015<br>
+DN = 管徑(mm)，v = 流速(m/s)；建議流速 0.8~2.4 m/s
+</div>
+<div class="source">依管徑與流速換算流量（V→Q 查流量），或依管徑與流量反算流速（Q→V 查流速），並附完整對照表。</div>
+</div>
+
+<div class="mode-tabs" style="display:flex;gap:6px;margin:8px 0">
+<button id="pipe-qv" class="device-btn active" onclick="setPipeMode('qv')">V→Q 查流量</button>
+<button id="pipe-vq" class="device-btn" onclick="setPipeMode('vq')">Q→V 查流速</button>
+</div>
+
+<div id="pipe-mode-qv">
+<div class="input-grid" style="grid-template-columns:repeat(2,1fr)">
+<div class="input-group"><label>管徑</label><select id="pipe_dq"><option value="">-- 請選擇 --</option><option value="20">1/2&quot; DN20</option><option value="25">1&quot; DN25</option><option value="32">1-1/4&quot; DN32</option><option value="40">1-1/2&quot; DN40</option><option value="50">2&quot; DN50</option><option value="65">2-1/2&quot; DN65</option><option value="80">3&quot; DN80</option><option value="100">4&quot; DN100</option><option value="125">5&quot; DN125</option><option value="150">6&quot; DN150</option><option value="200">8&quot; DN200</option><option value="250">10&quot; DN250</option><option value="300">12&quot; DN300</option><option value="350">14&quot; DN350</option><option value="400">16&quot; DN400</option><option value="450">18&quot; DN450</option><option value="500">20&quot; DN500</option><option value="600">24&quot; DN600</option></select></div>
+<div class="input-group"><label>流速 m/s</label><input type="number" id="pipe_vel" value="" step="0.1" min="0" max="5"></div>
+</div>
+<div class="preset-row" style="margin-top:6px">
+<button class="device-btn" onclick="setPipeVel(0.4)">0.4</button>
+<button class="device-btn" onclick="setPipeVel(0.6)">0.6</button>
+<button class="device-btn" onclick="setPipeVel(0.8)">0.8</button>
+<button class="device-btn" onclick="setPipeVel(1.0)">1.0</button>
+<button class="device-btn" onclick="setPipeVel(1.2)">1.2</button>
+<button class="device-btn" onclick="setPipeVel(1.5)">1.5</button>
+<button class="device-btn" onclick="setPipeVel(1.8)">1.8</button>
+<button class="device-btn" onclick="setPipeVel(2.0)">2.0</button>
+<button class="device-btn" onclick="setPipeVel(2.5)">2.5</button>
+<button class="device-btn" onclick="setPipeVel(3.0)">3.0</button>
+</div>
+</div>
+
+<div id="pipe-mode-vq" style="display:none">
+<div class="input-grid" style="grid-template-columns:repeat(2,1fr)">
+<div class="input-group"><label>管徑</label><select id="pipe_vqdn"><option value="">-- 請選擇 --</option><option value="20">1/2&quot; DN20</option><option value="25">1&quot; DN25</option><option value="32">1-1/4&quot; DN32</option><option value="40">1-1/2&quot; DN40</option><option value="50">2&quot; DN50</option><option value="65">2-1/2&quot; DN65</option><option value="80">3&quot; DN80</option><option value="100">4&quot; DN100</option><option value="125">5&quot; DN125</option><option value="150">6&quot; DN150</option><option value="200">8&quot; DN200</option><option value="250">10&quot; DN250</option><option value="300">12&quot; DN300</option><option value="350">14&quot; DN350</option><option value="400">16&quot; DN400</option><option value="450">18&quot; DN450</option><option value="500">20&quot; DN500</option><option value="600">24&quot; DN600</option></select></div>
+<div class="input-group"><label>流量 L/min</label><input type="number" id="pipe_flw" value="" step="any" min="0"></div>
+</div>
+<div class="preset-row" style="margin-top:6px">
+<button class="device-btn" onclick="setPipeFlw(100)">100</button>
+<button class="device-btn" onclick="setPipeFlw(200)">200</button>
+<button class="device-btn" onclick="setPipeFlw(315)">315</button>
+<button class="device-btn" onclick="setPipeFlw(500)">500</button>
+<button class="device-btn" onclick="setPipeFlw(1000)">1000</button>
+<button class="device-btn" onclick="setPipeFlw(2000)">2000</button>
+</div>
+</div>
+
+<button class="btn" onclick="calcPipe()">▶ 計算管路流速 / 流量</button>
+
+<div id="pipe-results" style="display:none">
+<div class="result-grid">
+<div class="result-card"><div class="label">管徑</div><div class="value" id="r_pipe_dn">—</div><div class="sub">mm</div></div>
+<div class="result-card success"><div class="label">流速</div><div class="value" id="r_pipe_vel">—</div><div class="sub">m/s</div></div>
+<div class="result-card"><div class="label">流量</div><div class="value" id="r_pipe_flw">—</div><div class="sub">L/min</div></div>
+<div class="result-card"><div class="label">流量 m³/hr</div><div class="value" id="r_pipe_m3">—</div></div>
+</div>
+<div id="pipe-verdict"></div>
+</div>
+
+<div class="table-scroll" style="margin-top:14px">
+<table class="pipe-table">
+<thead><tr><th>inch</th><th>DN</th><th>0.4</th><th>0.6</th><th>0.8</th><th>1.0</th><th>1.2</th><th>1.4</th><th>1.6</th><th>1.8</th><th>2.0</th><th>2.2</th><th>2.4</th><th>2.6</th><th>2.8</th><th>3.0</th></tr></thead>
+<tbody id="pipe-tbody"></tbody>
+</table>
+</div>
+<div class="section-note" style="margin-top:10px"><b>單位：</b>L/min｜<b>建議流速：</b>0.8~2.4 m/s，&gt;2.0 注意水頭損失，&gt;3.0 建議調整。</div>
 </div>
 </div>
 </div>
@@ -286,14 +454,14 @@ function toLPM(value, unit){
 // 通用：依單位換算「流量×溫差」得 RT
 function calcRTFromFlow(flowRaw, unitSel, dt){
   const flow = toLPM(flowRaw, unitSel);
-  return { flow, RT: flow * dt * 4.186 / 60 / 3.517 };
+  return { flow, RT: flow * dt * 4.186 / 60 / 3.5168 };
 }
 
 function switchTab(name){
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
-  const idx = {rt:0, ch1:1, ah:2, overall:3}[name];
+  const idx = {rt:0, ch1:1, ah:2, overall:3, flow:4, pipe:5}[name];
   document.querySelectorAll('.tab-btn')[idx].classList.add('active');
 }
 
@@ -308,7 +476,7 @@ function calcRT(){
 
   const dT   = tIn - tOut;
   const Qkw  = flow * dT * 4.186 / 60;   // 瞬时製冷 kW
-  const RT   = Qkw / 3.517;              // 冷凍噸
+  const RT   = Qkw / 3.5168;             // 冷凍噸
   const kwrt = (RT>0 && power>0) ? power/RT : 0;
 
   document.getElementById('rt-chain').style.display='block';
@@ -335,7 +503,7 @@ function fillRTTable(){
     const lpm = toLPM(f,'L/min');
     html += `<tr><td class="num">${f.toLocaleString()}</td>`;
     dTs.forEach(dt=>{
-      const rt = lpm * dt * 4.186 / 60 / 3.517;
+      const rt = lpm * dt * 4.186 / 60 / 3.5168;
       html += `<td class="num">${rt.toFixed(0)}</td>`;
     });
     html += `</tr>`;
@@ -352,7 +520,7 @@ function calcCH1(){
   const power_a= parseFloat(document.getElementById('ch1_power_a').value)||0;
 
   // 改善後 RT（依改善後流量×溫差）
-  const RT_a = flow_a * dt_a * 4.186 / 60 / 3.517;
+  const RT_a = flow_a * dt_a * 4.186 / 60 / 3.5168;
   // 功率（kW）= kW/RT × RT
   const kw_b = kwrt_b * RT_a;
   const kw_a = kwrt_a * RT_a;
@@ -395,7 +563,7 @@ function calcAH(){
   const dt_a   = parseFloat(document.getElementById('ah_dt_a').value)||0;
   const power_a= parseFloat(document.getElementById('ah_power_a').value)||0;
 
-  const RT_a = flow_a * dt_a * 4.186 / 60 / 3.517;
+  const RT_a = flow_a * dt_a * 4.186 / 60 / 3.5168;
   const kw_b = kwrt_b * RT_a;
   const kw_a = kwrt_a * RT_a;
   const saving_kw = kw_b - kw_a;
@@ -460,8 +628,143 @@ function calcOverall(){
   v.textContent=`✅ 整體計算完成 — 節能率 ${(rate*100).toFixed(1)}%，功率節省 ${totalSaving.toFixed(1)} kW（未年化）`;
 }
 
+// ============ TAB 5: FLOW CALCULATOR ============
+function setFlowDT(val, btn){
+  document.getElementById('flow_dt').value = val;
+  document.querySelectorAll('#tab-flow .device-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+}
+
+function calcFlow(){
+  const rt = parseFloat(document.getElementById('flow_rt').value);
+  const dt = parseFloat(document.getElementById('flow_dt').value);
+  const v = document.getElementById('flow-verdict');
+  if(isNaN(rt)||isNaN(dt)||dt<=0||rt<=0){
+    document.getElementById('flow-results').style.display='block';
+    v.className='verdict warn';
+    v.textContent='⚠️ 請填入有效的制冷量（RT）與溫差（ΔT>0）。';
+    return;
+  }
+  const P      = rt * 3.5168;                 // kW
+  const lmin   = P * 60 / (4.186 * dt);        // L/min
+  const ls     = lmin / 60;                    // L/s
+  const gpm    = lmin / 3.78541;              // US GPM
+  const m3hr   = lmin * 60 / 1000;            // m³/hr
+  const lhr    = lmin * 60;                    // L/hr
+  const lmin115= lmin * 1.15;                 // 備裕 15%
+
+  document.getElementById('flow-results').style.display='block';
+  document.getElementById('r_flow_kw').textContent   = P.toFixed(2);
+  document.getElementById('r_flow_lmin').textContent  = lmin.toFixed(1);
+  document.getElementById('r_flow_ls').textContent    = ls.toFixed(2);
+  document.getElementById('r_flow_m3').textContent    = m3hr.toFixed(2);
+  document.getElementById('r_flow_gpm').textContent   = gpm.toFixed(1);
+  document.getElementById('r_flow_lhr').textContent   = Math.round(lhr).toLocaleString();
+  v.className='verdict pass';
+  v.textContent=`✅ ${rt} RT / ΔT=${dt}℃ → 流量 ${lmin.toFixed(1)} L/min（加 15% 備裕後 ${lmin115.toFixed(1)} L/min，建議管徑以此選管）`;
+}
+
 // ============ INIT ============
 fillRTTable();
+
+// ============ TAB 6: PIPE VELOCITY ============
+const PIPE_DATA = [
+{dn:20,inch:'1/2',flows:[8,12,15,18,23,27,30,33,38,42,45,48,53,57]},
+{dn:25,inch:'1',flows:[12,18,23,30,35,42,47,53,58,65,70,77,82,88]},
+{dn:32,inch:'1-1/4',flows:[20,28,38,48,58,68,77,87,97,107,115,125,135,145]},
+{dn:40,inch:'1-1/2',flows:[30,45,60,75,90,105,120,135,150,167,182,197,212,227]},
+{dn:50,inch:'2',flows:[47,70,95,118,142,165,188,212,235,260,283,307,330,353]},
+{dn:65,inch:'2-1/2',flows:[80,120,160,198,238,278,318,358,398,438,478,518,557,597]},
+{dn:80,inch:'3',flows:[120,182,242,302,362,422,483,543,603,663,723,783,845,905]},
+{dn:100,inch:'4',flows:[188,283,377,472,565,660,753,848,942,1037,1132,1225,1320,1413]},
+{dn:125,inch:'5',flows:[295,442,588,737,883,1032,1178,1325,1473,1620,1767,1915,2062,2208]},
+{dn:150,inch:'6',flows:[423,637,848,1060,1272,1485,1697,1908,2120,2333,2545,2757,2968,3182]},
+{dn:200,inch:'8',flows:[753,1132,1508,1885,2262,2638,3017,3393,3770,4147,4523,4902,5278,5655]},
+{dn:250,inch:'10',flows:[1178,1767,2357,2945,3535,4123,4712,5302,5890,6480,7068,7658,8247,8835]},
+{dn:300,inch:'12',flows:[1697,2545,3393,4242,5090,5938,6785,7633,8482,9330,10178,11027,11875,12723]},
+{dn:350,inch:'14',flows:[2308,3463,4618,5773,6927,8082,9237,10390,11545,12700,13855,15008,16163,17318]},
+{dn:400,inch:'16',flows:[3017,4523,6032,7540,9048,10555,12063,13572,15080,16588,18095,19603,21112,22620]},
+{dn:450,inch:'18',flows:[3817,5725,7633,9543,11452,13360,15268,17177,19085,20993,22902,24810,26720,28628]},
+{dn:500,inch:'20',flows:[4712,7068,9425,11782,14137,16493,18850,21205,23562,25918,28275,30630,32987,35343]},
+{dn:600,inch:'24',flows:[6785,10178,13572,16965,20357,23750,27143,30537,33928,37322,40715,44108,47500,50893]},
+];
+const PIPE_VELOCITY_STEP = [0.4,0.6,0.8,1.0,1.2,1.4,1.6,1.8,2.0,2.2,2.4,2.6,2.8,3.0];
+
+function fillPipeTable(){
+  var tbody = document.getElementById('pipe-tbody');
+  if(!tbody) return;
+  var html='';
+  PIPE_DATA.forEach(function(p){
+    html += '<tr><td>'+p.inch+'</td><td>'+p.dn+'</td>';
+    p.flows.forEach(function(f){ html += '<td>'+f.toLocaleString()+'</td>'; });
+    html += '</tr>';
+  });
+  tbody.innerHTML = html;
+}
+
+function setPipeMode(mode){
+  document.getElementById('pipe-qv').classList.toggle('active', mode==='qv');
+  document.getElementById('pipe-vq').classList.toggle('active', mode==='vq');
+  document.getElementById('pipe-mode-qv').style.display = (mode==='qv')?'block':'none';
+  document.getElementById('pipe-mode-vq').style.display = (mode==='vq')?'block':'none';
+}
+function setPipeVel(v){ document.getElementById('pipe_vel').value = v; }
+function setPipeFlw(f){ document.getElementById('pipe_flw').value = f; }
+
+function calcPipe(){
+  var isQV = document.getElementById('pipe-mode-qv').style.display !== 'none';
+  var dn, velIn, velOut, flw;
+  if(isQV){
+    dn = parseInt(document.getElementById('pipe_dq').value);
+    velIn = parseFloat(document.getElementById('pipe_vel').value);
+    if(!dn || isNaN(velIn)){
+      document.getElementById('pipe-results').style.display='block';
+      var v1=document.getElementById('pipe-verdict'); v1.className='verdict warn'; v1.textContent='⚠️ 請選擇管徑並輸入流速。'; return;
+    }
+    flw = pipeFlowLmin(dn, velIn);
+    velOut = velIn;
+  } else {
+    dn = parseInt(document.getElementById('pipe_vqdn').value);
+    flw = parseFloat(document.getElementById('pipe_flw').value);
+    if(!dn || isNaN(flw)){
+      document.getElementById('pipe-results').style.display='block';
+      var v2=document.getElementById('pipe-verdict'); v2.className='verdict warn'; v2.textContent='⚠️ 請選擇管徑並輸入流量。'; return;
+    }
+    velOut = flw / (Math.PI * (dn*dn) * 0.015);
+  }
+  var m3hr = flw * 60 / 1000;
+  document.getElementById('pipe-results').style.display='block';
+  document.getElementById('r_pipe_dn').textContent = dn;
+  document.getElementById('r_pipe_vel').textContent = velOut.toFixed(2);
+  document.getElementById('r_pipe_flw').textContent = flw.toFixed(1);
+  document.getElementById('r_pipe_m3').textContent = m3hr.toFixed(2);
+
+  var v=document.getElementById('pipe-verdict');
+  var msg, cls;
+  if(velOut < 0.5){ msg='⚠️ 流速偏低 (<0.5 m/s)，可能積氣'; cls='warn'; }
+  else if(velOut <= 2.0){ msg='✅ 流速正常 (0.8~2.0 m/s)'; cls='pass'; }
+  else if(velOut <= 3.0){ msg='⚠️ 流速偏高 (>2.0 m/s)，注意水頭損失'; cls='warn'; }
+  else { msg='❌ 流速過高 (>3.0 m/s)，建議調整'; cls='fail'; }
+  v.className='verdict '+cls;
+  v.textContent = msg + '｜' + dn + 'mm 管徑 / ' + (isQV?'查流量':'查流速') + ' → ' + flw.toFixed(1) + ' L/min';
+}
+
+function pipeFlowLmin(dn, vel){
+  var p = PIPE_DATA.find(function(x){return x.dn===dn;});
+  if(!p) return 0;
+  var i=0;
+  while(i < PIPE_VELOCITY_STEP.length-1){
+    if(vel >= PIPE_VELOCITY_STEP[i] && vel <= PIPE_VELOCITY_STEP[i+1]){
+      var ratio=(vel-PIPE_VELOCITY_STEP[i])/(PIPE_VELOCITY_STEP[i+1]-PIPE_VELOCITY_STEP[i]);
+      return p.flows[i] + ratio*(p.flows[i+1]-p.flows[i]);
+    }
+    i++;
+  }
+  if(vel < PIPE_VELOCITY_STEP[0]) return p.flows[0];
+  return p.flows[p.flows.length-1];
+}
+
+fillPipeTable();
 </script>
 </body>
 </html>
