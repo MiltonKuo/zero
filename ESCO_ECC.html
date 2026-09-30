@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>聯新醫院節能計算工具 v2</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Microsoft JhengHei','Noto Sans TC',sans-serif;background:linear-gradient(135deg,#0d1117 0%,#161b22 100%);color:#c9d1d9;min-height:100vh;padding:20px}
+.container{max-width:980px;margin:0 auto}
+h1{font-size:1.5em;color:#58a6ff;margin-bottom:4px}
+.subtitle{font-size:.85em;color:#8b949e;margin-bottom:16px}
+.doc-ref{font-size:.75em;color:#6e7681;margin-bottom:18px;line-height:1.7}
+.doc-ref span{background:#21262d;padding:2px 8px;border-radius:4px;margin-right:4px;display:inline-block}
+.tabs{display:flex;gap:4px;margin-bottom:0;flex-wrap:wrap}
+.tab-btn{padding:10px 14px;background:#21262d;color:#8b949e;border:none;border-radius:8px 8px 0 0;cursor:pointer;font-size:.82em;font-weight:600;transition:all .2s}
+.tab-btn.active{background:#0d1117;color:#58a6ff;border-bottom:2px solid #58a6ff}
+.tab-btn:hover{color:#c9d1d9}
+.tab-panel{display:none;background:#0d1117;border-radius:0 8px 8px 8px;padding:20px;border:1px solid #30363d}
+.tab-panel.active{display:block}
+.section{margin-bottom:22px}
+.section-title{font-size:1em;font-weight:700;color:#58a6ff;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid #30363d}
+.formula-box{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:12px;margin:10px 0;font-size:.85em}
+.formula-box .formula{font-family:Consolas,monospace;color:#79c0ff;margin:6px 0;line-height:1.7}
+.formula-box .source{color:#6e7681;font-size:.8em;margin-top:4px}
+.input-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin:10px 0}
+.input-group label{display:block;font-size:.75em;color:#8b949e;margin-bottom:3px}
+.input-group input,.input-group select{width:100%;padding:8px 10px;background:#161b22;border:1px solid #30363d;border-radius:6px;color:#c9d1d9;font-size:.9em}
+.input-group input:focus{outline:none;border-color:#58a6ff}
+.input-group select{width:100%;padding:8px;background:#161b22;border:1px solid #30363d;border-radius:6px;color:#c9d1d9;font-size:.85em;margin-top:4px}
+.flow-row{display:flex;gap:4px;align-items:flex-end}
+.flow-row .flow-val{flex:1;min-width:0}
+.flow-row .flow-unit{width:52px;flex-shrink:0;margin-top:0}
+.flow-row select{margin-top:0}
+.input-group .unit{font-size:.7em;color:#6e7681;margin-left:4px}
+.input-group .hint{font-size:.68em;color:#6e7681;margin-top:3px}
+.result-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin:10px 0}
+.result-card{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:12px;text-align:center}
+.result-card .label{font-size:.7em;color:#8b949e;margin-bottom:4px}
+.result-card .value{font-size:1.25em;font-weight:700;color:#58a6ff}
+.result-card .sub{font-size:.7em;color:#6e7681;margin-top:2px}
+.result-card.success .value{color:#3fb950}
+.result-card.warning .value{color:#f0883e}
+.result-card.danger .value{color:#f85149}
+table{width:100%;border-collapse:collapse;margin:10px 0;font-size:.82em}
+th,td{padding:7px 9px;text-align:left;border-bottom:1px solid #21262d}
+th{color:#8b949e;font-weight:600;font-size:.9em}
+td.num{text-align:right;font-family:Consolas,monospace}
+tr.total td{font-weight:700;border-top:2px solid #30363d}
+tr.baseline td{background:rgba(88,166,255,.05)}
+.btn{padding:10px 20px;background:#238636;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:.9em;font-weight:600;margin:8px 0}
+.btn:hover{background:#2ea043}
+.btn-secondary{background:#30363d;color:#c9d1d9}
+.btn-secondary:hover{background:#3881e8}
+.baseline-ref{background:#161b22;border-left:3px solid #58a6ff;padding:10px 14px;margin:10px 0;border-radius:0 6px 6px 0;font-size:.85em}
+.baseline-ref .title{font-weight:700;color:#58a6ff;margin-bottom:4px}
+.baseline-ref table{margin:6px 0;font-size:.9em}
+.verdict{padding:12px;border-radius:6px;margin:10px 0;font-weight:700;font-size:1em}
+.verdict.pass{background:rgba(63,185,80,.15);color:#3fb950;border:1px solid #3fb950}
+.verdict.warn{background:rgba(240,136,62,.15);color:#f0883e;border:1px solid #f0883e}
+.verdict.fail{background:rgba(248,81,73,.15);color:#f85149;border:1px solid #f85149}
+.device-select{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.device-btn{padding:6px 12px;background:#21262d;border:1px solid #30363d;border-radius:6px;cursor:pointer;font-size:.85em;color:#8b949e}
+.device-btn.active{background:#3881e8;color:#fff;border-color:#3881e8}
+.calc-chain{background:#161b22;border-radius:6px;padding:12px;margin:10px 0}
+.calc-step{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #21262d;font-size:.85em}
+.calc-step:last-child{border-bottom:none}
+.calc-step .step-num{width:22px;height:22px;background:#30363d;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7em;color:#8b949e;flex-shrink:0}
+.calc-step .step-result{margin-left:auto;font-family:Consolas,monospace;color:#79c0ff;font-weight:700}
+.section-note{font-size:.78em;color:#8b949e;margin:8px 0;padding:8px 12px;background:#161b22;border-radius:6px;border-left:3px solid #30363d;line-height:1.6}
+.section-note b{color:#58a6ff}
+.mode-note{font-size:.75em;color:#6e7681;margin:6px 0;padding:6px 10px;background:#161b22;border-radius:4px}
+@media(max-width:600px){
+  .input-grid{grid-template-columns:1fr 1fr}
+  .result-grid{grid-template-columns:1fr 1fr}
+  h1{font-size:1.2em}
+}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>ESCO 節能驗收驗算工具 <span style="font-size:.5em;color:#8b949e">v3（通用）</span></h1>
+<p class="subtitle">驗收驗算 — 填入有效資料平均值 → 冷凍噸 → 節能效益（不預設特定廠區條件）</p>
+
+<!-- ============ TABS ============ -->
+<div class="tabs">
+<button class="tab-btn active" onclick="switchTab('rt')">① 冷凍噸計算器</button>
+<button class="tab-btn" onclick="switchTab('ch1')">② 冰水主機</button>
+<button class="tab-btn" onclick="switchTab('ah')">③ 空調箱</button>
+<button class="tab-btn" onclick="switchTab('overall')">④ 整體節能效益</button>
+</div>
+
+<!-- ============ TAB 1: RT CALCULATOR ============ -->
+<div id="tab-rt" class="tab-panel active">
+<div class="section">
+<div class="section-title">冷凍噸（RT）計算器 — 溫差 × 流量</div>
+
+<div class="formula-box">
+<div class="formula">
+RT = 流量(L/min) × 溫差(℃) × 4.186(kcal/kg·℃) ÷ 60 ÷ 3.517(kW/RT)<br>
+1 RT = 3.517 kW = 12,000 BTU/hr = 3,024 kcal/hr
+</div>
+<div class="source">RT 依實測流量與溫差計算，不預設條件。</div>
+</div>
+
+<div class="section-note">
+<b>使用方式：</b>監控資料每分鐘一筆，先筛選<b>有效數值</b>取其<b>平均值</b>填入（流量、進水溫、出水溫、功率），各欄皆空白待填。<br>
+<b>流量單位：</b>欄位後可下拉選單位（L/min、m³/h、m³/min、GPM、L/s、m³/s、cm³/s），計算時自動換算成 L/min。換算係數：1 m³/h≈16.7 L/min、1 GPM≈3.79 L/min、1 L/s=60 L/min、1 m³/min=1000 L/min。
+</div>
+
+<div class="input-grid" style="grid-template-columns:repeat(4,1fr)">
+<div class="input-group"><label>流量 平均值</label><div class="flow-row"><div class="flow-val"><input type="number" id="rt_flow" value="" step="any"></div><div class="flow-unit"><select id="rt_flow_unit"><option value="L/min" selected>L/min</option><option value="m³/h">m³/h</option><option value="m³/min">m³/min</option><option value="GPM">GPM</option><option value="L/s">L/s</option><option value="m³/s">m³/s</option><option value="cm³/s">cm³/s</option></select></div></div><div class="hint">有效數值的平均，下拉選單位</div></div>
+<div class="input-group"><label>進水溫度 平均 <span class="unit">℃</span></label><input type="number" id="rt_t_in" value="" step="0.1"></div>
+<div class="input-group"><label>出水溫度 平均 <span class="unit">℃</span></label><input type="number" id="rt_t_out" value="" step="0.1"></div>
+<div class="input-group"><label>功率 平均值 <span class="unit">kW</span></label><input type="number" id="rt_power" value="" step="0.1"></div>
+</div>
+
+<button class="btn" onclick="calcRT()">▶ 計算冷凍噸</button>
+
+<div id="rt-chain" class="calc-chain" style="display:none">
+<div class="calc-step"><span class="step-num">1</span>溫差 ΔT = 進水 − 出水<span class="step-result" id="rt_dt"></span></div>
+<div class="calc-step"><span class="step-num">2</span>瞬时製冷量 Q = 流量 × ΔT × 4.186 ÷ 60 (kW)<span class="step-result" id="rt_qkw"></span></div>
+<div class="calc-step"><span class="step-num">3</span>冷凍噸 RT = Q ÷ 3.517<span class="step-result" id="rt_rt"></span></div>
+<div class="calc-step"><span class="step-num">4</span>kW/RT = 功率平均 ÷ RT<span class="step-result" id="rt_kwrt"></span></div>
+</div>
+
+<div id="rt-results" class="result-grid" style="display:none">
+<div class="result-card"><div class="label">温差 ΔT</div><div class="value" id="r_rt_dt">—</div><div class="sub">℃</div></div>
+<div class="result-card"><div class="label">冷凍噸 RT</div><div class="value" id="r_rt_rt">—</div><div class="sub">RT</div></div>
+<div class="result-card"><div class="label">kW/RT</div><div class="value" id="r_rt_kwrt">—</div></div>
+<div class="result-card"><div class="label">換算後流量</div><div class="value" id="rt_qnote" style="font-size:.9em">—</div><div class="sub">L/min</div></div>
+<div class="result-card"><div class="label">平均功率</div><div class="value" id="r_rt_avgpower">—</div><div class="sub">kW</div></div>
+</div>
+
+<!-- RT quick reference table -->
+<div class="section-title" style="font-size:.9em">快速對照表（流量固定，不同溫差）</div>
+<table>
+<thead><tr><th>流量 L/min</th><th>ΔT=3℃ RT</th><th>ΔT=4℃ RT</th><th>ΔT=5℃ RT</th><th>ΔT=6℃ RT</th></tr></thead>
+<tbody id="rt-table"></tbody>
+</table>
+</div>
+</div>
+
+<!-- ============ TAB 2: CHILLER ============ -->
+<div id="tab-ch1" class="tab-panel">
+<div class="section">
+<div class="section-title">冰水主機（CH）— 改善前 vs 改善後 驗算</div>
+
+<div class="section-note">
+<b>定位：驗收驗算工具（通用，不預設本案條件）</b> — 各欄皆空白，填入該主機的<b>有效資料平均值</b>後計算。<br>
+<b>方法：</b>改善前 kW/RT 取自<b>基測報告</b>（比較基準）；改善後 RT 依「改善後流量 × 改善後溫差 × 4.186 ÷ 60 ÷ 3.517」計算（溫差只取改善後）；改善前/後耗電以「kW/RT × 有效資料筆數 N ÷ 60」換算（N = 量測期間有效分鐘數，1 小時 = 60 筆）。
+</div>
+
+<div class="input-grid" style="grid-template-columns:repeat(4,1fr)">
+<div class="input-group"><label>改善前 kW/RT（基測）<span class="unit">kW/RT</span></label><input type="number" id="ch1_kwrt_before" value="" step="0.001"><div class="hint">填基測報告值</div></div>
+<div class="input-group"><label>改善後 kW/RT（實測平均）<span class="unit">kW/RT</span></label><input type="number" id="ch1_kwrt_after" value="" step="0.001"><div class="hint">填實測平均或功率÷RT</div></div>
+<div class="input-group"><label>改善後流量 平均</label><div class="flow-row"><div class="flow-val"><input type="number" id="ch1_flow_a" value="" step="any"></div><div class="flow-unit"><select id="ch1_flow_a_unit"><option value="L/min" selected>L/min</option><option value="m³/h">m³/h</option><option value="m³/min">m³/min</option><option value="GPM">GPM</option><option value="L/s">L/s</option><option value="m³/s">m³/s</option><option value="cm³/s">cm³/s</option></select></div></div><div class="hint">改善後實測</div></div>
+<div class="input-group"><label>改善後溫差 <span class="unit">℃</span></label><input type="number" id="ch1_dt_a" value="" step="0.1"><div class="hint">僅改善後取溫差</div></div>
+<div class="input-group"><label>改善後功率 平均 <span class="unit">kW</span></label><input type="number" id="ch1_power_a" value="" step="0.1"><div class="hint">選填，用於核算 kW/RT</div></div>
+</div>
+
+<button class="btn" onclick="calcCH1()">▶ 計算冰水主機節能效益</button>
+
+<div id="ch1-chain" class="calc-chain" style="display:none">
+<div class="calc-step"><span class="step-num">1</span>改善後 RT = 流量 × ΔT × 4.186 ÷ 60 ÷ 3.517<span class="step-result" id="ch1_rta"></span></div>
+<div class="calc-step"><span class="step-num">2</span>功率節省 = (kW/RT_b − kW/RT_a) × RT_a<span class="step-result" id="ch1_saving"></span></div>
+<div class="calc-step"><span class="step-num">3</span>節能率 = 功率節省 ÷ (kW/RT_b × RT_a) × 100%<span class="step-result" id="ch1_rate"></span></div>
+</div>
+
+<div id="ch1-results" class="result-grid" style="display:none">
+<div class="result-card"><div class="label">改善後 RT（依溫差）</div><div class="value" id="r_ch1_rta">—</div><div class="sub">RT</div></div>
+<div class="result-card"><div class="label">改善前 kW/RT</div><div class="value" id="r_ch1_kwrt_b">—</div></div>
+<div class="result-card"><div class="label">改善後 kW/RT</div><div class="value" id="r_ch1_kwrt_a">—</div></div>
+<div class="result-card"><div class="label">改善前 功率</div><div class="value" id="r_ch1_kw_b">—</div><div class="sub">kW</div></div>
+<div class="result-card"><div class="label">改善後 功率</div><div class="value" id="r_ch1_kw_a">—</div><div class="sub">kW</div></div>
+<div class="result-card success"><div class="label">功率節省</div><div class="value" id="r_ch1_saving">—</div><div class="sub">kW</div></div>
+<div class="result-card success"><div class="label">節能率</div><div class="value" id="r_ch1_rate">—</div><div class="sub">%</div></div>
+</div>
+
+<div id="ch1-verdict" style="display:none"></div>
+</div>
+</div>
+
+<!-- ============ TAB 3: AH ============ -->
+<div id="tab-ah" class="tab-panel">
+<div class="section">
+<div class="section-title">空調箱（AH）— 改善前 vs 改善後 驗算（通用）</div>
+
+<div class="section-note">
+<b>定位：驗收驗算工具（通用，不預設本案條件）</b> — 各欄皆空白，填入該空調箱<b>有效資料平均值</b>後計算。<br>
+<b>方法：</b>改善前 kW/RT 取自<b>基測報告</b>；改善後 RT 依「改善後流量 × 改善後溫差 × 4.186 ÷ 60 ÷ 3.517」計算（溫差只取改善後）；改善前/後耗電以「kW/RT × 有效資料筆數 N ÷ 60」換算（N = 量測期間有效分鐘數）。
+</div>
+
+<div class="input-grid" style="grid-template-columns:repeat(4,1fr)">
+<div class="input-group"><label>改善前 kW/RT（基測）<span class="unit">kW/RT</span></label><input type="number" id="ah_before" value="" step="0.001"><div class="hint">填基測報告值</div></div>
+<div class="input-group"><label>改善後 kW/RT（實測平均）<span class="unit">kW/RT</span></label><input type="number" id="ah_after" value="" step="0.001"><div class="hint">填實測平均或功率÷RT</div></div>
+<div class="input-group"><label>改善後流量 平均</label><div class="flow-row"><div class="flow-val"><input type="number" id="ah_flow_a" value="" step="any"></div><div class="flow-unit"><select id="ah_flow_a_unit"><option value="L/min" selected>L/min</option><option value="m³/h">m³/h</option><option value="m³/min">m³/min</option><option value="GPM">GPM</option><option value="L/s">L/s</option><option value="m³/s">m³/s</option><option value="cm³/s">cm³/s</option></select></div></div><div class="hint">改善後實測</div></div>
+<div class="input-group"><label>改善後溫差 <span class="unit">℃</span></label><input type="number" id="ah_dt_a" value="" step="0.1"><div class="hint">僅改善後取溫差</div></div>
+<div class="input-group"><label>改善後功率 平均 <span class="unit">kW</span></label><input type="number" id="ah_power_a" value="" step="0.1"><div class="hint">選填，用於核算 kW/RT</div></div>
+</div>
+
+<button class="btn" onclick="calcAH()">▶ 計算空調箱節能效益</button>
+
+<div id="ah-chain" class="calc-chain" style="display:none">
+<div class="calc-step"><span class="step-num">1</span>改善後 RT = 流量 × ΔT × 4.186 ÷ 60 ÷ 3.517<span class="step-result" id="ah_rta"></span></div>
+<div class="calc-step"><span class="step-num">2</span>功率節省 = (kW/RT_b − kW/RT_a) × RT_a<span class="step-result" id="ah_saving"></span></div>
+<div class="calc-step"><span class="step-num">3</span>節能率 = 功率節省 ÷ (kW/RT_b × RT_a) × 100%<span class="step-result" id="ah_rate"></span></div>
+</div>
+
+<div id="ah-results" style="display:none">
+<div class="result-grid">
+<div class="result-card"><div class="label">改善後 RT（依溫差）</div><div class="value" id="r_ah_rta">—</div><div class="sub">RT</div></div>
+<div class="result-card"><div class="label">改善前 kW/RT</div><div class="value" id="r_ah_kwrt_b">—</div></div>
+<div class="result-card"><div class="label">改善後 kW/RT</div><div class="value" id="r_ah_kwrt_a">—</div></div>
+<div class="result-card"><div class="label">改善前 功率</div><div class="value" id="r_ah_kw_b">—</div><div class="sub">kW</div></div>
+<div class="result-card"><div class="label">改善後 功率</div><div class="value" id="r_ah_kw_a">—</div><div class="sub">kW</div></div>
+<div class="result-card success"><div class="label">功率節省</div><div class="value" id="r_ah_saving">—</div><div class="sub">kW</div></div>
+<div class="result-card success"><div class="label">節能率</div><div class="value" id="r_ah_rate">—</div><div class="sub">%</div></div>
+</div>
+<div id="ah-verdict"></div>
+</div>
+</div>
+</div>
+
+<!-- ============ TAB 4: OVERALL ============ -->
+<div id="tab-overall" class="tab-panel">
+<div class="section">
+<div class="section-title">整體節能效益 — 冰水主機 + 空調箱（不計金額）</div>
+
+<div class="formula-box">
+<div class="formula">
+整體功率節省 = 冰水主機節省 + 空調箱節省 (kW)<br>
+整體節能率 = 整體功率節省 ÷ 整體改善前功率 × 100%<br>
+（要換成 kWh / kLOE / CO₂，再自行 × 運轉時數）
+</div>
+<div class="source">純依 kW/RT 與 RT 計算功率節省（kW），不預設年度冷量或時數；如需能量，請乘以實際運轉時數。</div>
+</div>
+
+<button class="btn" onclick="calcOverall()">▶ 計算整體效益</button>
+
+<div id="ov-results" style="display:none">
+<div class="result-grid">
+<div class="result-card"><div class="label">冰水主機 節省</div><div class="value" id="ov_ch1_saving">—</div><div class="sub">kW</div></div>
+<div class="result-card"><div class="label">空調箱 節省</div><div class="value" id="ov_ah_saving">—</div><div class="sub">kW</div></div>
+<div class="result-card success"><div class="label">整體功率節省</div><div class="value" id="ov_total_saving">—</div><div class="sub">kW</div></div>
+<div class="result-card success"><div class="label">整體節能率</div><div class="value" id="ov_rate">—</div><div class="sub">%</div></div>
+</div>
+
+<table>
+<thead><tr><th>設備</th><th class="num">改善前 kW</th><th class="num">改善後 kW</th><th class="num">節省 kW</th><th class="num">節能率</th></tr></thead>
+<tbody id="ov-breakdown-tbody"></tbody>
+<tfoot><tr class="total" id="ov-total-row"></tr></tfoot>
+</table>
+
+<div id="ov-verdict"></div>
+</div>
+</div>
+</div>
+</div>
+
+</div>
+
+<script>
+// ============ STATE ============
+let ch1Result = null;   // {saving, rate, kw_before, kw_after, kwrt_b, kwrt_a, RT_a}
+let ahResult = null;    // 同構造
+
+// ============ FLOW UNIT CONVERSION ============
+// 各單位換算成 L/min 的係數
+const FLOW_UNITS = {
+  'L/min':  1,
+  'm³/h':   1000/60,    // 16.667 L/min
+  'm³/min': 1000,
+  'GPM':    3.78541,    // US gal/min
+  'L/s':    60,
+  'm³/s':   60000,
+  'cm³/s':  0.6,
+};
+// 流量數值 + 單位 → L/min
+function toLPM(value, unit){
+  const f = parseFloat(value);
+  if(isNaN(f)) return 0;
+  return f * (FLOW_UNITS[unit] || 1);
+}
+
+// 通用：依單位換算「流量×溫差」得 RT
+function calcRTFromFlow(flowRaw, unitSel, dt){
+  const flow = toLPM(flowRaw, unitSel);
+  return { flow, RT: flow * dt * 4.186 / 60 / 3.517 };
+}
+
+function switchTab(name){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  const idx = {rt:0, ch1:1, ah:2, overall:3}[name];
+  document.querySelectorAll('.tab-btn')[idx].classList.add('active');
+}
+
+// ============ TAB 1: RT CALCULATOR ============
+function calcRT(){
+  const flowRaw = document.getElementById('rt_flow').value;
+  const flowUnit = document.getElementById('rt_flow_unit')?.value || 'L/min';
+  const flow = toLPM(flowRaw, flowUnit);
+  const tIn   = parseFloat(document.getElementById('rt_t_in').value)||0;
+  const tOut  = parseFloat(document.getElementById('rt_t_out').value)||0;
+  const power = parseFloat(document.getElementById('rt_power').value)||0;
+
+  const dT   = tIn - tOut;
+  const Qkw  = flow * dT * 4.186 / 60;   // 瞬时製冷 kW
+  const RT   = Qkw / 3.517;              // 冷凍噸
+  const kwrt = (RT>0 && power>0) ? power/RT : 0;
+
+  document.getElementById('rt-chain').style.display='block';
+  document.getElementById('rt_dt').textContent   = dT.toFixed(1)+' ℃';
+  document.getElementById('rt_qkw').textContent  = Qkw.toFixed(1)+' kW';
+  document.getElementById('rt_rt').textContent   = RT.toFixed(1)+' RT';
+  document.getElementById('rt_kwrt').textContent = kwrt?kwrt.toFixed(3):'—';
+
+  document.getElementById('rt-results').style.display='grid';
+  document.getElementById('r_rt_dt').textContent       = dT.toFixed(1);
+  document.getElementById('r_rt_rt').textContent       = RT.toFixed(1);
+  document.getElementById('r_rt_kwrt').textContent     = kwrt?kwrt.toFixed(3):'—';
+  document.getElementById('rt_qnote').textContent      = flow.toFixed(1)+' L/min';
+  document.getElementById('r_rt_avgpower').textContent = power;
+}
+
+// RT 快速對照表（流量固定，不同溫差）
+function fillRTTable(){
+  const tbody = document.getElementById('rt-table');
+  const flows = [100, 500, 1000, 2000, 4000, 4090];
+  const dTs = [3,4,5,6];
+  let html='';
+  flows.forEach(f=>{
+    const lpm = toLPM(f,'L/min');
+    html += `<tr><td class="num">${f.toLocaleString()}</td>`;
+    dTs.forEach(dt=>{
+      const rt = lpm * dt * 4.186 / 60 / 3.517;
+      html += `<td class="num">${rt.toFixed(0)}</td>`;
+    });
+    html += `</tr>`;
+  });
+  tbody.innerHTML = html;
+}
+
+// ============ TAB 2: CHILLER ============
+function calcCH1(){
+  const kwrt_b = parseFloat(document.getElementById('ch1_kwrt_before').value)||0;
+  const kwrt_a = parseFloat(document.getElementById('ch1_kwrt_after').value)||0;
+  const flow_a = toLPM(document.getElementById('ch1_flow_a').value, document.getElementById('ch1_flow_a_unit')?.value||'L/min');
+  const dt_a   = parseFloat(document.getElementById('ch1_dt_a').value)||0;
+  const power_a= parseFloat(document.getElementById('ch1_power_a').value)||0;
+
+  // 改善後 RT（依改善後流量×溫差）
+  const RT_a = flow_a * dt_a * 4.186 / 60 / 3.517;
+  // 功率（kW）= kW/RT × RT
+  const kw_b = kwrt_b * RT_a;
+  const kw_a = kwrt_a * RT_a;
+  const saving_kw = kw_b - kw_a;
+  const rate = kw_b>0 ? saving_kw/kw_b : 0;
+
+  document.getElementById('ch1-chain').style.display='block';
+  document.getElementById('ch1_rta').textContent   = RT_a.toFixed(1)+' RT';
+  document.getElementById('ch1_saving').textContent= saving_kw.toFixed(1)+' kW';
+  document.getElementById('ch1_rate').textContent  = (rate*100).toFixed(1)+'%';
+
+  document.getElementById('ch1-results').style.display='grid';
+  document.getElementById('r_ch1_rta').textContent    = RT_a.toFixed(0);
+  document.getElementById('r_ch1_kwrt_b').textContent = kwrt_b?kwrt_b.toFixed(3):'—';
+  document.getElementById('r_ch1_kwrt_a').textContent = kwrt_a?kwrt_a.toFixed(3):'—';
+  document.getElementById('r_ch1_kw_b').textContent    = kw_b.toFixed(1);
+  document.getElementById('r_ch1_kw_a').textContent    = kw_a.toFixed(1);
+  document.getElementById('r_ch1_saving').textContent   = saving_kw.toFixed(1);
+  document.getElementById('r_ch1_rate').textContent     = (rate*100).toFixed(1)+'%';
+
+  const v = document.getElementById('ch1-verdict');
+  v.style.display='block';
+  const kwrt_chk = (RT_a>0 && power_a>0)? (power_a/RT_a): null;
+  if(kwrt_chk!==null && kwrt_a>0 && Math.abs(kwrt_chk-kwrt_a)/kwrt_a>0.15){
+    v.className='verdict warn';
+    v.textContent=`⚠️ 核算 — 改善後功率 ÷ RT = ${kwrt_chk.toFixed(3)} kW/RT，與填的改善後 kW/RT ${kwrt_a.toFixed(3)} 相差 >15%，請檢查。`;
+  } else {
+    v.className='verdict pass';
+    v.textContent=`✅ 計算完成 — 節能率 ${(rate*100).toFixed(1)}%（RT=${RT_a.toFixed(0)}，功率節省 ${saving_kw.toFixed(1)} kW）`;
+  }
+
+  ch1Result = {saving: saving_kw, rate, kw_before:kw_b, kw_after:kw_a, kwrt_b, kwrt_a, RT_a};
+}
+
+// ============ TAB 3: AH ============
+function calcAH(){
+  const kwrt_b = parseFloat(document.getElementById('ah_before').value)||0;
+  const kwrt_a = parseFloat(document.getElementById('ah_after').value)||0;
+  const flow_a = toLPM(document.getElementById('ah_flow_a').value, document.getElementById('ah_flow_a_unit')?.value||'L/min');
+  const dt_a   = parseFloat(document.getElementById('ah_dt_a').value)||0;
+  const power_a= parseFloat(document.getElementById('ah_power_a').value)||0;
+
+  const RT_a = flow_a * dt_a * 4.186 / 60 / 3.517;
+  const kw_b = kwrt_b * RT_a;
+  const kw_a = kwrt_a * RT_a;
+  const saving_kw = kw_b - kw_a;
+  const rate = kw_b>0 ? saving_kw/kw_b : 0;
+
+  document.getElementById('ah-chain').style.display='block';
+  document.getElementById('ah_rta').textContent   = RT_a.toFixed(1)+' RT';
+  document.getElementById('ah_saving').textContent= saving_kw.toFixed(1)+' kW';
+  document.getElementById('ah_rate').textContent  = (rate*100).toFixed(1)+'%';
+
+  document.getElementById('ah-results').style.display='block';
+  document.getElementById('r_ah_rta').textContent    = RT_a.toFixed(0);
+  document.getElementById('r_ah_kwrt_b').textContent = kwrt_b?kwrt_b.toFixed(3):'—';
+  document.getElementById('r_ah_kwrt_a').textContent = kwrt_a?kwrt_a.toFixed(3):'—';
+  document.getElementById('r_ah_kw_b').textContent   = kw_b.toFixed(1);
+  document.getElementById('r_ah_kw_a').textContent   = kw_a.toFixed(1);
+  document.getElementById('r_ah_saving').textContent   = saving_kw.toFixed(1);
+  document.getElementById('r_ah_rate').textContent    = (rate*100).toFixed(1)+'%';
+
+  const v = document.getElementById('ah-verdict');
+  v.style.display='block';
+  const kwrt_chk = (RT_a>0 && power_a>0)? (power_a/RT_a): null;
+  if(kwrt_chk!==null && kwrt_a>0 && Math.abs(kwrt_chk-kwrt_a)/kwrt_a>0.15){
+    v.className='verdict warn';
+    v.textContent=`⚠️ 核算 — 改善後功率 ÷ RT = ${kwrt_chk.toFixed(3)} kW/RT，與填的改善後 kW/RT ${kwrt_a.toFixed(3)} 相差 >15%，請檢查。`;
+  } else {
+    v.className='verdict pass';
+    v.textContent=`✅ 計算完成 — 節能率 ${(rate*100).toFixed(1)}%（RT=${RT_a.toFixed(0)}，功率節省 ${saving_kw.toFixed(1)} kW）`;
+  }
+
+  ahResult = {saving: saving_kw, rate, kw_before:kw_b, kw_after:kw_a, kwrt_b, kwrt_a, RT_a};
+}
+
+// ============ TAB 4: OVERALL ============
+function calcOverall(){
+  // 未算就先算
+  if(!ch1Result || !ch1Result.kw_before) calcCH1();
+  if(!ahResult || !ahResult.kw_before) calcAH();
+  const c = ch1Result, a = ahResult;
+  if(!c || !a) return;
+
+  const totalSaving = c.saving + a.saving;   // kW
+  const totalBefore = c.kw_before + a.kw_before;
+  const totalAfter  = c.kw_after  + a.kw_after;
+  const rate = totalBefore>0 ? totalSaving/totalBefore : 0;
+
+  document.getElementById('ov-results').style.display='block';
+  document.getElementById('ov_ch1_saving').textContent = c.saving.toFixed(1);
+  document.getElementById('ov_ah_saving').textContent  = a.saving.toFixed(1);
+  document.getElementById('ov_total_saving').textContent= totalSaving.toFixed(1);
+  document.getElementById('ov_rate').textContent = (rate*100).toFixed(1)+'%';
+
+  document.getElementById('ov-breakdown-tbody').innerHTML =
+    `<tr><td>冰水主機</td><td class="num">${c.kw_before.toFixed(1)}</td><td class="num">${c.kw_after.toFixed(1)}</td><td class="num">${c.saving.toFixed(1)}</td><td class="num">${(c.rate*100).toFixed(1)}%</td></tr>` +
+    `<tr><td>空調箱</td><td class="num">${a.kw_before.toFixed(1)}</td><td class="num">${a.kw_after.toFixed(1)}</td><td class="num">${a.saving.toFixed(1)}</td><td class="num">${(a.rate*100).toFixed(1)}%</td></tr>`;
+  document.getElementById('ov-total-row').innerHTML =
+    `<td>合計</td><td class="num">${totalBefore.toFixed(1)}</td><td class="num">${totalAfter.toFixed(1)}</td><td class="num">${totalSaving.toFixed(1)}</td><td class="num">${(rate*100).toFixed(1)}%</td>`;
+
+  const v = document.getElementById('ov-verdict');
+  v.style.display='block';
+  v.className='verdict pass';
+  v.textContent=`✅ 整體計算完成 — 節能率 ${(rate*100).toFixed(1)}%，功率節省 ${totalSaving.toFixed(1)} kW（未年化）`;
+}
+
+// ============ INIT ============
+fillRTTable();
+</script>
+</body>
+</html>
