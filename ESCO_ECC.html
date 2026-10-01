@@ -636,39 +636,43 @@ Q_Load：實際冷量（RT 或 kW）；Capacity：額定容量（銘牌 RT，如
 <button id="plr-m2" class="device-btn" onclick="setPLRMode('m2')">② 流量×ΔT → RT → PLR</button>
 </div>
 
-<!-- Mode 1: Q_Load / Capacity -->
-<div id="plr-mode-m1">
-<div class="input-grid" style="grid-template-columns:repeat(4,1fr)">
-<div class="input-group"><label>實際冷量 Q_Load</label>
-<input type="number" id="plr_qload" value="" step="any" placeholder="例：320">
-<div class="hint">可用下方單位下拉</div></div>
-<div class="input-group"><label>Q_Load 單位</label>
-<select id="plr_qunit">
-<option value="RT" selected>RT（冷凍噸）</option>
-<option value="kW">kW（冷量）</option>
-<option value="kcal_h">kcal/h</option>
-</select></div>
-<div class="input-group"><label>額定容量 Capacity</label>
-<input type="number" id="plr_cap" value="400" step="any"></div>
+<!-- 共用：額定容量 -->
+<div class="input-grid" style="grid-template-columns:repeat(2,1fr)">
+<div class="input-group"><label>額定容量 Capacity（兩模式共用）</label>
+<input type="number" id="plr_cap" value="400" step="any">
+<div class="hint">冰水主機銘牌容量</div></div>
 <div class="input-group"><label>Capacity 單位</label>
 <select id="plr_cunit">
 <option value="RT" selected>RT（冷凍噸）</option>
 <option value="kW">kW（冷量）</option>
 </select></div>
 </div>
-<div class="section-note">若 Q_Load 與 Capacity 單位不同，會先換算成同單位再算 PLR。</div>
+
+<!-- Mode 1: Q_Load / Capacity -->
+<div id="plr-mode-m1">
+<div class="section-note" style="margin:8px 0 4px"><b>模式① 輸入冷量與額定容量</b>：PLR = Q_Load ÷ Capacity</div>
+<div class="input-grid" style="grid-template-columns:repeat(2,1fr)">
+<div class="input-group"><label>實際冷量 Q_Load</label>
+<input type="number" id="plr_qload" value="" step="any" placeholder="例：320">
+<div class="hint">依單位下拉換算成 RT</div></div>
+<div class="input-group"><label>Q_Load 單位</label>
+<select id="plr_qunit">
+<option value="RT" selected>RT（冷凍噸）</option>
+<option value="kW">kW（冷量）</option>
+<option value="kcal_h">kcal/h</option>
+</select></div>
+</div>
 </div>
 
 <!-- Mode 2: flow × ΔT → RT → PLR -->
 <div id="plr-mode-m2" style="display:none">
-<div class="input-grid" style="grid-template-columns:repeat(3,1fr)">
+<div class="section-note" style="margin:8px 0 4px"><b>模式② 從流量×溫差算冷量</b>：RT = 流量×ΔT×4.186÷60÷3.5168</div>
+<div class="input-grid" style="grid-template-columns:repeat(2,1fr)">
 <div class="input-group"><label>流量 L/min</label>
 <input type="number" id="plr_f_flow" value="" step="any" placeholder="例：4032">
 <div class="hint">同 ④ 流量分頁公式</div></div>
 <div class="input-group"><label>進出水溫差 ΔT <span class="unit">℃</span></label>
 <input type="number" id="plr_f_dt" value="" step="0.1" min="0" placeholder="例：5"></div>
-<div class="input-group"><label>額定容量 <span class="unit">RT</span></label>
-<input type="number" id="plr_f_cap" value="400" step="any"></div>
 </div>
 </div>
 
@@ -1539,10 +1543,11 @@ function calcPLR(){
   } else {
     const flow = parseFloat(document.getElementById('plr_f_flow').value);
     const dt = parseFloat(document.getElementById('plr_f_dt').value);
-    const cap = parseFloat(document.getElementById('plr_f_cap').value);
+    const cap = parseFloat(document.getElementById('plr_cap').value);
+    const cu = document.getElementById('plr_cunit').value;
     if(isNaN(flow)||isNaN(dt)||isNaN(cap)||cap===0){ res.style.display='none'; chain.style.display='none'; v.textContent='請填入流量、ΔT 與 Capacity。'; return; }
     qRT = flow*dt*4.186/60/3.5168;
-    capRT = cap;
+    capRT = plrToRT(cap, cu);
     plr = qRT/capRT*100;
   }
   res.style.display='block';
@@ -1559,10 +1564,9 @@ function calcPLR(){
   v.className = 'verdict ok';
   v.textContent = '✓ 已計算 — PLR '+plr.toFixed(1)+'%（'+z.label+'）';
 }
-['plr_qload','plr_cap','plr_f_flow','plr_f_dt','plr_f_cap'].forEach(id=>{
-  document.addEventListener('input', e=>{
-    if(id === e.target.id || ['plr_qload','plr_cap','plr_qunit','plr_cunit','plr_f_flow','plr_f_dt','plr_f_cap'].includes(e.target.id)) calcPLR();
-  });
+document.addEventListener('input', e=>{
+  const ids = ['plr_qload','plr_cap','plr_qunit','plr_cunit','plr_f_flow','plr_f_dt'];
+  if(ids.includes(e.target.id)) calcPLR();
 });
 </script>
 </body>
