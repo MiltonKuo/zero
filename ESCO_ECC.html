@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>聯新醫院節能計算工具 v2</title>
+<title>ESCO 節能驗證與工程驗算工具 V4</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Microsoft JhengHei','Noto Sans TC',sans-serif;background:linear-gradient(135deg,#0d1117 0%,#161b22 100%);color:#c9d1d9;min-height:100vh;padding:20px}
@@ -95,6 +95,39 @@ tr.baseline td{background:rgba(88,166,255,.05)}
 .bl-coef-table .coef-diff.negative{color:#f85149}
 .bl-coef-table .coef-pct{font-size:.85em;color:#8b949e}
 .bl-unit-notice{background:rgba(255,196,0,.08);border:1px solid rgba(255,196,0,.4);border-radius:6px;padding:10px;font-size:.8em;color:#ffd700;margin:8px 0;line-height:1.5}
+/* ============ V4: 驗證狀態 / 訊息三分類 / 可展開技術說明 ============ */
+.bl-status-banner{border-radius:10px;padding:16px 18px;margin:0 0 14px;font-size:.9em;line-height:1.5}
+.bl-status-banner.green{background:rgba(63,185,80,.12);border:1px solid #3fb950}
+.bl-status-banner.yellow{background:rgba(255,196,0,.10);border:1px solid #ffd700}
+.bl-status-banner.red{background:rgba(248,81,73,.12);border:1px solid #f85149}
+.bl-status-title{font-size:1.15em;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.bl-status-banner.green .bl-status-title{color:#3fb950}
+.bl-status-banner.yellow .bl-status-title{color:#ffd700}
+.bl-status-banner.red .bl-status-title{color:#f85149}
+.bl-status-reason{font-size:.85em;opacity:.9;margin-top:4px}
+/* 訊息三分類 */
+.bl-msg-ok{font-size:.8em;color:#8b949e;background:#161b22;border-left:3px solid #3fb950;border-radius:4px;padding:8px 12px;margin:6px 0}
+.bl-msg-warn{font-size:.8em;color:#c9d1d9;background:rgba(255,196,0,.07);border-left:3px solid #ffd700;border-radius:4px;padding:8px 12px;margin:6px 0}
+.bl-msg-block{font-size:.8em;color:#c9d1d9;background:rgba(248,81,73,.08);border-left:3px solid #f85149;border-radius:4px;padding:8px 12px;margin:6px 0}
+.bl-msg-tag{display:inline-block;font-size:.7em;font-weight:700;padding:1px 7px;border-radius:10px;margin-right:6px;vertical-align:middle}
+.bl-msg-ok .bl-msg-tag{background:rgba(63,185,80,.2);color:#3fb950}
+.bl-msg-warn .bl-msg-tag{background:rgba(255,196,0,.2);color:#ffd700}
+.bl-msg-block .bl-msg-tag{background:rgba(248,81,73,.2);color:#f85149}
+/* 必要處理事項清單 */
+.bl-must-items{margin:6px 0}
+.bl-must-item{padding:6px 0;border-bottom:1px solid #21262d;font-size:.85em}
+.bl-must-item:last-child{border-bottom:none}
+/* 可展開技術說明 */
+.bl-detail{border:1px solid #30363d;border-radius:6px;margin:8px 0;overflow:hidden}
+.bl-detail-toggle{background:#161b22;padding:10px 14px;cursor:pointer;font-size:.85em;font-weight:600;color:#58a6ff;display:flex;justify-content:space-between;align-items:center}
+.bl-detail-toggle:hover{background:#1c2333}
+.bl-detail-body{display:none;padding:12px 14px;background:#0d1117;font-size:.82em;line-height:1.7}
+.bl-detail.open .bl-detail-body{display:block}
+.bl-detail-toggle .bl-arrow{transition:transform .2s}
+.bl-detail.open .bl-arrow{transform:rotate(90deg)}
+.bl-prereq-table{width:100%;min-width:420px}
+.bl-prereq-table th,.bl-prereq-table td{padding:6px 8px;text-align:center;font-size:.85em}
+.bl-prereq-table td:first-child{text-align:left}
 .bl-stat-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin:10px 0}
 .bl-canvas{width:100%;height:260px;background:#161b22;border:1px solid #30363d;border-radius:6px;margin:8px 0}
 .bl-report{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:14px;margin:10px 0;font-size:.85em;line-height:1.8}
@@ -166,8 +199,8 @@ tr.baseline td{background:rgba(88,166,255,.05)}
 </head>
 <body>
 <div class="container">
-<h1>ESCO 節能驗收驗算工具 <span style="font-size:.5em;color:#8b949e">v3（通用）</span></h1>
-<p class="subtitle">驗收驗算 — 填入有效資料平均值 → 冷凍噸 → 節能效益（不預設特定廠區條件）</p>
+<h1>ESCO 節能驗證與工程驗算工具 <span style="font-size:.5em;color:#8b949e">V4</span></h1>
+<p class="subtitle">工程計算、基準線迴歸與節能效益驗證 — 區分「可計算」「技術分析」「正式驗證」三層級，不預設特定廠區條件</p>
 
 <!-- ============ TABS ============ -->
 <div class="tabs">
@@ -313,40 +346,84 @@ RT = 流量(L/min) × 溫差(℃) × 4.186(kcal/kg·℃) ÷ 60 ÷ 3.5168(kW/RT)<
 </div>
 </div>
 
-<!-- ============ TAB 4: BASELINE REGRESSION ============ -->
+<!-- ============ TAB 4: BASELINE REGRESSION (V4) ============ -->
 <div id="tab-baseline" class="tab-panel">
-<div class="section">
-<div class="section-title">冰水空調系統基準線 A0／A1／A2 迴歸與 COP 驗證工具</div>
 
-<div class="formula-box">
-<div class="formula">
-1/COP = -1 + (T_cwRT / T_chwST) + [ -A0 + A1×T_cwRT - A2×(T_cwRPT/T_chwST) ] / Q_evap<br>
-X1 = T_cwRT, X2 = T_cwRPT / T_chwST<br>
-Y = Q_evap × [ 1/COP + 1 - T_cwRT/T_chwST ]<br>
-OLS: Y = B0 + B1×X1 + B2×X2 → A0 = -B0, A1 = B1, A2 = -B2
-</div>
-<div class="source">文件參考係數：A0 = 9593.1, A1 = 56.912, A2 = 6952.0。Q_evap 單位需由使用者指定，A0/A1/A2 與單位綁定，不同單位不可直接共用。</div>
+<!-- ===== 本次驗證狀態（最上方，一眼可見）===== -->
+<div id="bl-validation-banner" class="bl-status-banner yellow">
+  <div class="bl-status-title" id="bl-validation-title">🟡 技術分析可執行 — 尚不具正式 ESCO 驗證資格</div>
+  <div class="bl-status-reason" id="bl-validation-reason">原因：Q_evap 單位尚未確認。</div>
+  <div class="bl-must-items" id="bl-must-items" style="margin-top:10px"></div>
 </div>
 
-<!-- 1. 資料匯入 -->
-<div class="section" style="margin-top:14px">
-<div class="section-title" style="font-size:.9em">【1】資料匯入</div>
+<!-- ===== ① 資料來源與單位 ===== -->
+<div class="section" style="margin-top:6px">
+<div class="section-title" style="font-size:.9em">【①】資料來源與單位</div>
+<div class="input-grid">
+<div class="input-group"><label>資料來源</label><input type="text" id="bl-source" placeholder="例如：BMS 歷史數據、基測報告"></div>
+</div>
+<div class="input-grid" style="grid-template-columns:repeat(4,1fr)">
+<div class="input-group"><label>T_cwRT 單位</label><input type="text" id="bl-u-t1" value="°C"></div>
+<div class="input-group"><label>T_cwRPT 單位</label><input type="text" id="bl-u-t2" value="°C"></div>
+<div class="input-group"><label>T_chwST 單位</label><input type="text" id="bl-u-t3" value="°C"></div>
+<div class="input-group"><label>Q_evap 單位（下拉選單限定範圍）</label>
+<select id="bl-u-q" class="bl-select">
+<option value="kW">kW</option><option value="W">W</option><option value="RT">RT</option>
+<option value="kcal/h">kcal/h</option><option value="kcal/min">kcal/min</option>
+<option value="kJ/h">kJ/h</option><option value="其他">其他</option>
+</select></div>
+</div>
+<div class="bl-detail" id="bl-unit-confirm">
+<div class="bl-detail-toggle" onclick="this.parentElement.classList.toggle('open')"><span>Q_evap 單位確認狀態</span><span class="bl-arrow">▸</span></div>
+<div class="bl-detail-body">
+<label style="display:block;font-weight:700;color:#58a6ff;margin-bottom:8px">單位狀態</label>
+<div class="input-group" style="margin-bottom:8px">
+<select id="bl-unit-status" onchange="blUnitStatusChanged()">
+<option value="unconfirmed" selected>尚未確認</option>
+<option value="confirmed">已確認</option>
+</select>
+</div>
+<div id="bl-unit-unconfirmed" class="bl-msg-warn"><span class="bl-msg-tag">需確認</span>「Q_evap 原始物理單位尚未確認。」目前可進行資料品質檢查、模型測試、迴歸計算與技術分析，但<b>本次結果不得標示為正式 ESCO 驗證結果</b>。</div>
+<div id="bl-unit-confirmed" style="display:none">
+<div class="input-grid" style="grid-template-columns:repeat(3,1fr)">
+<div class="input-group"><label>已確認單位</label>
+<select id="bl-unit-choice">
+<option value="kW">kW</option><option value="W">W</option><option value="RT">RT</option>
+<option value="kcal/h">kcal/h</option><option value="kcal/min">kcal/min</option>
+<option value="kJ/h">kJ/h</option><option value="other">其他</option>
+</select></div>
+<div class="input-group"><label>確認來源</label>
+<select id="bl-unit-source">
+<option value="原始節能驗證報告">原始節能驗證報告</option>
+<option value="原始基測報告">原始基測報告</option>
+<option value="BMS / EMS 資料定義">BMS / EMS 資料定義</option>
+<option value="原始回歸資料">原始回歸資料</option>
+<option value="其他">其他</option>
+</select></div>
+<div class="input-group"><label>文件頁碼／資料來源</label><input type="text" id="bl-unit-ref" placeholder="例如：P.12 表3"></div>
+</div>
+<div class="input-group" style="margin-top:6px"><label>確認備註</label><input type="text" id="bl-unit-note" placeholder="補充說明"></div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- ===== 資料匯入（保留現有功能，簡化為可展開）===== -->
+<div class="section" style="margin-top:10px">
+<div class="section-title" style="font-size:.9em">【②】資料匯入</div>
 <div class="bl-modes">
 <button class="bl-mode-btn active" data-blmode="paste">貼上資料</button>
 <button class="bl-mode-btn" data-blmode="manual">手動表格</button>
 <button class="bl-mode-btn" data-blmode="csv">CSV 匯入</button>
 </div>
-
 <div class="bl-input active" data-blinput="paste">
 <div class="section-note" style="margin:6px 0"><b>格式：</b>每列一筆，欄位以空白或逗號分隔，順序為 <code>DateTime T_cwRT T_cwRPT T_chwST Q_evap COP</code>。首列可為標題，工具會自動跳過。可直接從 Excel 複製。</div>
-<textarea id="bl-textarea" placeholder="2024/01/01 12:00  30.2  33.5  6.8  1200  4.2&#10;2024/01/01 12:05  30.1  33.4  6.9  1200  4.3&#10;..."></textarea>
+<textarea id="bl-textarea" placeholder="2024-01-01 12:00  30.2  33.5  6.8  1200  4.2&#10;2024-01-01 12:05  30.1  33.4  6.9  1200  4.3&#10;..."></textarea>
 <div class="bl-btn-row">
 <button class="bl-btn primary" onclick="blImportPaste()">匯入貼上資料</button>
 <button class="bl-btn" onclick="blClearAll()">清除資料</button>
 </div>
-<div class="section-note" style="margin-top:6px"><b>Q_evap 單位：</b><span id="bl-qunit-label">kW（需自行確認）</span>。若單位不同（RT、kcal/h 等），A0/A1/A2 數值會隨之改變，不可混用。</div>
 </div>
-
 <div class="bl-input" data-blinput="manual">
 <div class="bl-data-table">
 <table id="bl-manual-table">
@@ -354,11 +431,8 @@ OLS: Y = B0 + B1×X1 + B2×X2 → A0 = -B0, A1 = B1, A2 = -B2
 <tbody id="bl-manual-tbody"></tbody>
 </table>
 </div>
-<div class="bl-btn-row">
-<button class="bl-btn" onclick="blAddRow()">＋ 新增列</button>
+<div class="bl-btn-row"><button class="bl-btn" onclick="blAddRow()">＋ 新增列</button></div>
 </div>
-</div>
-
 <div class="bl-input" data-blinput="csv">
 <div class="section-note" style="margin:6px 0"><b>CSV 欄位：</b><code>DateTime,T_cwRT,T_cwRPT,T_chwST,Q_evap,COP</code>（可含標題列，工具會自動辨識）。拖曳檔案到下方虛線區，或點擊選擇檔案。</div>
 <div id="bl-dropzone" style="border:2px dashed #30363d;border-radius:8px;padding:30px;text-align:center;color:#8b949e;font-size:.85em;cursor:pointer">
@@ -369,9 +443,9 @@ OLS: Y = B0 + B1×X1 + B2×X2 → A0 = -B0, A1 = B1, A2 = -B2
 </div>
 </div>
 
-<!-- 2. 資料品質檢查 -->
-<div class="section">
-<div class="section-title" style="font-size:.9em">【2】資料品質檢查</div>
+<!-- ===== ③ 資料品質檢查 ===== -->
+<div class="section" style="margin-top:10px">
+<div class="section-title" style="font-size:.9em">【③】資料品質檢查</div>
 <div class="result-grid" style="grid-template-columns:repeat(4,1fr)">
 <div class="result-card"><div class="label">原始資料數</div><div class="value" id="bl-total-n">0</div></div>
 <div class="result-card success"><div class="label">有效資料數</div><div class="value" id="bl-valid-n">0</div></div>
@@ -384,25 +458,73 @@ OLS: Y = B0 + B1×X1 + B2×X2 → A0 = -B0, A1 = B1, A2 = -B2
 </div>
 </div>
 
-<!-- 3. 迴歸模型 -->
-<div class="section">
-<div class="section-title" style="font-size:.9em">【3】迴歸模型與 A0/A1/A2</div>
-<div class="bl-modes" style="margin-top:0">
-<button class="bl-mode-btn active" data-blreg="regress">重新迴歸</button>
-<button class="bl-mode-btn" data-blreg="ref">文件係數驗證</button>
-<button class="bl-mode-btn" data-blreg="manual">手動輸入係數</button>
+<!-- ===== ④ 基線模型（可展開技術說明）===== -->
+<div class="section" style="margin-top:10px">
+<div class="section-title" style="font-size:.9em">【④】基線模型</div>
+<div class="bl-msg-ok"><span class="bl-msg-tag">已確認</span>模型公式已確認。OLS 轉換公式已固定：A0 = −B0、A1 = B1、A2 = −B2。</div>
+<div class="formula-box">
+<div class="formula">1/COP = −1 + (T_cwRT / T_chwST) + [ −A0 + A1×T_cwRT − A2×(T_cwRPT/T_chwST) ] / Q_evap</div>
+</div>
+<div class="bl-detail">
+<div class="bl-detail-toggle" onclick="this.parentElement.classList.toggle('open')"><span>模型定義 ▸</span><span class="bl-arrow">▸</span></div>
+<div class="bl-detail-body">
+<div style="font-family:Consolas,monospace;line-height:1.8">
+Y = Q_evap × [ 1/COP + 1 − T_cwRT/T_chwST ]<br>
+X1 = T_cwRT，X2 = T_cwRPT / T_chwST<br>
+OLS：Y = B0 + B1×X1 + B2×X2<br>
+係數轉換：A0 = −B0，A1 = B1，A2 = −B2<br><br>
+<b style="color:#58a6ff">文件參考係數：</b>A0 = 9593.1，A1 = 56.912，A2 = 6952.0<br>
+<b style="color:#58a6ff">原始 COP 公式中第一項為 −A0</b>（非 +A0）。
+</div>
+</div>
+</div>
 </div>
 
-<div class="bl-input active" data-blreginput="regress">
-<button class="btn" onclick="blRunRegression()">▶ 執行 OLS 迴歸</button>
+<!-- ===== ⑤ 重新迴歸（模式 A）與 文件係數重現（模式 B）分開 ===== -->
+<div class="section" style="margin-top:10px">
+<div class="section-title" style="font-size:.9em">【⑤】重新迴歸 與 文件係數重現</div>
+
+<!-- 模式 A：本次資料重新迴歸 -->
+<div class="section" style="background:#161b22;border-radius:6px;padding:12px;margin:8px 0">
+<div style="font-weight:700;color:#58a6ff;margin-bottom:6px">模式 A：本次資料重新迴歸結果</div>
+<button class="btn" onclick="blRunRegression()">▶ 執行 OLS 重新迴歸</button>
+<div id="bl-regress-result" style="display:none;margin-top:10px">
+<div class="bl-coef-result" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0">
+<div class="result-card"><div class="label">A0（本次資料）</div><div class="value" id="bl-reg-A0">—</div></div>
+<div class="result-card"><div class="label">A1（本次資料）</div><div class="value" id="bl-reg-A1">—</div></div>
+<div class="result-card"><div class="label">A2（本次資料）</div><div class="value" id="bl-reg-A2">—</div></div>
+</div>
+<div class="bl-detail">
+<div class="bl-detail-toggle" onclick="this.parentElement.classList.toggle('open')"><span>OLS 數學推導 ▸</span><span class="bl-arrow">▸</span></div>
+<div class="bl-detail-body">
+<div class="calc-chain" style="margin:0">
+<div class="calc-step"><span class="step-num">1</span>標準 OLS：Y = B0 + B1×X1 + B2×X2<span class="step-result" id="bl-B-disp">—</span></div>
+<div class="calc-step"><span class="step-num">2</span>B0（截距）= <span class="step-result" id="bl-B0">—</span></div>
+<div class="calc-step"><span class="step-num">3</span>B1（X1 係數）= <span class="step-result" id="bl-B1">—</span></div>
+<div class="calc-step"><span class="step-num">4</span>B2（X2 係數）= <span class="step-result" id="bl-B2">—</span></div>
+<div class="calc-step"><span class="step-num">5</span>A0 = −B0 = <span class="step-result" id="bl-A0-disp">—</span></div>
+<div class="calc-step"><span class="step-num">6</span>A1 = B1 = <span class="step-result" id="bl-A1-disp">—</span></div>
+<div class="calc-step"><span class="step-num">7</span>A2 = −B2 = <span class="step-result" id="bl-A2-disp">—</span></div>
+</div>
+</div>
+</div>
+</div>
 </div>
 
-<div class="bl-input" data-blreginput="ref">
-<div class="section-note">使用文件參考係數 A0=9593.1, A1=56.912, A2=6952.0 直接代入原始公式，驗證實測 COP 重現度。</div>
-<button class="btn" onclick="blUseReference()">▶ 套用文件係數</button>
+<!-- 模式 B：文件係數重現 -->
+<div class="section" style="background:#161b22;border-radius:6px;padding:12px;margin:8px 0">
+<div style="font-weight:700;color:#ffd700;margin-bottom:6px">模式 B：文件係數重現（固定 A0=9593.1、A1=56.912、A2=6952.0）</div>
+<div class="bl-msg-warn"><span class="bl-msg-tag">需確認</span>文件係數重現只用於<b>代入使用者資料計算 COP 預測</b>，再與實測 COP 比較。<b>不判定文件係數是否錯誤</b>。</div>
+<button class="btn" onclick="blUseReference()">▶ 套用文件係數並計算 COP 預測</button>
+<div id="bl-ref-result" style="display:none;margin-top:10px">
+<div class="section-note" style="margin:0">文件係數 A0=9593.1、A1=56.912、A2=6952.0 已代入使用者資料，COP 預測結果見下方 COP 驗證區。</div>
+</div>
 </div>
 
-<div class="bl-input" data-blreginput="manual">
+<!-- 手動係數（保留功能，收進可展開）-->
+<div class="bl-detail">
+<div class="bl-detail-toggle" onclick="this.parentElement.classList.toggle('open')"><span>手動輸入係數（進階）▸</span><span class="bl-arrow">▸</span></div>
+<div class="bl-detail-body">
 <div class="input-grid" style="grid-template-columns:repeat(3,1fr)">
 <div class="input-group"><label>A0（手動）</label><input type="number" id="bl-mA0" value="9593.1" step="any"></div>
 <div class="input-group"><label>A1（手動）</label><input type="number" id="bl-mA1" value="56.912" step="any"></div>
@@ -410,100 +532,112 @@ OLS: Y = B0 + B1×X1 + B2×X2 → A0 = -B0, A1 = B1, A2 = -B2
 </div>
 <button class="btn" onclick="blUseManualCoef()">▶ 套用係數</button>
 </div>
-
-<!-- B → A 轉換展示 -->
-<div id="bl-conversion" style="display:none">
-<div class="calc-chain">
-<div class="section-title" style="font-size:.85em;margin-top:0">OLS 標準形式 → A 係數轉換</div>
-<div class="calc-step"><span class="step-num">1</span>標準 OLS：Y = B0 + B1×X1 + B2×X2<span class="step-result" id="bl-B-disp">—</span></div>
-<div class="calc-step"><span class="step-num">2</span>B0（截距）= <span class="step-result" id="bl-B0">—</span></div>
-<div class="calc-step"><span class="step-num">3</span>B1（X1 係數）= <span class="step-result" id="bl-B1">—</span></div>
-<div class="calc-step"><span class="step-num">4</span>B2（X2 係數）= <span class="step-result" id="bl-B2">—</span></div>
-<div class="calc-step"><span class="step-num">5</span>A0 = -B0 = <span class="step-result" id="bl-A0-disp">—</span></div>
-<div class="calc-step"><span class="step-num">6</span>A1 = B1 = <span class="step-result" id="bl-A1-disp">—</span></div>
-<div class="calc-step"><span class="step-num">7</span>A2 = -B2 = <span class="step-result" id="bl-A2-disp">—</span></div>
 </div>
 </div>
 
-<!-- 4. A0/A1/A2 結果 -->
-<div class="section" style="margin-top:14px">
-<div class="section-title" style="font-size:.9em">【4】A0 / A1 / A2 結果與文件比較</div>
+<!-- ===== ⑥ Q_evap 單位敏感度分析（下拉選單限定候選範圍）===== -->
+<div class="section" style="margin-top:10px">
+<div class="section-title" style="font-size:.9em">【⑥】Q_evap 單位敏感度分析</div>
+<div class="bl-msg-warn"><span class="bl-msg-tag">需確認</span>Q_evap 的單位<b>無法僅由 A0/A1/A2 唯一確定</b>，需透過選項比對、實際量測資料或文件說明來判定。本區以<b>下拉選單</b>限定候選單位範圍，只顯示「所選單一單位」的換算與 COP 結果，<b>不自動帶出所有候選、不判定哪個是正確單位</b>。</div>
+<div class="bl-detail open" id="bl-unit-verify">
+<div class="bl-detail-toggle" onclick="this.parentElement.classList.toggle('open')"><span>單位敏感度分析 ▸</span><span class="bl-arrow">▸</span></div>
+<div class="bl-detail-body">
+<div class="ov-grid">
+<div class="input-group"><label>實際冷量 Q_evap（以 kW 為基準輸入）</label><input type="number" id="bl-u-kw" value="800" step="any" placeholder="例如 800"></div>
+<div class="input-group"><label>候選單位（下拉選單限定範圍）</label>
+<select id="bl-u-unit" class="bl-select">
+<option value="kW">kW</option>
+<option value="W">W</option>
+<option value="RT">RT</option>
+<option value="kcal/h">kcal/h</option>
+<option value="kJ/h">kJ/h</option>
+<option value="kcal/min">kcal/min</option>
+</select></div>
+</div>
+<div class="bl-btn-row" style="margin:8px 0"><button class="bl-btn primary" onclick="blUnitVerify()">▶ 計算「所選單位」的換算與 COP</button></div>
+<div id="bl-unit-result" style="display:none">
+<div class="result-grid" style="grid-template-columns:repeat(3,1fr)">
+<div class="result-card"><div class="label">所選單位</div><div class="value" id="bl-unit-sel">—</div></div>
+<div class="result-card"><div class="label">換算後 Q</div><div class="value" id="bl-unit-q">—</div></div>
+<div class="result-card"><div class="label">有限正值 COP？</div><div class="value" id="bl-unit-pos">—</div></div>
+</div>
+<div class="result-grid" style="grid-template-columns:repeat(3,1fr)">
+<div class="result-card"><div class="label">最小 COP</div><div class="value" id="bl-unit-min">—</div></div>
+<div class="result-card"><div class="label">最大 COP</div><div class="value" id="bl-unit-max">—</div></div>
+<div class="result-card"><div class="label">平均 COP</div><div class="value" id="bl-unit-avg">—</div></div>
+</div>
+<div class="bl-msg-warn" style="margin-top:8px"><span class="bl-msg-tag">需確認</span>以上結果僅反映「所選單位」下的換算與 COP。若要正式確認 Q_evap 單位，請比對實際量測資料或文件說明，並在上方【①】勾選「已確認」並填寫確認來源。本分析<b>不得</b>據此判定文件單位。</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- ===== ⑦ COP 驗證與統計結果（技術分析，可收合）===== -->
+<details id="bl-details-1" class="bl-tech-details" open>
+<summary>【⑦】COP 驗證與統計結果 <span class="bl-tech-note">技術分析層級 — 非最終 ESCO 正式驗證結論</span></summary>
+<div class="section" style="margin-top:6px">
+<div class="section-note" style="margin:4px 0"><b>區分：</b>「Y 的迴歸預測」（R²、RMSE、MAE）與「最終 COP 預測」（透過原始 COP 公式回算）為兩個不同層級，下方分開顯示。</div>
+<button class="btn" id="bl-cop-btn" style="display:none" onclick="blShowCOP()">▶ 顯示 COP 預測比較</button>
+<div id="bl-cop-results" style="display:none">
+<div class="result-grid" style="grid-template-columns:repeat(5,1fr)">
+<div class="result-card"><div class="label">N（有效）</div><div class="value" id="bl-stat-N">—</div></div>
+<div class="result-card"><div class="label">R²（Y 迴歸）</div><div class="value" id="bl-stat-R2">—</div></div>
+<div class="result-card"><div class="label">Adj R²（Y 迴歸）</div><div class="value" id="bl-stat-AdjR2">—</div></div>
+<div class="result-card"><div class="label">RMSE（Y）</div><div class="value" id="bl-stat-RMSE">—</div></div>
+<div class="result-card"><div class="label">MAE（Y）</div><div class="value" id="bl-stat-MAE">—</div></div>
+</div>
+<div class="result-grid" style="grid-template-columns:repeat(3,1fr)">
+<div class="result-card"><div class="label">COP RMSE（最終預測）</div><div class="value" id="bl-cop-RMSE">—</div></div>
+<div class="result-card"><div class="label">COP MAE（最終預測）</div><div class="value" id="bl-cop-MAE">—</div></div>
+<div class="result-card"><div class="label">COP 平均相對誤差</div><div class="value" id="bl-cop-MAPE">—</div></div>
+</div>
+<div class="table-scroll">
+<table class="ov-table">
+<thead><tr><th>DateTime</th><th class="num">實測 COP</th><th class="num">預測 COP</th><th class="num">COP 誤差</th><th class="num">COP 誤差 %</th></tr></thead>
+<tbody id="bl-cop-tbody"></tbody>
+</table>
+</div>
+</div>
+</div>
+</details>
+
+<!-- ===== ⑧ 圖表（技術分析，可收合）===== -->
+<details id="bl-details-2" class="bl-tech-details">
+<summary>【⑧】圖表 <span class="bl-tech-note">技術分析 — 收合狀態預設</span></summary>
+<div class="section" style="margin-top:6px">
+<canvas id="bl-chart-scatter" class="bl-canvas"></canvas>
+<div style="font-size:.7em;color:#6e7681;text-align:center;margin-top:-4px">實測 COP vs 預測 COP</div>
+<canvas id="bl-chart-residual" class="bl-canvas"></canvas>
+<div style="font-size:.7em;color:#6e7681;text-align:center;margin-top:-4px">殘差 vs 預測 COP</div>
+<canvas id="bl-chart-timeseries" class="bl-canvas"></canvas>
+<div style="font-size:.7em;color:#6e7681;text-align:center;margin-top:-4px">時間序列 COP（實測 vs 預測）</div>
+</div>
+</details>
+
+<!-- ===== ⑨ 文件係數比較（只顯示差異，不判定）===== -->
+<div class="section" style="margin-top:10px">
+<div class="section-title" style="font-size:.9em">【⑨】文件係數比較（僅顯示差異）</div>
+<div class="bl-msg-warn"><span class="bl-msg-tag">需確認</span>若本次資料與原文件<b>不是同一批</b>（原始資料、篩選條件、單位、有效範圍不同），<b>不得判定原文件係數錯誤</b>，僅顯示差異供參考。</div>
 <div class="table-scroll">
 <table class="bl-coef-table" id="bl-coef-table">
-<thead><tr><th>係數</th><th>計算結果</th><th>文件參考值</th><th>差異</th><th>差異 %</th></tr></thead>
-<tbody>
-<tr><td>A0</td><td class="coef-main" id="bl-A0-out">—</td><td class="coef-ref">9593.1</td><td class="coef-diff" id="bl-A0-diff">—</td><td class="coef-pct" id="bl-A0-pct">—</td></tr>
-<tr><td>A1</td><td class="coef-main" id="bl-A1-out">—</td><td class="coef-ref">56.912</td><td class="coef-diff" id="bl-A1-diff">—</td><td class="coef-pct" id="bl-A1-pct">—</td></tr>
-<tr><td>A2</td><td class="coef-main" id="bl-A2-out">—</td><td class="coef-ref">6952.0</td><td class="coef-diff" id="bl-A2-diff">—</td><td class="coef-pct" id="bl-A2-pct">—</td></tr>
-</tbody>
-</table>
-</div>
-<div class="section-note"><b>說明：</b>差異 = 計算值 − 文件參考值；差異 % = 差異 ÷ 參考值 × 100%。工具僅顯示實際差異，不自行判定「合格／不合格」。</div>
-</div>
-
-<!-- 4b. Q_evap 單位驗證 -->
-<div class="section" style="margin-top:14px">
-<div class="section-title" style="font-size:.9em">【4b】Q_evap 單位驗證</div>
-<div class="section-note" style="margin:6px 0"><b>方法：</b>對每一種候選單位，使用<b>同一組文件參考係數</b>（A0=9593.1、A1=56.912、A2=6952.0），把同一個實際冷量轉換成該單位後代回原始公式計算 COP。僅顯示各單位下的計算結果與 COP 範圍，<b>不自行宣稱哪一個單位就是文件真正使用的單位</b>。</div>
-<div class="bl-unit-notice">⚠️ 僅靠係數本身（9593.1 / 56.912 / 6952.0）<b>無法唯一確定 Q_evap 的物理單位</b>。係數與 Q_evap 單位是一對綁定的尺度；若無文件中原始回歸資料，工具不會猜測單位，僅呈現各單位下的數值行為供工程人員比對。</div>
-<div class="input-group" style="margin:8px 0"><label>實際冷量 Q_evap（以 kW 為基準輸入，工具會自動換算成各單位）</label><input type="number" id="bl-u-kw" value="800" step="any"></div>
-<div class="bl-btn-row"><button class="bl-btn primary" onclick="blUnitVerify()">▶ 執行單位驗證</button></div>
-<div id="bl-unit-results" style="display:none">
-<div class="table-scroll">
-<table class="bl-coef-table" id="bl-unit-table">
-<thead><tr><th>單位</th><th>換算後 Q</th><th>COP（代回原始公式）</th><th>有限正值？</th><th>最小 COP</th><th>最大 COP</th><th>平均 COP</th></tr></thead>
-<tbody id="bl-unit-tbody"></tbody>
-</table>
-</div>
-<div class="section-note" style="margin-top:8px"><b>換算係數（以 kW 為基準）：</b>kW=1、W=0.001、RT=0.2843、kcal/h=0.001163、kJ/h=0.0002778、kcal/min=0.06978。同一冷量在不同單位下數值不同，代回固定係數後的 COP 也不同。</div>
-</div>
-</div>
-
-<!-- 4c. 係數單位縮放說明 -->
-<div class="section">
-<div class="section-title" style="font-size:.9em">【4c】係數單位縮放（數學說明）</div>
-<div class="calc-chain">
-<div class="section-title" style="font-size:.85em;margin-top:0">為什麼換 Q_evap 單位時，A0/A1/A2 也要同比例縮放？</div>
-<div class="calc-step">原始公式：<span class="step-result">[−A0 + A1·T_cwRT − A2·(T_cwRPT/T_chwST)] / Q_evap</span></div>
-<div class="calc-step">設 Q_U2 = k × Q_U1（單位 U1→U2 的換算尺度 k）</div>
-<div class="calc-step">要讓公式數值完全不變，分母 Q_evap 變成 k 倍時，分子也須變成 k 倍：</div>
-<div class="calc-step"><span class="step-result">A0_U2 = k·A0_U1，A1_U2 = k·A1_U1，A2_U2 = k·A2_U1</span></div>
-</div>
-<div class="input-group" style="margin:8px 0"><label>換算尺度 k（例如 kW→W 的 k=0.001）</label><input type="number" id="bl-scale-k" value="0.001" step="any"></div>
-<div class="bl-btn-row"><button class="bl-btn" onclick="blScaleCoeffs()">▶ 計算縮放後係數</button></div>
-<div id="bl-scale-out" style="display:none;margin-top:8px">
-<div class="result-card" style="margin-bottom:8px"><div class="label">A0（縮放後）</div><div class="value" id="bl-scale-A0">—</div></div>
-<div class="result-card" style="margin-bottom:8px"><div class="label">A1（縮放後）</div><div class="value" id="bl-scale-A1">—</div></div>
-<div class="result-card" style="margin-bottom:8px"><div class="label">A2（縮放後）</div><div class="value" id="bl-scale-A2">—</div></div>
-</div>
-<div class="section-note" style="margin-top:6px"><b>證明：</b>原式分子 M=−A0+A1·X1−A2·X2。單位換算後 Q' = k·Q，分子 M' = k·M = −(k·A0)+ (k·A1)·X1 −(k·A2)·X2，故新係數恰為原係數 ×k。若不縮放，代回後 COP 會等比例錯 k 倍。</div>
-</div>
-
-<!-- 4d. 原始文件係數重現檢查 -->
-<div class="section">
-<div class="section-title" style="font-size:.9em">【4d】原始文件係數重現檢查</div>
-<div class="section-note" style="margin:6px 0">對<b>使用者輸入的歷史資料</b>（T_cwRT、T_cwRPT、T_chwST、Q_evap、COP）：先算 Y、X1、X2，再做 OLS（Y = B0+B1X1+B2X2），轉成 A0=−B0、A1=B1、A2=−B2，最後與文件參考 9593.1 / 56.912 / 6952.0 比較。</div>
-<div class="bl-unit-notice">📌 若使用者提供的資料<b>與原文件不是同一批</b>，工具只顯示「本資料重新迴歸所得係數」與「文件參考係數」兩者差異，<b>不會判定「文件係數錯誤」</b>。不同資料樣本本就應得到不同係數。</div>
-<div class="bl-btn-row"><button class="bl-btn primary" onclick="blRunRegression(); blReproduceCheck();">▶ 用目前資料重現檢查</button></div>
-<div id="bl-reproduce" style="display:none">
-<div class="table-scroll">
-<table class="bl-coef-table">
 <thead><tr><th>來源</th><th>A0</th><th>A1</th><th>A2</th></tr></thead>
 <tbody>
-<tr><td>本資料重新迴歸</td><td class="num" id="bl-rep-A0">—</td><td class="num" id="bl-rep-A1">—</td><td class="num" id="bl-rep-A2">—</td></tr>
+<tr><td>本次資料重新迴歸</td><td class="num" id="bl-rep-A0">—</td><td class="num" id="bl-rep-A1">—</td><td class="num" id="bl-rep-A2">—</td></tr>
 <tr><td>文件參考</td><td class="num">9593.1</td><td class="num">56.912</td><td class="num">6952.0</td></tr>
-<tr><td>差異（本資料−文件）</td><td class="num" id="bl-rep-A0d">—</td><td class="num" id="bl-rep-A1d">—</td><td class="num" id="bl-rep-A2d">—</td></tr>
+<tr><td>差異（本次 − 文件）</td><td class="num" id="bl-rep-A0d">—</td><td class="num" id="bl-rep-A1d">—</td><td class="num" id="bl-rep-A2d">—</td></tr>
 <tr><td>差異 %</td><td class="num" id="bl-rep-A0p">—</td><td class="num" id="bl-rep-A1p">—</td><td class="num" id="bl-rep-A2p">—</td></tr>
 </tbody>
 </table>
 </div>
 </div>
-</div>
 
-<!-- 4e. 數學一致性測試 -->
-<div class="section">
-<div class="section-title" style="font-size:.9em">【4e】數學一致性測試（可重現 / 可驗證）</div>
-<div class="section-note" style="margin:6px 0">指定一組測試係數 A0_test/A1_test/A2_test，用<b>原始 COP 公式</b>產生 COP，再將該批資料送回 OLS，確認還原係數 ≈ 測試係數並顯示誤差。測試資料保證 X1、X2 有<b>充分獨立變異</b>（避免矩陣接近奇異）。</div>
+<!-- ===== ⑩ 數學一致性測試 ===== -->
+<div class="section" style="margin-top:10px">
+<div class="section-title" style="font-size:.9em">【⑩】數學一致性測試（可重現／可驗證）</div>
+<div class="bl-detail">
+<div class="bl-detail-toggle" onclick="this.parentElement.classList.toggle('open')"><span>執行一致性測試 ▸</span><span class="bl-arrow">▸</span></div>
+<div class="bl-detail-body">
+<div class="section-note" style="margin:4px 0">指定 A0_test/A1_test/A2_test，用原始 COP 公式產生 60 筆資料（X1、X2 充分獨立變異，避免矩陣奇異），再送回 OLS，確認還原係數 ≈ 測試係數並顯示誤差。</div>
 <div class="input-grid" style="grid-template-columns:repeat(3,1fr)">
 <div class="input-group"><label>A0_test</label><input type="number" id="bl-tA0" value="120.0" step="any"></div>
 <div class="input-group"><label>A1_test</label><input type="number" id="bl-tA1" value="4.0" step="any"></div>
@@ -525,48 +659,12 @@ OLS: Y = B0 + B1×X1 + B2×X2 → A0 = -B0, A1 = B1, A2 = -B2
 <div id="bl-tc-verdict" class="section-note" style="margin-top:4px"></div>
 </div>
 </div>
-
-
-<!-- 5. COP 驗證 -->
-<div class="section">
-<div class="section-title" style="font-size:.9em">【5】COP 驗證與統計結果</div>
-<button class="btn" id="bl-cop-btn" style="display:none" onclick="blShowCOP()">▶ 顯示 COP 預測比較</button>
-<div id="bl-cop-results" style="display:none">
-<div class="result-grid" style="grid-template-columns:repeat(5,1fr)">
-<div class="result-card"><div class="label">N（有效）</div><div class="value" id="bl-stat-N">—</div></div>
-<div class="result-card"><div class="label">R²</div><div class="value" id="bl-stat-R2">—</div></div>
-<div class="result-card"><div class="label">Adjusted R²</div><div class="value" id="bl-stat-AdjR2">—</div></div>
-<div class="result-card"><div class="label">RMSE（Y）</div><div class="value" id="bl-stat-RMSE">—</div></div>
-<div class="result-card"><div class="label">MAE（Y）</div><div class="value" id="bl-stat-MAE">—</div></div>
-</div>
-<div class="result-grid" style="grid-template-columns:repeat(3,1fr)">
-<div class="result-card"><div class="label">COP RMSE</div><div class="value" id="bl-cop-RMSE">—</div></div>
-<div class="result-card"><div class="label">COP MAE</div><div class="value" id="bl-cop-MAE">—</div></div>
-<div class="result-card"><div class="label">COP 平均相對誤差</div><div class="value" id="bl-cop-MAPE">—</div></div>
-</div>
-<div class="table-scroll">
-<table class="ov-table">
-<thead><tr><th>DateTime</th><th class="num">實測 COP</th><th class="num">預測 COP</th><th class="num">Error</th><th class="num">Error %</th></tr></thead>
-<tbody id="bl-cop-tbody"></tbody>
-</table>
-</div>
 </div>
 </div>
 
-<!-- 6. 圖表 -->
-<div class="section">
-<div class="section-title" style="font-size:.9em">【6】圖表</div>
-<canvas id="bl-chart-scatter" class="bl-canvas"></canvas>
-<div style="font-size:.7em;color:#6e7681;text-align:center;margin-top:-4px">實測 COP vs 預測 COP</div>
-<canvas id="bl-chart-residual" class="bl-canvas"></canvas>
-<div style="font-size:.7em;color:#6e7681;text-align:center;margin-top:-4px">殘差 vs 預測 COP</div>
-<canvas id="bl-chart-timeseries" class="bl-canvas"></canvas>
-<div style="font-size:.7em;color:#6e7681;text-align:center;margin-top:-4px">時間序列 COP（實測 vs 預測）</div>
-</div>
-
-<!-- 7. 分析報告與匯出 -->
-<div class="section">
-<div class="section-title" style="font-size:.9em">【7】分析報告與匯出</div>
+<!-- ===== ⑪ 分析報告與匯出 ===== -->
+<div class="section" style="margin-top:10px">
+<div class="section-title" style="font-size:.9em">【⑪】分析報告與匯出</div>
 <div class="bl-btn-row">
 <button class="bl-btn primary" onclick="blGenerateReport()">產生分析報告</button>
 <button class="bl-btn" onclick="window.print()">列印 / 儲存 PDF</button>
@@ -576,7 +674,7 @@ OLS: Y = B0 + B1×X1 + B2×X2 → A0 = -B0, A1 = B1, A2 = -B2
 <div id="bl-report" class="bl-report" style="display:none"></div>
 </div>
 
-</div>
+</div><!-- /tab-baseline -->
 </div>
 
 <!-- ============ TAB 5: FLOW CALCULATOR ============ -->
@@ -936,17 +1034,22 @@ function blImportPaste(){
   const txt = document.getElementById('bl-textarea').value;
   if(!txt.trim()){ alert('請先貼上資料'); return; }
   blParseRows(txt);
+  blUpdateValidation();
 }
 function blClearAll(){
-  if(!blData.length){ blData=[]; blResult=null; blRenderManualTable(); blRunQC(); return; }
+  if(!blData.length){ blData=[]; blResult=null; blRenderManualTable(); blRunQC(); blUpdateValidation(); return; }
   if(!confirm('確定清除目前所有資料？（將同時清除 localStorage 暫存）')) return;
   blData=[]; blResult=null;
   localStorage.removeItem(BL_STORAGE_KEY);
   blRenderManualTable(); blRunQC();
   document.getElementById('bl-report').style.display='none';
   document.getElementById('bl-cop-results').style.display='none';
-  ['bl-A0-out','bl-A1-out','bl-A2-out','bl-A0-diff','bl-A1-diff','bl-A2-diff','bl-A0-pct','bl-A1-pct','bl-A2-pct']
+  ['bl-reg-A0','bl-reg-A1','bl-reg-A2','bl-rep-A0','bl-rep-A1','bl-rep-A2','bl-rep-A0d','bl-rep-A1d','bl-rep-A2d','bl-rep-A0p','bl-rep-A1p','bl-rep-A2p']
     .forEach(id=>{ const e=document.getElementById(id); if(e) e.textContent='—'; });
+  document.getElementById('bl-regress-result').style.display='none';
+  document.getElementById('bl-ref-result').style.display='none';
+  document.getElementById('bl-consistency').style.display='none';
+  blUpdateValidation();
 }
 // 手動表格
 function blAddRow(){
@@ -1097,53 +1200,51 @@ const BL_UNIT_FACTORS = {
   'kcal/min': 14.33        // 860 kcal/h ÷ 60 = 14.33 kcal/min
 };
 // 換算係數：對任意冷量 Q_kW，Q_u = Q_kW × BL_UNIT_FACTORS[u]
-// 計算某單位下、把基準冷量 Q_kW 換算後代回原始公式（使用文件參考係數）的 COP 統計
+// 計算「所選單一單位」下、把冷量換算後代回原始公式（使用文件參考係數）的 COP 統計
+// 依用戶指示：Q_evap 單位非唯一，改用下拉選單限定候選範圍，只顯示「所選單位」結果
 function blUnitVerify(){
   const qKw = parseFloat(document.getElementById('bl-u-kw').value);
   if(!isFinite(qKw) || qKw<=0){ alert('請輸入有效的實際冷量（kW）'); return; }
-  // 取目前資料的有效筆計算；若無資料，用單一基準冷量+代表性溫度
+  const sel = document.getElementById('bl-u-unit');
+  const u = sel ? sel.value : 'kW';
+  const f = BL_UNIT_FACTORS[u] || 1.0;
   const prep = blPrep();
-  const units = ['kW','W','RT','kcal/h','kJ/h','kcal/min'];
-  const tbody = document.getElementById('bl-unit-tbody');
-  tbody.innerHTML = '';
-  units.forEach(u=>{
-    const f = BL_UNIT_FACTORS[u];
-    const copVals = [];
-    if(prep.recs.length){
-      prep.recs.forEach(r=>{
-        // 把該筆 Q 從 kW 換算到單位 u
-        const q_u = r.qevap * f;
-        const A0=BL_REF.A0, A1=BL_REF.A1, A2=BL_REF.A2;
-        const x2 = r.tcwrpt/r.tchwst;
-        const denom = -1 + (r.tcwrt/r.tchwst) + (-A0 + A1*r.tcwrt - A2*x2)/q_u;
-        const cop = denom===0? NaN : 1/denom;
-        copVals.push(cop);
-      });
-    } else {
-      // 無資料：用基準冷量 + 代表性溫度（cwRT=30, cwRPT=33, chwST=7）
-      const q_u = qKw * f;
+  const copVals = [];
+  if(prep.recs.length){
+    prep.recs.forEach(r=>{
+      const q_u = r.qevap * f;
       const A0=BL_REF.A0, A1=BL_REF.A1, A2=BL_REF.A2;
-      const x2 = 33/7;
-      const denom = -1 + (30/7) + (-A0 + A1*30 - A2*x2)/q_u;
+      const x2 = r.tcwrpt/r.tchwst;
+      const denom = -1 + (r.tcwrt/r.tchwst) + (-A0 + A1*r.tcwrt - A2*x2)/q_u;
       copVals.push(denom===0? NaN : 1/denom);
-    }
-    const finite = copVals.filter(c=>isFinite(c));
-    const pos = finite.filter(c=>c>0);
-    let singleCOP='—', minCOP='—', maxCOP='—', avgCOP='—';
-    if(prep.recs.length===0){
-      singleCOP = copVals[0].toFixed(4);
-      minCOP = copVals[0].toFixed(4); maxCOP=copVals[0].toFixed(4); avgCOP=copVals[0].toFixed(4);
-    } else if(finite.length){
-      minCOP = Math.min(...finite).toFixed(4);
-      maxCOP = Math.max(...finite).toFixed(4);
-      avgCOP = (finite.reduce((a,b)=>a+b,0)/finite.length).toFixed(4);
-    }
-    const posLabel = (pos.length===finite.length && finite.length>0)? '<span style="color:#3fb950">是</span>' : (finite.length===0? '<span style="color:#f85149">否（NaN）</span>' : '<span style="color:#ffd700">部分/否</span>');
+    });
+  } else {
     const q_u = qKw * f;
-    tbody.insertAdjacentHTML('beforeend',
-      `<tr><td>${u}</td><td class="num">${q_u.toFixed(4)}</td><td class="num">${prep.recs.length? avgCOP : singleCOP}</td><td>${posLabel}</td><td class="num">${minCOP}</td><td class="num">${maxCOP}</td><td class="num">${avgCOP}</td></tr>`);
-  });
-  document.getElementById('bl-unit-results').style.display='block';
+    const A0=BL_REF.A0, A1=BL_REF.A1, A2=BL_REF.A2;
+    const x2 = 33/7;
+    const denom = -1 + (30/7) + (-A0 + A1*30 - A2*x2)/q_u;
+    copVals.push(denom===0? NaN : 1/denom);
+  }
+  const finite = copVals.filter(c=>isFinite(c));
+  const pos = finite.filter(c=>c>0);
+  let singleCOP='—', minCOP='—', maxCOP='—', avgCOP='—';
+  if(prep.recs.length===0){
+    singleCOP = copVals[0].toFixed(4);
+    minCOP = copVals[0].toFixed(4); maxCOP=copVals[0].toFixed(4); avgCOP=copVals[0].toFixed(4);
+  } else if(finite.length){
+    minCOP = Math.min(...finite).toFixed(4);
+    maxCOP = Math.max(...finite).toFixed(4);
+    avgCOP = (finite.reduce((a,b)=>a+b,0)/finite.length).toFixed(4);
+  }
+  const posLabel = (pos.length===finite.length && finite.length>0)? '<span style="color:#3fb950">是</span>' : (finite.length===0? '<span style="color:#f85149">否（NaN）</span>' : '<span style="color:#ffd700">部分/否</span>');
+  const q_u = qKw * f;
+  document.getElementById('bl-unit-sel').textContent = u;
+  document.getElementById('bl-unit-q').textContent = q_u.toFixed(4);
+  document.getElementById('bl-unit-pos').innerHTML = posLabel;
+  document.getElementById('bl-unit-min').textContent = minCOP;
+  document.getElementById('bl-unit-max').textContent = maxCOP;
+  document.getElementById('bl-unit-avg').textContent = prep.recs.length? avgCOP : singleCOP;
+  document.getElementById('bl-unit-result').style.display='block';
 }
 // ===== 係數單位縮放（§27）=====
 function blScaleCoeffs(){
@@ -1156,20 +1257,62 @@ function blScaleCoeffs(){
 }
 // ===== 原始文件係數重現檢查（§28）=====
 function blReproduceCheck(){
-  // blResult 已含重新迴歸的 A0/A1/A2
-  const rep = document.getElementById('bl-reproduce');
   if(!blResult || blResult.type!=='regress'){ alert('請先執行「重新迴歸」取得本資料係數'); return; }
-  const A0=blResult.A0, A1=blResult.A1, A2=blResult.A2;
-  document.getElementById('bl-rep-A0').textContent = A0.toPrecision(6);
-  document.getElementById('bl-rep-A1').textContent = A1.toPrecision(6);
-  document.getElementById('bl-rep-A2').textContent = A2.toPrecision(6);
-  document.getElementById('bl-rep-A0d').textContent = (A0-BL_REF.A0).toPrecision(4);
-  document.getElementById('bl-rep-A1d').textContent = (A1-BL_REF.A1).toPrecision(4);
-  document.getElementById('bl-rep-A2d').textContent = (A2-BL_REF.A2).toPrecision(4);
-  document.getElementById('bl-rep-A0p').textContent = BL_REF.A0? ((A0-BL_REF.A0)/BL_REF.A0*100).toFixed(2)+'%' : '—';
-  document.getElementById('bl-rep-A1p').textContent = BL_REF.A1? ((A1-BL_REF.A1)/BL_REF.A1*100).toFixed(2)+'%' : '—';
-  document.getElementById('bl-rep-A2p').textContent = BL_REF.A2? ((A2-BL_REF.A2)/BL_REF.A2*100).toFixed(2)+'%' : '—';
-  rep.style.display='block';
+  blUpdateReproduceTable(blResult);
+}
+// ===== V4: Q_evap 單位狀態切換 =====
+function blUnitStatusChanged(){
+  const st=document.getElementById('bl-unit-status').value;
+  document.getElementById('bl-unit-unconfirmed').style.display = (st==='unconfirmed')?'block':'none';
+  document.getElementById('bl-unit-confirmed').style.display = (st==='confirmed')?'block':'none';
+  blUpdateValidation();
+}
+// ===== V4: 本次驗證狀態（綠色/黃色/紅色）=====
+// 依附件三層級：
+//   綠色：資料可計算 + 正式 ESCO 驗證資格（Q_evap 單位已確認 + 資料期間/來源明確）
+//   黃色：可計算 + 技術分析資格（尚有「需確認」項目，不得標示為正式驗證）
+//   紅色：目前不可計算（資料不足／模型公式尚未確認）
+function blUpdateValidation(){
+  const banner=document.getElementById('bl-validation-banner');
+  const title=document.getElementById('bl-validation-title');
+  const reason=document.getElementById('bl-validation-reason');
+  const must=document.getElementById('bl-must-items');
+  if(!banner) return;
+  // 讀取各項狀態
+  const unitStatus=document.getElementById('bl-unit-status').value; // unconfirmed|confirmed
+  const sourceTxt=(document.getElementById('bl-source').value||'').trim();
+  const qUnitSel=document.getElementById('bl-u-q');
+  const qUnitTxt = qUnitSel ? (qUnitSel.value==='其他' ? '' : qUnitSel.value) : '';
+  const validN=blData.filter(r=>r.valid).length;
+  const hasData=validN>0;
+  if(!hasData){
+    // 阻擋：無資料 → 紅色
+    banner.className='bl-status-banner red';
+    title.innerHTML='🔴 目前不可計算 — 尚無有效資料';
+    reason.textContent='請先匯入至少 4 筆有效資料（含 T_cwRT、T_cwRPT、T_chwST、Q_evap、COP）後才可執行 OLS 迴歸與 COP 預測。';
+    must.innerHTML='<div class="bl-must-item" style="font-weight:700">必要處理事項：</div>'+
+      '<div class="bl-must-item">▶ 匯入有效資料（≥ 4 筆）</div>';
+    return;
+  }
+  // 有資料：檢查是否具備正式驗證資格
+  const unitConfirmed = (unitStatus==='confirmed');
+  const sourceFilled = sourceTxt.length>0;
+  const qUnitFilled = qUnitTxt.length>0;
+  const mustHtml=[];
+  if(!unitConfirmed) mustHtml.push('<div class="bl-must-item">▶ <b>確認 Q_evap 原始物理單位</b>（在【①】勾選「已確認」並填寫確認來源）。目前僅可進行技術分析，<b>不得標示為正式 ESCO 驗證結果</b>。</div>');
+  if(!sourceFilled) mustHtml.push('<div class="bl-must-item">▶ 填寫<b>資料來源</b>（BMS 歷史數據／基測報告／其他）。</div>');
+  if(!qUnitFilled) mustHtml.push('<div class="bl-must-item">▶ 明確標註 <b>Q_evap 單位</b>（kW／W／RT／kcal/h…）。</div>');
+  must.innerHTML = mustHtml.length? ('<div class="bl-must-item" style="border-bottom:none;font-weight:700">必要處理事項：</div>'+mustHtml.join('')) : '';
+  if(unitConfirmed && sourceFilled && qUnitFilled){
+    banner.className='bl-status-banner green';
+    title.innerHTML='🟢 可執行正式 ESCO 驗證';
+    reason.textContent='前提條件已全部確認：Q_evap 單位已確認、資料來源已標註、有效資料 '+validN+' 筆。';
+    must.innerHTML='';
+  } else {
+    banner.className='bl-status-banner yellow';
+    title.innerHTML='🟡 可計算・可技術分析 — 尚不具正式 ESCO 驗證資格';
+    reason.textContent='可進行資料品質檢查、OLS 迴歸、COP 預測與技術分析，但在完成上述必要處理事項前，<b>不得將結果標示為正式 ESCO 驗證結果</b>。';
+  }
 }
 // ===== 數學一致性測試（§29：可重現/可驗證）=====
 function blConsistencyTest(){
@@ -1252,7 +1395,7 @@ function blRunRegression(){
   blResult = {type:'regress', A0,A1,A2, B:fit, stats:st, copRows, COPstats:blCOPstats, source:'重新迴歸（OLS）'};
   blRenderResult();
 }
-// 文件係數驗證
+// 文件係數重現（模式 B）
 function blUseReference(){
   const A0=BL_REF.A0, A1=BL_REF.A1, A2=BL_REF.A2;
   const prep = blPrep();
@@ -1267,7 +1410,7 @@ function blUseReference(){
   blResult={type:'ref', A0,A1,A2, B:null, stats:null, copRows, COPstats:copN?{RMSE:Math.sqrt(copRMSE/copN),MAE:copMAE/copN,MAPE:copMAPEsum/copN}:null, source:'文件參考係數（9593.1 / 56.912 / 6952.0）'};
   blRenderResult();
 }
-// 手動係數
+// 手動係數（進階）
 function blUseManualCoef(){
   const A0=parseFloat(document.getElementById('bl-mA0').value);
   const A1=parseFloat(document.getElementById('bl-mA1').value);
@@ -1289,47 +1432,49 @@ function blUseManualCoef(){
 // 渲染結果
 function blRenderResult(){
   const R=blResult; if(!R) return;
-  // B→A 轉換展示
-  const conv=document.getElementById('bl-conversion');
-  if(R.B){
-    conv.style.display='block';
-    document.getElementById('bl-B-disp').textContent=`B0 + B1×X1 + B2×X2`;
-    document.getElementById('bl-B0').textContent=R.B.B0.toFixed(4);
-    document.getElementById('bl-B1').textContent=R.B.B1.toFixed(4);
-    document.getElementById('bl-B2').textContent=R.B.B2.toFixed(4);
-    document.getElementById('bl-A0-disp').textContent=R.A0.toFixed(4);
-    document.getElementById('bl-A1-disp').textContent=R.A1.toFixed(4);
-    document.getElementById('bl-A2-disp').textContent=R.A2.toFixed(4);
-  } else { conv.style.display='none'; }
-  // A0/A1/A2 表
-  const setCoef=(name,val)=>{
-    const out=document.getElementById('bl-'+name+'-out');
-    const diff=document.getElementById('bl-'+name+'-diff');
-    const pct=document.getElementById('bl-'+name+'-pct');
-    const ref=BL_REF[name];
-    out.textContent=val.toFixed(3);
-    const d=val-ref;
-    diff.textContent=(d>=0?'+':'')+d.toFixed(3);
-    diff.className='coef-diff '+(d>=0?'positive':'negative');
-    pct.textContent=(d/ref*100).toFixed(2)+'%';
-  };
-  setCoef('A0',R.A0); setCoef('A1',R.A1); setCoef('A2',R.A2);
-  // COP 統計卡
-  document.getElementById('bl-cop-btn').style.display='block';
-  blShowCOP();
-  // 公式顯示（依來源）
-  const formulaEl=document.querySelector('#tab-baseline .formula-box .formula');
+  // ===== 模式 A：重新迴歸結果（顯示 bl-reg-A0/A1/A2 + OLS 推導）=====
   if(R.type==='regress'){
-    formulaEl.innerHTML=`1/COP = -1 + (T_cwRT/T_chwST) + [ -${R.A0.toFixed(2)} + ${R.A1.toFixed(4)}×T_cwRT - ${R.A2.toFixed(2)}×(T_cwRPT/T_chwST) ] / Q_evap<br>`+
-      `（OLS 重新迴歸結果：A0=-B0=${R.A0.toFixed(3)}, A1=B1=${R.A1.toFixed(4)}, A2=-B2=${R.A2.toFixed(3)}）`;
+    const regDiv=document.getElementById('bl-regress-result');
+    if(regDiv) regDiv.style.display='block';
+    document.getElementById('bl-reg-A0').textContent=R.A0.toFixed(4);
+    document.getElementById('bl-reg-A1').textContent=R.A1.toFixed(4);
+    document.getElementById('bl-reg-A2').textContent=R.A2.toFixed(4);
+    if(R.B){
+      document.getElementById('bl-B-disp').textContent=`B0 + B1×X1 + B2×X2`;
+      document.getElementById('bl-B0').textContent=R.B.B0.toFixed(4);
+      document.getElementById('bl-B1').textContent=R.B.B1.toFixed(4);
+      document.getElementById('bl-B2').textContent=R.B.B2.toFixed(4);
+      document.getElementById('bl-A0-disp').textContent=R.A0.toFixed(4);
+      document.getElementById('bl-A1-disp').textContent=R.A1.toFixed(4);
+      document.getElementById('bl-A2-disp').textContent=R.A2.toFixed(4);
+    }
+    // 文件係數比較（只顯示差異）
+    blUpdateReproduceTable(R);
   } else if(R.type==='ref'){
-    formulaEl.innerHTML=`1/COP = -1 + (T_cwRT/T_chwST) + [ -9593.1 + 56.912×T_cwRT - 6952.0×(T_cwRPT/T_chwST) ] / Q_evap<br>`+
-      `（文件參考係數直接代入）`;
-  } else {
-    formulaEl.innerHTML=`1/COP = -1 + (T_cwRT/T_chwST) + [ -${R.A0.toFixed(2)} + ${R.A1.toFixed(4)}×T_cwRT - ${R.A2.toFixed(2)}×(T_cwRPT/T_chwST) ] / Q_evap<br>`+
-      `（手動輸入係數）`;
+    // ===== 模式 B：文件係數重現 =====
+    const refDiv=document.getElementById('bl-ref-result');
+    if(refDiv) refDiv.style.display='block';
   }
+  // COP 統計卡
+  const copBtn=document.getElementById('bl-cop-btn');
+  if(copBtn) copBtn.style.display='block';
+  blShowCOP();
   blDrawCharts();
+  blUpdateValidation();
+}
+// 更新文件係數比較表（只顯示差異，不判定）
+function blUpdateReproduceTable(R){
+  const setCell=(id,val)=>{ const el=document.getElementById(id); if(el) el.textContent=val; };
+  const refA=BL_REF.A0, refB=BL_REF.A1, refC=BL_REF.A2;
+  setCell('bl-rep-A0', R.A0.toFixed(3));
+  setCell('bl-rep-A1', R.A1.toFixed(3));
+  setCell('bl-rep-A2', R.A2.toFixed(3));
+  setCell('bl-rep-A0d', (R.A0-refA).toFixed(3));
+  setCell('bl-rep-A1d', (R.A1-refB).toFixed(3));
+  setCell('bl-rep-A2d', (R.A2-refC).toFixed(3));
+  setCell('bl-rep-A0p', ((R.A0-refA)/refA*100).toFixed(2)+'%');
+  setCell('bl-rep-A1p', ((R.A1-refB)/refB*100).toFixed(2)+'%');
+  setCell('bl-rep-A2p', ((R.A2-refC)/refC*100).toFixed(2)+'%');
 }
 function blShowCOP(){
   const R=blResult; if(!R) return;
@@ -1425,9 +1570,34 @@ function blGenerateReport(){
   const excluded=blData.length-valid.length;
   const dtList=valid.map(r=>r.dt).filter(Boolean);
   const range=dtList.length? (dtList[0]+' ~ '+dtList[dtList.length-1]) : '（無時間資訊）';
-  let html='';
-  html+=`<h3>冰水空調系統基準線 A0/A1/A2 分析報告</h3>`;
+  // ===== V4 前提檢查（依官方文件固定清單）=====
+  const g=id=>document.getElementById(id);
+  const unitConfirmed = (g('bl-unit-status').value==='confirmed');
+  const prereq={
+    'A0／A1／A2 公式': {ok:true, detail:'公式已固定：第一項為 −A0，非 +A0。'},
+    'OLS 轉換公式':   {ok:true, detail:'A0=−B0、A1=B1、A2=−B2（已固定）。'},
+    'Q_evap 單位':    {ok:unitConfirmed, detail: unitConfirmed
+        ? '已確認（來源：'+(g('bl-unit-source').value||'未填')+'）'
+        : '尚未確認'},
+    '回歸資料期間':   {ok: dtList.length>0, detail: dtList.length>0? range : '未填寫'},
+    '資料來源':       {ok: (g('bl-source').value||'').trim().length>0, detail: g('bl-source').value||'未填寫'},
+    '資料期間/來源':  {ok: (g('bl-source').value||'').trim().length>0 && dtList.length>0, detail: ((g('bl-source').value||'未填寫')+'；'+range)}
+  };
+  const allOk=Object.values(prereq).every(x=>x.ok);
+  const level = allOk ? '正式 ESCO 驗證' : '技術分析';
+  const bannerColor = allOk? '#3fb950' : '#ffd700';
   const row=(k,v)=>`<div class="report-row"><span>${k}</span><span>${v}</span></div>`;
+  let html='';
+  html+=`<h3>ESCO 冰水空調系統基準線 A0/A1/A2 分析報告</h3>`;
+  html+=`<div style="font-size:1em;font-weight:700;color:${bannerColor};margin:6px 0">本次分析層級：<b>${level}</b>${allOk?'':'　（尚有前提未確認，不得標示為正式 ESCO 驗證結果）'}</div>`;
+  html+=`<h3>前提檢查</h3>`;
+  html+=`<table class="ov-table" style="margin:6px 0"><thead><tr><th>前提項目</th><th style="text-align:center">狀態</th><th>說明</th></tr></thead><tbody>`;
+  Object.keys(prereq).forEach(k=>{
+    const p=prereq[k];
+    html+=`<tr><td>${k}</td><td style="text-align:center">${p.ok?'✓ 已確認':'✗ 需確認'}</td><td>${p.detail}</td></tr>`;
+  });
+  html+=`</tbody></table>`;
+  html+=`<h3>基本資訊</h3>`;
   html+=row('分析資料期間', range);
   html+=row('原始資料數', blData.length);
   html+=row('有效資料數', valid.length);
@@ -1437,12 +1607,17 @@ function blGenerateReport(){
   html+=row('A0', R.A0.toFixed(4));
   html+=row('A1', R.A1.toFixed(4));
   html+=row('A2', R.A2.toFixed(4));
-  html+=row('文件參考 A0/A1/A2', `${BL_REF.A0} / ${BL_REF.A1} / ${BL_REF.A2}`);
-  html+=row('A0 差異', (R.A0-BL_REF.A0).toFixed(3)+'（'+((R.A0-BL_REF.A0)/BL_REF.A0*100).toFixed(2)+'%）');
-  html+=row('A1 差異', (R.A1-BL_REF.A1).toFixed(3)+'（'+((R.A1-BL_REF.A1)/BL_REF.A1*100).toFixed(2)+'%）');
-  html+=row('A2 差異', (R.A2-BL_REF.A2).toFixed(3)+'（'+((R.A2-BL_REF.A2)/BL_REF.A2*100).toFixed(2)+'%）');
+  if(R.type==='regress'){
+    html+=row('文件參考 A0/A1/A2', `${BL_REF.A0} / ${BL_REF.A1} / ${BL_REF.A2}`);
+    html+=row('A0 差異（本次−文件）', (R.A0-BL_REF.A0).toFixed(3)+'（'+((R.A0-BL_REF.A0)/BL_REF.A0*100).toFixed(2)+'%）');
+    html+=row('A1 差異（本次−文件）', (R.A1-BL_REF.A1).toFixed(3)+'（'+((R.A1-BL_REF.A1)/BL_REF.A1*100).toFixed(2)+'%）');
+    html+=row('A2 差異（本次−文件）', (R.A2-BL_REF.A2).toFixed(3)+'（'+((R.A2-BL_REF.A2)/BL_REF.A2*100).toFixed(2)+'%）');
+    html+=`<div class="report-row" style="font-size:.85em;color:#8b949e">※ 若本次資料與原文件非同一批（原始資料、篩選條件、單位、有效範圍不同），上述差異僅供參考，<b>不得判定原文件係數錯誤</b>。</div>`;
+  } else {
+    html+=row('使用係數來源', R.source);
+  }
   if(R.stats){
-    html+=`<h3>統計結果（Y 迴歸）</h3>`;
+    html+=`<h3>統計結果（Y 迴歸 — 技術分析）</h3>`;
     html+=row('N', R.stats.N);
     html+=row('R²', R.stats.R2.toFixed(4));
     html+=row('Adjusted R²', R.stats.AdjR2.toFixed(4));
@@ -1450,7 +1625,7 @@ function blGenerateReport(){
     html+=row('MAE（Y）', R.stats.MAE.toFixed(4));
   }
   if(R.COPstats){
-    html+=`<h3>COP 驗證統計</h3>`;
+    html+=`<h3>COP 驗證統計（最終預測 — ${level}）</h3>`;
     html+=row('COP RMSE', R.COPstats.RMSE.toFixed(4));
     html+=row('COP MAE', R.COPstats.MAE.toFixed(4));
     html+=row('COP MAPE', R.COPstats.MAPE.toFixed(2)+'%');
@@ -1575,6 +1750,16 @@ fillRTTable();
 blInitCSV();
 blInitModes();
 blLoadStorage();
+blUpdateValidation();
+// V4: 單位/來源欄位變更時更新驗證狀態
+['bl-source','bl-u-t1','bl-u-t2','bl-u-t3'].forEach(id=>{
+  const el=document.getElementById(id);
+  if(el) el.addEventListener('input', blUpdateValidation);
+});
+['bl-u-q','bl-u-unit','bl-unit-choice','bl-unit-source','bl-unit-ref','bl-unit-note'].forEach(id=>{
+  const el=document.getElementById(id);
+  if(el) el.addEventListener('change', blUpdateValidation);
+});
 
 // ============ TAB 6: PIPE VELOCITY ============
 const PIPE_DATA = [
