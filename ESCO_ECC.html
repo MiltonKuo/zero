@@ -209,6 +209,7 @@ tr.baseline td{background:rgba(88,166,255,.05)}
 <button class="tab-btn" onclick="switchTab('baseline')">③ 基線迴歸</button>
 <button class="tab-btn" onclick="switchTab('flow')">④ 流量計算</button>
 <button class="tab-btn" onclick="switchTab('pipe')">⑤ 管路流速</button>
+<button class="tab-btn" onclick="switchTab('plr')">⑥ PLR 計算</button>
 </div>
 
 <!-- ============ TAB 1: RT CALCULATOR ============ -->
@@ -615,6 +616,87 @@ DN = 管徑(mm)，v = 流速(m/s)；建議流速 0.8~2.4 m/s
 </div>
 
 
+<!-- ============ TAB 6: PLR CALCULATOR ============ -->
+<div id="tab-plr" class="tab-panel">
+<div class="section">
+<div class="section-title">PLR 計算器 — 部分負載率（FEMP 冰水主機基準線迴regression模型必要輸入量）</div>
+
+<div class="formula-box">
+<div class="formula">
+PLR = Q_Load ÷ Capacity × 100%<br>
+Q_Load：實際冷量（RT 或 kW）；Capacity：額定容量（銘牌 RT，如 400RT）<br>
+換算：1 RT = 3.5168 kW = 3,024 kcal/h
+</div>
+<div class="source">PLR 與 PLR² 是 C0~C9 十係數模型的 X 欄位輸入量。PLR 越接近 100%＝滿載；PLR 低＝輕載。</div>
+</div>
+
+<!-- 模式切換 -->
+<div class="mode-tabs" style="display:flex;gap:6px;margin:8px 0">
+<button id="plr-m1" class="device-btn active" onclick="setPLRMode('m1')">① 冷量 ÷ 容量</button>
+<button id="plr-m2" class="device-btn" onclick="setPLRMode('m2')">② 流量×ΔT → RT → PLR</button>
+</div>
+
+<!-- Mode 1: Q_Load / Capacity -->
+<div id="plr-mode-m1">
+<div class="input-grid" style="grid-template-columns:repeat(4,1fr)">
+<div class="input-group"><label>實際冷量 Q_Load</label>
+<input type="number" id="plr_qload" value="" step="any" placeholder="例：320">
+<div class="hint">可用下方單位下拉</div></div>
+<div class="input-group"><label>Q_Load 單位</label>
+<select id="plr_qunit">
+<option value="RT" selected>RT（冷凍噸）</option>
+<option value="kW">kW（冷量）</option>
+<option value="kcal_h">kcal/h</option>
+</select></div>
+<div class="input-group"><label>額定容量 Capacity</label>
+<input type="number" id="plr_cap" value="400" step="any"></div>
+<div class="input-group"><label>Capacity 單位</label>
+<select id="plr_cunit">
+<option value="RT" selected>RT（冷凍噸）</option>
+<option value="kW">kW（冷量）</option>
+</select></div>
+</div>
+<div class="section-note">若 Q_Load 與 Capacity 單位不同，會先換算成同單位再算 PLR。</div>
+</div>
+
+<!-- Mode 2: flow × ΔT → RT → PLR -->
+<div id="plr-mode-m2" style="display:none">
+<div class="input-grid" style="grid-template-columns:repeat(3,1fr)">
+<div class="input-group"><label>流量 L/min</label>
+<input type="number" id="plr_f_flow" value="" step="any" placeholder="例：4032">
+<div class="hint">同 ④ 流量分頁公式</div></div>
+<div class="input-group"><label>進出水溫差 ΔT <span class="unit">℃</span></label>
+<input type="number" id="plr_f_dt" value="" step="0.1" min="0" placeholder="例：5"></div>
+<div class="input-group"><label>額定容量 <span class="unit">RT</span></label>
+<input type="number" id="plr_f_cap" value="400" step="any"></div>
+</div>
+</div>
+
+<button class="btn" onclick="calcPLR()">▶ 計算 PLR</button>
+
+<div id="plr-results" style="display:none">
+<div class="result-grid" style="grid-template-columns:repeat(3,1fr)">
+<div class="result-card success"><div class="label">PLR（部分負載率）</div><div class="value" id="r_plr_plr">—</div><div class="sub">%</div></div>
+<div class="result-card"><div class="label">實際冷量 RT</div><div class="value" id="r_plr_rt">—</div><div class="sub">RT</div></div>
+<div class="result-card"><div class="label">負載區間</div><div class="value" id="r_plr_zone" style="font-size:.9em">—</div></div>
+</div>
+<div id="plr-verdict"></div>
+</div>
+
+<!-- 計算鏈 -->
+<div id="plr-chain" class="calc-chain" style="display:none">
+<div class="calc-step"><span class="step-num">1</span>Q_Load 換算成 RT<span class="step-result" id="plr_q_rt">—</span></div>
+<div class="calc-step"><span class="step-num">2</span>Capacity 換算成 RT<span class="step-result" id="plr_cap_rt">—</span></div>
+<div class="calc-step"><span class="step-num">3</span>PLR = Q_Load(RT) ÷ Capacity(RT) × 100%<span class="step-result" id="plr_r">—</span></div>
+</div>
+
+<div class="section-note" style="margin-top:14px">
+<b>備註：</b>PLR 用於 FEMP 十係數迴regression模型（C5·PLR + C6·PLR² 等項）。
+負載區間：70~100% 中高負載（效率最佳）、40~70% 中負載、20~40% 輕負載、&lt;20% 極輕載。
+
+</div>
+</div>
+
 <script>
 // ============ STATE ============
 let kaResult = null;    // {equip, saving, rate, kw_before, kw_after, kwrt_b, kwrt_a, RT_a}
@@ -647,7 +729,7 @@ function switchTab(name){
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
-  const idx = {rt:0, ch:1, baseline:2, flow:3, pipe:4}[name];
+  const idx = {rt:0, ch:1, baseline:2, flow:3, pipe:4, plr:5}[name];
   document.querySelectorAll('.tab-btn')[idx].classList.add('active');
 }
 
@@ -1418,6 +1500,70 @@ function pipeFlowLmin(dn, vel){
 }
 
 fillPipeTable();
+
+// ============ TAB 6: PLR CALCULATOR ============
+const $ = id => document.getElementById(id);
+function plrToRT(val, unit){
+  if(unit==='RT') return val;
+  if(unit==='kW') return val/3.5168;
+  if(unit==='kcal_h') return val/3024;
+  return val;
+}
+function plrZone(plr){
+  if(plr>=70) return {label:'中高負載（效率最佳）', cls:'success'};
+  if(plr>=40) return {label:'中負載', cls:''};
+  if(plr>=20) return {label:'輕負載', cls:'warning'};
+  return {label:'極輕載', cls:'danger'};
+}
+let plrMode = 'm1';
+function setPLRMode(m){
+  plrMode = m;
+  document.getElementById('plr-m1').classList.toggle('active', m==='m1');
+  document.getElementById('plr-m2').classList.toggle('active', m==='m2');
+  document.getElementById('plr-mode-m1').style.display = m==='m1'?'block':'none';
+  document.getElementById('plr-mode-m2').style.display = m==='m2'?'block':'none';
+}
+function calcPLR(){
+  const res = document.getElementById('plr-results');
+  const chain = document.getElementById('plr-chain');
+  const v = document.getElementById('plr-verdict');
+  let qRT=0, capRT=0, plr=0;
+  if(plrMode==='m1'){
+    const q = parseFloat(document.getElementById('plr_qload').value);
+    const cu = document.getElementById('plr_cunit').value;
+    const cap = parseFloat(document.getElementById('plr_cap').value);
+    if(isNaN(q)||isNaN(cap)||cap===0){ res.style.display='none'; chain.style.display='none'; v.textContent='請填入 Q_Load 與 Capacity（容量≠0）。'; return; }
+    qRT = plrToRT(q, document.getElementById('plr_qunit').value);
+    capRT = plrToRT(cap, cu);
+    plr = qRT/capRT*100;
+  } else {
+    const flow = parseFloat(document.getElementById('plr_f_flow').value);
+    const dt = parseFloat(document.getElementById('plr_f_dt').value);
+    const cap = parseFloat(document.getElementById('plr_f_cap').value);
+    if(isNaN(flow)||isNaN(dt)||isNaN(cap)||cap===0){ res.style.display='none'; chain.style.display='none'; v.textContent='請填入流量、ΔT 與 Capacity。'; return; }
+    qRT = flow*dt*4.186/60/3.5168;
+    capRT = cap;
+    plr = qRT/capRT*100;
+  }
+  res.style.display='block';
+  chain.style.display='block';
+  const z = plrZone(plr);
+  document.getElementById('r_plr_plr').textContent = plr.toFixed(1);
+  document.getElementById('r_plr_plr').parentElement.className = 'result-card '+z.cls;
+  document.getElementById('r_plr_rt').textContent = qRT.toFixed(1);
+  document.getElementById('r_plr_zone').textContent = z.label;
+  document.getElementById('plr_q_rt').textContent = qRT.toFixed(1)+' RT';
+  document.getElementById('plr_cap_rt').textContent = capRT.toFixed(1)+' RT';
+  document.getElementById('plr_r').textContent = plr.toFixed(1)+'%';
+  v.textContent = '';
+  v.className = 'verdict ok';
+  v.textContent = '✓ 已計算 — PLR '+plr.toFixed(1)+'%（'+z.label+'）';
+}
+['plr_qload','plr_cap','plr_f_flow','plr_f_dt','plr_f_cap'].forEach(id=>{
+  document.addEventListener('input', e=>{
+    if(id === e.target.id || ['plr_qload','plr_cap','plr_qunit','plr_cunit','plr_f_flow','plr_f_dt','plr_f_cap'].includes(e.target.id)) calcPLR();
+  });
+});
 </script>
 </body>
 </html>
