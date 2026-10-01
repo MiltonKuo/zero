@@ -69,6 +69,53 @@ tr.baseline td{background:rgba(88,166,255,.05)}
 .calc-chain{background:#161b22;border-radius:6px;padding:12px;margin:10px 0}
 .calc-step{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #21262d;font-size:.85em}
 .calc-step:last-child{border-bottom:none}
+/* ============ TAB 4: BASELINE REGRESSION ============ */
+.bl-modes{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.bl-mode-btn{padding:7px 14px;background:#21262d;border:1px solid #30363d;border-radius:6px;cursor:pointer;font-size:.82em;color:#8b949e}
+.bl-mode-btn.active{background:#3881e8;color:#fff;border-color:#3881e8}
+.bl-input{display:none}
+.bl-input.active{display:block}
+#bl-textarea{width:100%;min-height:150px;background:#161b22;border:1px solid #30363d;border-radius:6px;color:#c9d1d9;font-size:.8em;font-family:Consolas,monospace;padding:10px;resize:vertical}
+.bl-data-table{max-height:400px;overflow:auto;border:1px solid #30363d;border-radius:6px}
+.bl-data-table table{margin:0;font-size:.78em}
+.bl-data-table th,.bl-data-table td{padding:5px 8px;white-space:nowrap}
+.bl-data-table thead th{position:sticky;top:0;background:#161b22;z-index:2}
+.bl-data-table tr.bad td{background:rgba(248,81,73,.12)}
+.bl-data-table tr.marked td{background:rgba(240,136,62,.12)}
+.bl-qc{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:10px;margin:8px 0;font-size:.82em}
+.bl-qc .qc-item{padding:4px 0;border-bottom:1px solid #21262d}
+.bl-qc .qc-item:last-child{border-bottom:none}
+.bl-qc .qc-item .qc-reason{color:#f0883e;font-size:.9em}
+.bl-coef-table{width:auto;min-width:520px}
+.bl-coef-table th,.bl-coef-table td{padding:8px 12px;text-align:center}
+.bl-coef-table .coef-main{font-size:1.3em;font-weight:700;color:#58a6ff}
+.bl-coef-table .coef-ref{color:#8b949e;font-size:.9em}
+.bl-coef-table .coef-diff{font-weight:600}
+.bl-coef-table .coef-diff.positive{color:#3fb950}
+.bl-coef-table .coef-diff.negative{color:#f85149}
+.bl-coef-table .coef-pct{font-size:.85em;color:#8b949e}
+.bl-stat-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin:10px 0}
+.bl-canvas{width:100%;height:260px;background:#161b22;border:1px solid #30363d;border-radius:6px;margin:8px 0}
+.bl-report{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:14px;margin:10px 0;font-size:.85em;line-height:1.8}
+.bl-report h3{font-size:1em;color:#58a6ff;margin:10px 0 4px}
+.bl-report .report-row{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #21262d}
+.bl-report .report-row:last-child{border-bottom:none}
+.bl-report .report-row span:first-child{color:#8b949e}
+.bl-report .report-row span:last-child{color:#c9d1d9;font-weight:600}
+.bl-btn-row{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.bl-btn{padding:8px 14px;background:#21262d;border:1px solid #30363d;border-radius:6px;cursor:pointer;font-size:.8em;color:#8b949e}
+.bl-btn:hover{background:#30363d;color:#c9d1d9}
+.bl-btn.primary{background:#3881e8;border-color:#3881e8;color:#fff}
+.bl-btn.danger{background:rgba(248,81,73,.15);border-color:#f85149;color:#f85149}
+.bl-filter-row{display:flex;gap:6px;margin:6px 0;flex-wrap:wrap}
+.bl-filter-btn{padding:4px 10px;background:#161b22;border:1px solid #30363d;border-radius:4px;cursor:pointer;font-size:.72em;color:#8b949e}
+.bl-filter-btn.active{background:#3881e8;color:#fff;border-color:#3881e8}
+.bl-search{width:100%;padding:6px 10px;background:#161b22;border:1px solid #30363d;border-radius:6px;color:#c9d1d9;font-size:.8em;margin:4px 0}
+@media(max-width:600px){
+  .bl-coef-table{min-width:auto}
+  .bl-canvas{height:200px}
+  .bl-data-table table{font-size:.68em}
+}
 .calc-step .step-num{width:22px;height:22px;background:#30363d;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7em;color:#8b949e;flex-shrink:0}
 .calc-step .step-result{margin-left:auto;font-family:Consolas,monospace;color:#79c0ff;font-weight:700}
 .section-note{font-size:.78em;color:#8b949e;margin:8px 0;padding:8px 12px;background:#161b22;border-radius:6px;border-left:3px solid #30363d;line-height:1.6}
@@ -126,7 +173,7 @@ tr.baseline td{background:rgba(88,166,255,.05)}
 <button class="tab-btn active" onclick="switchTab('rt')">① 冷凍噸計算器</button>
 <button class="tab-btn" onclick="switchTab('ch1')">② 冰水主機</button>
 <button class="tab-btn" onclick="switchTab('ah')">③ 空調箱</button>
-<button class="tab-btn" onclick="switchTab('overall')">④ 整體節能效益</button>
+<button class="tab-btn" onclick="switchTab('baseline')">④ 基線迴歸</button>
 <button class="tab-btn" onclick="switchTab('flow')">⑤ 流量計算</button>
 <button class="tab-btn" onclick="switchTab('pipe')">⑥ 管路流速</button>
 </div>
@@ -265,40 +312,183 @@ RT = 流量(L/min) × 溫差(℃) × 4.186(kcal/kg·℃) ÷ 60 ÷ 3.5168(kW/RT)<
 </div>
 </div>
 
-<!-- ============ TAB 4: OVERALL ============ -->
-<div id="tab-overall" class="tab-panel">
+<!-- ============ TAB 4: BASELINE REGRESSION ============ -->
+<div id="tab-baseline" class="tab-panel">
 <div class="section">
-<div class="section-title">整體節能效益 — 冰水主機 + 空調箱（不計金額）</div>
+<div class="section-title">冰水空調系統基準線 A0／A1／A2 迴歸與 COP 驗證工具</div>
 
 <div class="formula-box">
 <div class="formula">
-整體功率節省 = 冰水主機節省 + 空調箱節省 (kW)<br>
-整體節能率 = 整體功率節省 ÷ 整體改善前功率 × 100%<br>
-（要換成 kWh / kLOE / CO₂，再自行 × 運轉時數）
+1/COP = -1 + (T_cwRT / T_chwST) + [ -A0 + A1×T_cwRT - A2×(T_cwRPT/T_chwST) ] / Q_evap<br>
+X1 = T_cwRT, X2 = T_cwRPT / T_chwST<br>
+Y = Q_evap × [ 1/COP + 1 - T_cwRT/T_chwST ]<br>
+OLS: Y = B0 + B1×X1 + B2×X2 → A0 = -B0, A1 = B1, A2 = -B2
 </div>
-<div class="source">純依 kW/RT 與 RT 計算功率節省（kW），不預設年度冷量或時數；如需能量，請乘以實際運轉時數。</div>
-</div>
-
-<button class="btn" onclick="calcOverall()">▶ 計算整體效益</button>
-
-<div id="ov-results" style="display:none">
-<div class="result-grid">
-<div class="result-card"><div class="label">冰水主機 節省</div><div class="value" id="ov_ch1_saving">—</div><div class="sub">kW</div></div>
-<div class="result-card"><div class="label">空調箱 節省</div><div class="value" id="ov_ah_saving">—</div><div class="sub">kW</div></div>
-<div class="result-card success"><div class="label">整體功率節省</div><div class="value" id="ov_total_saving">—</div><div class="sub">kW</div></div>
-<div class="result-card success"><div class="label">整體節能率</div><div class="value" id="ov_rate">—</div><div class="sub">%</div></div>
+<div class="source">文件參考係數：A0 = 9593.1, A1 = 56.912, A2 = 6952.0。Q_evap 單位需由使用者指定，A0/A1/A2 與單位綁定，不同單位不可直接共用。</div>
 </div>
 
-<div class="table-scroll">
-<table class="ov-table">
-<thead><tr><th>設備</th><th class="num">改善前 kW</th><th class="num">改善後 kW</th><th class="num">節省 kW</th><th class="num">節能率</th></tr></thead>
-<tbody id="ov-breakdown-tbody"></tbody>
-<tfoot><tr class="total" id="ov-total-row"></tr></tfoot>
+<!-- 1. 資料匯入 -->
+<div class="section" style="margin-top:14px">
+<div class="section-title" style="font-size:.9em">【1】資料匯入</div>
+<div class="bl-modes">
+<button class="bl-mode-btn active" data-blmode="paste">貼上資料</button>
+<button class="bl-mode-btn" data-blmode="manual">手動表格</button>
+<button class="bl-mode-btn" data-blmode="csv">CSV 匯入</button>
+</div>
+
+<div class="bl-input active" data-blinput="paste">
+<div class="section-note" style="margin:6px 0"><b>格式：</b>每列一筆，欄位以空白或逗號分隔，順序為 <code>DateTime T_cwRT T_cwRPT T_chwST Q_evap COP</code>。首列可為標題，工具會自動跳過。可直接從 Excel 複製。</div>
+<textarea id="bl-textarea" placeholder="2024/01/01 12:00  30.2  33.5  6.8  1200  4.2&#10;2024/01/01 12:05  30.1  33.4  6.9  1200  4.3&#10;..."></textarea>
+<div class="bl-btn-row">
+<button class="bl-btn primary" onclick="blImportPaste()">匯入貼上資料</button>
+<button class="bl-btn" onclick="blClearAll()">清除資料</button>
+</div>
+<div class="section-note" style="margin-top:6px"><b>Q_evap 單位：</b><span id="bl-qunit-label">kW（需自行確認）</span>。若單位不同（RT、kcal/h 等），A0/A1/A2 數值會隨之改變，不可混用。</div>
+</div>
+
+<div class="bl-input" data-blinput="manual">
+<div class="bl-data-table">
+<table id="bl-manual-table">
+<thead><tr><th>DateTime</th><th>T_cwRT</th><th>T_cwRPT</th><th>T_chwST</th><th>Q_evap</th><th>COP</th><th>標記</th><th>操作</th></tr></thead>
+<tbody id="bl-manual-tbody"></tbody>
 </table>
 </div>
-
-<div id="ov-verdict"></div>
+<div class="bl-btn-row">
+<button class="bl-btn" onclick="blAddRow()">＋ 新增列</button>
 </div>
+</div>
+
+<div class="bl-input" data-blinput="csv">
+<div class="section-note" style="margin:6px 0"><b>CSV 欄位：</b><code>DateTime,T_cwRT,T_cwRPT,T_chwST,Q_evap,COP</code>（可含標題列，工具會自動辨識）。拖曳檔案到下方虛線區，或點擊選擇檔案。</div>
+<div id="bl-dropzone" style="border:2px dashed #30363d;border-radius:8px;padding:30px;text-align:center;color:#8b949e;font-size:.85em;cursor:pointer">
+📁 拖曳 CSV 檔案到這裡，或點擊選擇檔案<br>
+<span style="font-size:.75em;color:#6e7681">支援 .csv、.txt（UTF-8 或 ANSI）</span>
+</div>
+<input type="file" id="bl-file-input" accept=".csv,.txt" style="display:none">
+</div>
+</div>
+
+<!-- 2. 資料品質檢查 -->
+<div class="section">
+<div class="section-title" style="font-size:.9em">【2】資料品質檢查</div>
+<div class="result-grid" style="grid-template-columns:repeat(4,1fr)">
+<div class="result-card"><div class="label">原始資料數</div><div class="value" id="bl-total-n">0</div></div>
+<div class="result-card success"><div class="label">有效資料數</div><div class="value" id="bl-valid-n">0</div></div>
+<div class="result-card warning"><div class="label">排除資料數</div><div class="value" id="bl-excluded-n">0</div></div>
+<div class="result-card"><div class="label">重複筆數</div><div class="value" id="bl-dup-n">0</div></div>
+</div>
+<div id="bl-qc-detail" class="bl-qc" style="display:none">
+<b>排除原因明細：</b>
+<div id="bl-qc-list"></div>
+</div>
+</div>
+
+<!-- 3. 迴歸模型 -->
+<div class="section">
+<div class="section-title" style="font-size:.9em">【3】迴歸模型與 A0/A1/A2</div>
+<div class="bl-modes" style="margin-top:0">
+<button class="bl-mode-btn active" data-blreg="regress">重新迴歸</button>
+<button class="bl-mode-btn" data-blreg="ref">文件係數驗證</button>
+<button class="bl-mode-btn" data-blreg="manual">手動輸入係數</button>
+</div>
+
+<div class="bl-input active" data-blreginput="regress">
+<button class="btn" onclick="blRunRegression()">▶ 執行 OLS 迴歸</button>
+</div>
+
+<div class="bl-input" data-blreginput="ref">
+<div class="section-note">使用文件參考係數 A0=9593.1, A1=56.912, A2=6952.0 直接代入原始公式，驗證實測 COP 重現度。</div>
+<button class="btn" onclick="blUseReference()">▶ 套用文件係數</button>
+</div>
+
+<div class="bl-input" data-blreginput="manual">
+<div class="input-grid" style="grid-template-columns:repeat(3,1fr)">
+<div class="input-group"><label>A0（手動）</label><input type="number" id="bl-mA0" value="9593.1" step="any"></div>
+<div class="input-group"><label>A1（手動）</label><input type="number" id="bl-mA1" value="56.912" step="any"></div>
+<div class="input-group"><label>A2（手動）</label><input type="number" id="bl-mA2" value="6952.0" step="any"></div>
+</div>
+<button class="btn" onclick="blUseManualCoef()">▶ 套用係數</button>
+</div>
+
+<!-- B → A 轉換展示 -->
+<div id="bl-conversion" style="display:none">
+<div class="calc-chain">
+<div class="section-title" style="font-size:.85em;margin-top:0">OLS 標準形式 → A 係數轉換</div>
+<div class="calc-step"><span class="step-num">1</span>標準 OLS：Y = B0 + B1×X1 + B2×X2<span class="step-result" id="bl-B-disp">—</span></div>
+<div class="calc-step"><span class="step-num">2</span>B0（截距）= <span class="step-result" id="bl-B0">—</span></div>
+<div class="calc-step"><span class="step-num">3</span>B1（X1 係數）= <span class="step-result" id="bl-B1">—</span></div>
+<div class="calc-step"><span class="step-num">4</span>B2（X2 係數）= <span class="step-result" id="bl-B2">—</span></div>
+<div class="calc-step"><span class="step-num">5</span>A0 = -B0 = <span class="step-result" id="bl-A0-disp">—</span></div>
+<div class="calc-step"><span class="step-num">6</span>A1 = B1 = <span class="step-result" id="bl-A1-disp">—</span></div>
+<div class="calc-step"><span class="step-num">7</span>A2 = -B2 = <span class="step-result" id="bl-A2-disp">—</span></div>
+</div>
+</div>
+
+<!-- 4. A0/A1/A2 結果 -->
+<div class="section" style="margin-top:14px">
+<div class="section-title" style="font-size:.9em">【4】A0 / A1 / A2 結果與文件比較</div>
+<div class="table-scroll">
+<table class="bl-coef-table" id="bl-coef-table">
+<thead><tr><th>係數</th><th>計算結果</th><th>文件參考值</th><th>差異</th><th>差異 %</th></tr></thead>
+<tbody>
+<tr><td>A0</td><td class="coef-main" id="bl-A0-out">—</td><td class="coef-ref">9593.1</td><td class="coef-diff" id="bl-A0-diff">—</td><td class="coef-pct" id="bl-A0-pct">—</td></tr>
+<tr><td>A1</td><td class="coef-main" id="bl-A1-out">—</td><td class="coef-ref">56.912</td><td class="coef-diff" id="bl-A1-diff">—</td><td class="coef-pct" id="bl-A1-pct">—</td></tr>
+<tr><td>A2</td><td class="coef-main" id="bl-A2-out">—</td><td class="coef-ref">6952.0</td><td class="coef-diff" id="bl-A2-diff">—</td><td class="coef-pct" id="bl-A2-pct">—</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section-note"><b>說明：</b>差異 = 計算值 − 文件參考值；差異 % = 差異 ÷ 參考值 × 100%。工具僅顯示實際差異，不自行判定「合格／不合格」。</div>
+</div>
+
+<!-- 5. COP 驗證 -->
+<div class="section">
+<div class="section-title" style="font-size:.9em">【5】COP 驗證與統計結果</div>
+<button class="btn" id="bl-cop-btn" style="display:none" onclick="blShowCOP()">▶ 顯示 COP 預測比較</button>
+<div id="bl-cop-results" style="display:none">
+<div class="result-grid" style="grid-template-columns:repeat(5,1fr)">
+<div class="result-card"><div class="label">N（有效）</div><div class="value" id="bl-stat-N">—</div></div>
+<div class="result-card"><div class="label">R²</div><div class="value" id="bl-stat-R2">—</div></div>
+<div class="result-card"><div class="label">Adjusted R²</div><div class="value" id="bl-stat-AdjR2">—</div></div>
+<div class="result-card"><div class="label">RMSE（Y）</div><div class="value" id="bl-stat-RMSE">—</div></div>
+<div class="result-card"><div class="label">MAE（Y）</div><div class="value" id="bl-stat-MAE">—</div></div>
+</div>
+<div class="result-grid" style="grid-template-columns:repeat(3,1fr)">
+<div class="result-card"><div class="label">COP RMSE</div><div class="value" id="bl-cop-RMSE">—</div></div>
+<div class="result-card"><div class="label">COP MAE</div><div class="value" id="bl-cop-MAE">—</div></div>
+<div class="result-card"><div class="label">COP 平均相對誤差</div><div class="value" id="bl-cop-MAPE">—</div></div>
+</div>
+<div class="table-scroll">
+<table class="ov-table">
+<thead><tr><th>DateTime</th><th class="num">實測 COP</th><th class="num">預測 COP</th><th class="num">Error</th><th class="num">Error %</th></tr></thead>
+<tbody id="bl-cop-tbody"></tbody>
+</table>
+</div>
+</div>
+</div>
+
+<!-- 6. 圖表 -->
+<div class="section">
+<div class="section-title" style="font-size:.9em">【6】圖表</div>
+<canvas id="bl-chart-scatter" class="bl-canvas"></canvas>
+<div style="font-size:.7em;color:#6e7681;text-align:center;margin-top:-4px">實測 COP vs 預測 COP</div>
+<canvas id="bl-chart-residual" class="bl-canvas"></canvas>
+<div style="font-size:.7em;color:#6e7681;text-align:center;margin-top:-4px">殘差 vs 預測 COP</div>
+<canvas id="bl-chart-timeseries" class="bl-canvas"></canvas>
+<div style="font-size:.7em;color:#6e7681;text-align:center;margin-top:-4px">時間序列 COP（實測 vs 預測）</div>
+</div>
+
+<!-- 7. 分析報告與匯出 -->
+<div class="section">
+<div class="section-title" style="font-size:.9em">【7】分析報告與匯出</div>
+<div class="bl-btn-row">
+<button class="bl-btn primary" onclick="blGenerateReport()">產生分析報告</button>
+<button class="bl-btn" onclick="window.print()">列印 / 儲存 PDF</button>
+<button class="bl-btn" onclick="blExportCSV()">匯出完整分析 CSV</button>
+<button class="bl-btn danger" onclick="blClearAll()">清除目前資料</button>
+</div>
+<div id="bl-report" class="bl-report" style="display:none"></div>
+</div>
+
 </div>
 </div>
 
@@ -461,7 +651,7 @@ function switchTab(name){
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
-  const idx = {rt:0, ch1:1, ah:2, overall:3, flow:4, pipe:5}[name];
+  const idx = {rt:0, ch1:1, ah:2, baseline:3, flow:4, pipe:5}[name];
   document.querySelectorAll('.tab-btn')[idx].classList.add('active');
 }
 
@@ -597,35 +787,538 @@ function calcAH(){
   ahResult = {saving: saving_kw, rate, kw_before:kw_b, kw_after:kw_a, kwrt_b, kwrt_a, RT_a};
 }
 
-// ============ TAB 4: OVERALL ============
-function calcOverall(){
-  // 未算就先算
-  if(!ch1Result || !ch1Result.kw_before) calcCH1();
-  if(!ahResult || !ahResult.kw_before) calcAH();
-  const c = ch1Result, a = ahResult;
-  if(!c || !a) return;
+// ============ TAB 4: BASELINE A0/A1/A2 REGRESSION ============
+// 原始公式（保持不變）：
+//   1/COP = -1 + (T_cwRT/T_chwST) + [ -A0 + A1*T_cwRT - A2*(T_cwRPT/T_chwST) ] / Q_evap
+// 迴歸變數：X1 = T_cwRT, X2 = T_cwRPT/T_chwST, Y = Q_evap*(1/COP + 1 - T_cwRT/T_chwST)
+// OLS: Y = B0 + B1*X1 + B2*X2  →  A0 = -B0, A1 = B1, A2 = -B2
+// 文件參考係數（Q_evap 單位需與資料一致）：
+const BL_REF = { A0: 9593.1, A1: 56.912, A2: 6952.0 };
+let blData = [];        // {dt, tcwrt, tcwrpt, tchwst, qevap, cop, valid, reason, marked}
+let blResult = null;    // 最近一次結果
+const BL_STORAGE_KEY = 'blA0A1Data_v1';
 
-  const totalSaving = c.saving + a.saving;   // kW
-  const totalBefore = c.kw_before + a.kw_before;
-  const totalAfter  = c.kw_after  + a.kw_after;
-  const rate = totalBefore>0 ? totalSaving/totalBefore : 0;
+// ---- 資料匯入 ----
+function blParseRows(text){
+  const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(l=>l.length>0);
+  const rows = [];
+  for(let i=0;i<lines.length;i++){
+    // 自動偵測分隔：逗號優先，否則空白
+    let fields = lines[i].split(',').map(f=>f.trim());
+    if(fields.length<6){ fields = lines[i].split(/\s+/); }
+    // 跳過標題列
+    if(i===0 && !/^[\d.]/.test(fields[1]||'')) continue;
+    const dt = (fields[0]||'').toString();
+    const tcwrt = parseFloat(fields[1]);
+    const tcwrpt = parseFloat(fields[2]);
+    const tchwst = parseFloat(fields[3]);
+    const qevap = parseFloat(fields[4]);
+    const cop = parseFloat(fields[5]);
+    const rec = { dt, tcwrt, tcwrpt, tchwst, qevap, cop, valid:true, reason:'', marked:false };
+    blValidateRecord(rec);
+    rows.push(rec);
+  }
+  blData = rows;
+  blSaveStorage();
+  blRenderManualTable();
+  blRunQC();
+}
+function blValidateRecord(r){
+  const reasons = [];
+  if(!isFinite(r.tcwrt)) reasons.push('T_cwRT 非數字');
+  if(!isFinite(r.tcwrpt)) reasons.push('T_cwRPT 非數字');
+  if(!isFinite(r.tchwst)) reasons.push('T_chwST 非數字');
+  if(!isFinite(r.qevap))  reasons.push('Q_evap 非數字');
+  if(!isFinite(r.cop))    reasons.push('COP 非數字');
+  if(isFinite(r.qevap) && r.qevap<=0) reasons.push('Q_evap <= 0');
+  if(isFinite(r.cop) && r.cop<=0)     reasons.push('COP <= 0');
+  if(isFinite(r.tchwst) && r.tchwst===0) reasons.push('T_chwST = 0');
+  // 能否算 X2 / Y
+  if(isFinite(r.tcwrpt)&&isFinite(r.tchwst)&&r.tchwst!==0){
+    const x2 = r.tcwrpt/r.tchwst;
+    if(!isFinite(x2)) reasons.push('X2 無法計算');
+  }
+  if(isFinite(r.tcwrt)&&isFinite(r.tchwst)&&isFinite(r.cop)&&isFinite(r.qevap)&&r.tchwst!==0&&r.cop>0){
+    const Y = r.qevap*(1/r.cop + 1 - r.tcwrt/r.tchwst);
+    if(!isFinite(Y)) reasons.push('Y 無法計算');
+  }
+  if(!r.dt && r.dt!=='') reasons.push('缺少 DateTime');
+  if(reasons.length){ r.valid=false; r.reason=reasons.join('；'); }
+}
+function blImportPaste(){
+  const txt = document.getElementById('bl-textarea').value;
+  if(!txt.trim()){ alert('請先貼上資料'); return; }
+  blParseRows(txt);
+}
+function blClearAll(){
+  if(!blData.length){ blData=[]; blResult=null; blRenderManualTable(); blRunQC(); return; }
+  if(!confirm('確定清除目前所有資料？（將同時清除 localStorage 暫存）')) return;
+  blData=[]; blResult=null;
+  localStorage.removeItem(BL_STORAGE_KEY);
+  blRenderManualTable(); blRunQC();
+  document.getElementById('bl-report').style.display='none';
+  document.getElementById('bl-cop-results').style.display='none';
+  ['bl-A0-out','bl-A1-out','bl-A2-out','bl-A0-diff','bl-A1-diff','bl-A2-diff','bl-A0-pct','bl-A1-pct','bl-A2-pct']
+    .forEach(id=>{ const e=document.getElementById(id); if(e) e.textContent='—'; });
+}
+// 手動表格
+function blAddRow(){
+  const r = { dt:'', tcwrt:NaN, tcwrpt:NaN, tchwst:NaN, qevap:NaN, cop:NaN, valid:false, reason:'', marked:false };
+  blData.push(r);
+  blSaveStorage();
+  blRenderManualTable();
+}
+function blRenderManualTable(){
+  const tbody = document.getElementById('bl-manual-tbody');
+  if(!tbody) return;
+  if(!blData.length){ tbody.innerHTML='<tr><td colspan="8" style="color:#6e7681;padding:10px">（尚無資料，按「新增列」或改用貼上／CSV）</td></tr>'; return; }
+  tbody.innerHTML = blData.map((r,i)=>{
+    const cls = !r.valid ? 'bad' : (r.marked ? 'marked' : '');
+    const num = (v)=> isFinite(v) ? v : '';
+    return `<tr class="${cls}">
+      <td><input value="${(r.dt||'').replace(/"/g,'&quot;')}" onblur="blEditCell(${i},'dt',this.value)" style="width:110px;background:#0d1117;border:1px solid #30363d;color:#c9d1d9;padding:2px 4px;border-radius:3px"></td>
+      <td><input value="${num(r.tcwrt)}" onblur="blEditCell(${i},'tcwrt',this.value)" style="width:60px;background:#0d1117;border:1px solid #30363d;color:#c9d1d9;padding:2px 4px;border-radius:3px"></td>
+      <td><input value="${num(r.tcwrpt)}" onblur="blEditCell(${i},'tcwrpt',this.value)" style="width:60px;background:#0d1117;border:1px solid #30363d;color:#c9d1d9;padding:2px 4px;border-radius:3px"></td>
+      <td><input value="${num(r.tchwst)}" onblur="blEditCell(${i},'tchwst',this.value)" style="width:60px;background:#0d1117;border:1px solid #30363d;color:#c9d1d9;padding:2px 4px;border-radius:3px"></td>
+      <td><input value="${num(r.qevap)}" onblur="blEditCell(${i},'qevap',this.value)" style="width:60px;background:#0d1117;border:1px solid #30363d;color:#c9d1d9;padding:2px 4px;border-radius:3px"></td>
+      <td><input value="${num(r.cop)}" onblur="blEditCell(${i},'cop',this.value)" style="width:60px;background:#0d1117;border:1px solid #30363d;color:#c9d1d9;padding:2px 4px;border-radius:3px"></td>
+      <td style="text-align:center"><input type="checkbox" ${r.marked?'checked':''} onchange="blToggleMark(${i},this.checked)"></td>
+      <td style="text-align:center"><button class="bl-btn" style="padding:2px 8px" onclick="blDeleteRow(${i})">刪</button></td>
+    </tr>`;
+  }).join('');
+}
+function blEditCell(i,field,val){
+  const r = blData[i]; if(!r) return;
+  if(field==='dt'){ r.dt=val; } else { r[field]=val===''?NaN:parseFloat(val); }
+  blValidateRecord(r); blSaveStorage(); blRunQC();
+}
+function blToggleMark(i,v){ const r=blData[i]; if(!r)return; r.marked=v; blSaveStorage(); blRenderManualTable(); }
+function blDeleteRow(i){ blData.splice(i,1); blSaveStorage(); blRenderManualTable(); blRunQC(); }
 
-  document.getElementById('ov-results').style.display='block';
-  document.getElementById('ov_ch1_saving').textContent = c.saving.toFixed(1);
-  document.getElementById('ov_ah_saving').textContent  = a.saving.toFixed(1);
-  document.getElementById('ov_total_saving').textContent= totalSaving.toFixed(1);
-  document.getElementById('ov_rate').textContent = (rate*100).toFixed(1)+'%';
+// CSV 匯入（拖曳 + 點擊）
+function blInitCSV(){
+  const dz = document.getElementById('bl-dropzone');
+  const fi = document.getElementById('bl-file-input');
+  if(!dz||!fi) return;
+  dz.addEventListener('click',()=>fi.click());
+  dz.addEventListener('dragover',e=>{e.preventDefault(); dz.style.borderColor='#58a6ff';});
+  dz.addEventListener('dragleave',()=>{ dz.style.borderColor='#30363d';});
+  dz.addEventListener('drop',e=>{
+    e.preventDefault(); dz.style.borderColor='#30363d';
+    const f = e.dataTransfer.files[0];
+    if(f) blReadFile(f);
+  });
+  fi.addEventListener('change',()=>{ if(fi.files[0]) blReadFile(fi.files[0]); fi.value=''; });
+}
+function blReadFile(file){
+  const reader = new FileReader();
+  reader.onload = e => {
+    const text = e.target.result;
+    blParseRows(text);
+  };
+  reader.readAsText(file);
+}
 
-  document.getElementById('ov-breakdown-tbody').innerHTML =
-    `<tr><td>冰水主機</td><td class="num">${c.kw_before.toFixed(1)}</td><td class="num">${c.kw_after.toFixed(1)}</td><td class="num">${c.saving.toFixed(1)}</td><td class="num">${(c.rate*100).toFixed(1)}%</td></tr>` +
-    `<tr><td>空調箱</td><td class="num">${a.kw_before.toFixed(1)}</td><td class="num">${a.kw_after.toFixed(1)}</td><td class="num">${a.saving.toFixed(1)}</td><td class="num">${(a.rate*100).toFixed(1)}%</td></tr>`;
-  document.getElementById('ov-total-row').innerHTML =
-    `<td>合計</td><td class="num">${totalBefore.toFixed(1)}</td><td class="num">${totalAfter.toFixed(1)}</td><td class="num">${totalSaving.toFixed(1)}</td><td class="num">${(rate*100).toFixed(1)}%</td>`;
+// ---- 資料品質檢查 ----
+function blRunQC(){
+  const total = blData.length;
+  const valid = blData.filter(r=>r.valid).length;
+  const excluded = total - valid;
+  const seen = {}; let dups=0;
+  blData.forEach(r=>{ const k=[r.dt,r.tcwrt,r.tcwrpt,r.tchwst,r.qevap,r.cop].join('|'); if(seen[k]) dups++; seen[k]=1; });
+  document.getElementById('bl-total-n').textContent = total;
+  document.getElementById('bl-valid-n').textContent = valid;
+  document.getElementById('bl-excluded-n').textContent = excluded;
+  document.getElementById('bl-dup-n').textContent = dups;
+  const detail = document.getElementById('bl-qc-detail');
+  const list = document.getElementById('bl-qc-list');
+  const badRecs = blData.filter(r=>!r.valid);
+  if(badRecs.length){
+    detail.style.display='block';
+    list.innerHTML = badRecs.map(r=>`<div class="qc-item"><span class="qc-reason">[${r.dt||'(無時間)'}]</span> ${r.reason}</div>`).join('');
+  } else {
+    detail.style.display = total? 'block':'none';
+    list.innerHTML = total? '<div class="qc-item" style="color:#3fb950">✅ 無排除資料，全部有效。</div>' : '';
+  }
+}
 
-  const v = document.getElementById('ov-verdict');
-  v.style.display='block';
-  v.className='verdict pass';
-  v.textContent=`✅ 整體計算完成 — 節能率 ${(rate*100).toFixed(1)}%，功率節省 ${totalSaving.toFixed(1)} kW（未年化）`;
+// ---- OLS 最小平方法（原生 JS，無第三方套件）----
+// 求 B0,B1,B2：Y = B0 + B1*X1 + B2*X2，使用正规方程 + 高斯消去
+function blOLS(Y, X1, X2){
+  const n = Y.length;
+  // 矩陣 M (3x3) 與向量 v
+  let s0=0,s1=0,s2=0,s11=0,s12=0,s22=0, sy0=0,sy1=0,sy2=0, sxx=0,sxy=0,syy=0;
+  // 用矩陣元素
+  const M=[[0,0,0],[0,0,0],[0,0,0]], v=[0,0,0];
+  for(let i=0;i<n;i++){
+    const y=Y[i], x1=X1[i], x2=X2[i];
+    M[0][0]+=1;     M[0][1]+=x1;  M[0][2]+=x2;
+    M[1][0]+=x1;    M[1][1]+=x1*x1; M[1][2]+=x1*x2;
+    M[2][0]+=x2;    M[2][1]+=x1*x2; M[2][2]+=x2*x2;
+    v[0]+=y; v[1]+=y*x1; v[2]+=y*x2;
+  }
+  // 高斯消去解 M·b = v
+  const a=[M[0].slice(),M[1].slice(),M[2].slice()], b=v.slice();
+  for(let c=0;c<3;c++){
+    let piv=a[c][c];
+    if(Math.abs(piv)<1e-12){ // 找主元
+      let sw=-1; for(let r=c+1;r<3;r++) if(Math.abs(a[r][c])>Math.abs(piv)){sw=r;piv=a[r][c];break;}
+      if(sw<0) return null; // 奇異
+      [a[c],a[sw]]=[a[sw],a[c]]; [b[c],b[sw]]=[b[sw],b[c]];
+    }
+    for(let r=c+1;r<3;r++){
+      const f=a[r][c]/piv;
+      for(let k=c;k<3;k++) a[r][k]-=f*a[c][k];
+      b[r]-=f*b[c];
+    }
+  }
+  const out=[0,0,0];
+  for(let r=2;r>=0;r--){
+    out[r]=b[r];
+    for(let k=r+1;k<3;k++) out[r]-=a[r][k]*out[k];
+    out[r]/=a[r][r];
+  }
+  return {B0:out[0], B1:out[1], B2:out[2]};
+}
+
+// 有效資料 → 計算 X1,X2,Y
+function blPrep(){
+  const recs = blData.filter(r=>r.valid);
+  const Y=[],X1=[],X2=[],idx=[];
+  recs.forEach((r,i)=>{
+    const x1=r.tcwrt, x2=r.tcwrpt/r.tchwst;
+    const y=r.qevap*(1/r.cop + 1 - r.tcwrt/r.tchwst);
+    if(isFinite(y)&&isFinite(x1)&&isFinite(x2)){ Y.push(y); X1.push(x1); X2.push(x2); idx.push(i); }
+  });
+  return {recs, Y, X1, X2, idx};
+}
+// COP 預測（代回原始公式）
+function blPredictCOP(A0,A1,A2,r){
+  const x2 = r.tcwrpt/r.tchwst;
+  const denom = -1 + (r.tcwrt/r.tchwst) + (-A0 + A1*r.tcwrt - A2*x2)/r.qevap;
+  if(denom===0) return NaN;
+  return 1/denom;
+}
+function blStats(Y, Ypred){
+  const n=Y.length;
+  let sse=0,sst=0,mae=0;
+  const ybar=Y.reduce((a,b)=>a+b,0)/n;
+  for(let i=0;i<n;i++){
+    const d=Y[i]-Ypred[i];
+    sse+=d*d; mae+=Math.abs(d);
+    sst+=Math.pow(Y[i]-ybar,2);
+  }
+  const r2 = sst>0 ? 1-sse/sst : 0;
+  const p=3; // B0,B1,B2
+  const adjR2 = n>p ? 1 - ((1-r2)*(n-1)/(n-p-1)) : r2;
+  return {N:n, R2:r2, AdjR2:adjR2, RMSE:Math.sqrt(sse/n), MAE:mae/n};
+}
+
+// 執行 OLS 迴歸
+function blRunRegression(){
+  const prep = blPrep();
+  if(prep.Y.length<4){ alert('有效資料不足（至少需 4 筆）以執行 3 參數 OLS 迴歸。'); return; }
+  const fit = blOLS(prep.Y, prep.X1, prep.X2);
+  if(!fit){ alert('OLS 矩陣奇異，無法求解（變數可能共線或資料不足）。'); return; }
+  const A0=-fit.B0, A1=fit.B1, A2=-fit.B2;
+  // 預測 Y
+  const Ypred = prep.Y.map((_,i)=> fit.B0 + fit.B1*prep.X1[i] + fit.B2*prep.X2[i]);
+  const st = blStats(prep.Y, Ypred);
+  // COP 預測
+  const copRows=[];
+  prep.recs.forEach((r,i)=>{
+    const copP = blPredictCOP(A0,A1,A2,r);
+    const err = copP - r.cop;
+    copRows.push({rec:r, copP, err, errPct: r.cop!==0? err/r.cop*100 : NaN});
+  });
+  // COP 統計
+  let copRMSE=0, copMAE=0, copMAPEsum=0, copN=0;
+  copRows.forEach(c=>{ if(isFinite(c.copP)){ copRMSE+=Math.pow(c.err,2); copMAE+=Math.abs(c.err); if(isFinite(c.errPct)) copMAPEsum+=Math.abs(c.errPct); copN++; } });
+  const blCOPstats = copN? {RMSE:Math.sqrt(copRMSE/copN), MAE:copMAE/copN, MAPE:copMAPEsum/copN} : null;
+
+  blResult = {type:'regress', A0,A1,A2, B:fit, stats:st, copRows, COPstats:blCOPstats, source:'重新迴歸（OLS）'};
+  blRenderResult();
+}
+// 文件係數驗證
+function blUseReference(){
+  const A0=BL_REF.A0, A1=BL_REF.A1, A2=BL_REF.A2;
+  const prep = blPrep();
+  const copRows=[];
+  prep.recs.forEach(r=>{
+    const copP=blPredictCOP(A0,A1,A2,r);
+    const err=copP-r.cop;
+    copRows.push({rec:r,copP,err,errPct:r.cop!==0?err/r.cop*100:NaN});
+  });
+  let copRMSE=0,copMAE=0,copMAPEsum=0,copN=0;
+  copRows.forEach(c=>{ if(isFinite(c.copP)){ copRMSE+=Math.pow(c.err,2); copMAE+=Math.abs(c.err); if(isFinite(c.errPct)) copMAPEsum+=Math.abs(c.errPct); copN++; } });
+  blResult={type:'ref', A0,A1,A2, B:null, stats:null, copRows, COPstats:copN?{RMSE:Math.sqrt(copRMSE/copN),MAE:copMAE/copN,MAPE:copMAPEsum/copN}:null, source:'文件參考係數（9593.1 / 56.912 / 6952.0）'};
+  blRenderResult();
+}
+// 手動係數
+function blUseManualCoef(){
+  const A0=parseFloat(document.getElementById('bl-mA0').value);
+  const A1=parseFloat(document.getElementById('bl-mA1').value);
+  const A2=parseFloat(document.getElementById('bl-mA2').value);
+  if(!isFinite(A0)||!isFinite(A1)||!isFinite(A2)){ alert('請輸入有效的 A0/A1/A2'); return; }
+  const prep=blPrep();
+  const copRows=[];
+  prep.recs.forEach(r=>{
+    const copP=blPredictCOP(A0,A1,A2,r);
+    const err=copP-r.cop;
+    copRows.push({rec:r,copP,err,errPct:r.cop!==0?err/r.cop*100:NaN});
+  });
+  let copRMSE=0,copMAE=0,copMAPEsum=0,copN=0;
+  copRows.forEach(c=>{ if(isFinite(c.copP)){ copRMSE+=Math.pow(c.err,2); copMAE+=Math.abs(c.err); if(isFinite(c.errPct)) copMAPEsum+=Math.abs(c.errPct); copN++; } });
+  blResult={type:'manual', A0,A1,A2, B:null, stats:null, copRows, COPstats:copN?{RMSE:Math.sqrt(copRMSE/copN),MAE:copMAE/copN,MAPE:copMAPEsum/copN}:null, source:`手動係數（${A0} / ${A1} / ${A2}）`};
+  blRenderResult();
+}
+
+// 渲染結果
+function blRenderResult(){
+  const R=blResult; if(!R) return;
+  // B→A 轉換展示
+  const conv=document.getElementById('bl-conversion');
+  if(R.B){
+    conv.style.display='block';
+    document.getElementById('bl-B-disp').textContent=`B0 + B1×X1 + B2×X2`;
+    document.getElementById('bl-B0').textContent=R.B.B0.toFixed(4);
+    document.getElementById('bl-B1').textContent=R.B.B1.toFixed(4);
+    document.getElementById('bl-B2').textContent=R.B.B2.toFixed(4);
+    document.getElementById('bl-A0-disp').textContent=R.A0.toFixed(4);
+    document.getElementById('bl-A1-disp').textContent=R.A1.toFixed(4);
+    document.getElementById('bl-A2-disp').textContent=R.A2.toFixed(4);
+  } else { conv.style.display='none'; }
+  // A0/A1/A2 表
+  const setCoef=(name,val)=>{
+    const out=document.getElementById('bl-'+name+'-out');
+    const diff=document.getElementById('bl-'+name+'-diff');
+    const pct=document.getElementById('bl-'+name+'-pct');
+    const ref=BL_REF[name];
+    out.textContent=val.toFixed(3);
+    const d=val-ref;
+    diff.textContent=(d>=0?'+':'')+d.toFixed(3);
+    diff.className='coef-diff '+(d>=0?'positive':'negative');
+    pct.textContent=(d/ref*100).toFixed(2)+'%';
+  };
+  setCoef('A0',R.A0); setCoef('A1',R.A1); setCoef('A2',R.A2);
+  // COP 統計卡
+  document.getElementById('bl-cop-btn').style.display='block';
+  blShowCOP();
+  // 公式顯示（依來源）
+  const formulaEl=document.querySelector('#tab-baseline .formula-box .formula');
+  if(R.type==='regress'){
+    formulaEl.innerHTML=`1/COP = -1 + (T_cwRT/T_chwST) + [ -${R.A0.toFixed(2)} + ${R.A1.toFixed(4)}×T_cwRT - ${R.A2.toFixed(2)}×(T_cwRPT/T_chwST) ] / Q_evap<br>`+
+      `（OLS 重新迴歸結果：A0=-B0=${R.A0.toFixed(3)}, A1=B1=${R.A1.toFixed(4)}, A2=-B2=${R.A2.toFixed(3)}）`;
+  } else if(R.type==='ref'){
+    formulaEl.innerHTML=`1/COP = -1 + (T_cwRT/T_chwST) + [ -9593.1 + 56.912×T_cwRT - 6952.0×(T_cwRPT/T_chwST) ] / Q_evap<br>`+
+      `（文件參考係數直接代入）`;
+  } else {
+    formulaEl.innerHTML=`1/COP = -1 + (T_cwRT/T_chwST) + [ -${R.A0.toFixed(2)} + ${R.A1.toFixed(4)}×T_cwRT - ${R.A2.toFixed(2)}×(T_cwRPT/T_chwST) ] / Q_evap<br>`+
+      `（手動輸入係數）`;
+  }
+  blDrawCharts();
+}
+function blShowCOP(){
+  const R=blResult; if(!R) return;
+  document.getElementById('bl-cop-results').style.display='block';
+  document.getElementById('bl-cop-btn').style.display='none';
+  const N=R.copRows.length;
+  document.getElementById('bl-stat-N').textContent=R.stats?R.stats.N:N;
+  if(R.stats){
+    document.getElementById('bl-stat-R2').textContent=R.stats.R2.toFixed(4);
+    document.getElementById('bl-stat-AdjR2').textContent=R.stats.AdjR2.toFixed(4);
+    document.getElementById('bl-stat-RMSE').textContent=R.stats.RMSE.toFixed(3);
+    document.getElementById('bl-stat-MAE').textContent=R.stats.MAE.toFixed(3);
+  } else {
+    ['bl-stat-R2','bl-stat-AdjR2','bl-stat-RMSE','bl-stat-MAE'].forEach(id=>document.getElementById(id).textContent='—');
+  }
+  if(R.COPstats){
+    document.getElementById('bl-cop-RMSE').textContent=R.COPstats.RMSE.toFixed(4);
+    document.getElementById('bl-cop-MAE').textContent=R.COPstats.MAE.toFixed(4);
+    document.getElementById('bl-cop-MAPE').textContent=(R.COPstats.MAPE).toFixed(2)+'%';
+  } else {
+    ['bl-cop-RMSE','bl-cop-MAE','bl-cop-MAPE'].forEach(id=>document.getElementById(id).textContent='—');
+  }
+  document.getElementById('bl-cop-tbody').innerHTML = R.copRows.map(c=>{
+    const e=(isFinite(c.err)?c.err.toFixed(4):'—');
+    const ep=(isFinite(c.errPct)?c.errPct.toFixed(2)+'%':'—');
+    const cp=(isFinite(c.copP)?c.copP.toFixed(4):'—');
+    return `<tr><td>${c.rec.dt||''}</td><td class="num">${isFinite(c.rec.cop)?c.rec.cop.toFixed(4):'—'}</td><td class="num">${cp}</td><td class="num">${e}</td><td class="num">${ep}</td></tr>`;
+  }).join('');
+}
+
+// ---- 圖表（原生 Canvas）----
+function blDrawCharts(){
+  const R=blResult; if(!R) return;
+  const pts=R.copRows.filter(c=>isFinite(c.copP));
+  blDrawScatter(document.getElementById('bl-chart-scatter'), pts.map(c=>[c.rec.cop, c.copP]), '實測 COP', '預測 COP');
+  blDrawScatter(document.getElementById('bl-chart-residual'), pts.map(c=>[c.copP, c.rec.cop-c.copP]), '預測 COP', '殘差');
+  blDrawTimeSeries(document.getElementById('bl-chart-timeseries'), pts.map((c,i)=>[i, c.rec.cop, c.copP]));
+}
+function blDrawScatter(canvas, pts, xlab, ylab){
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width=canvas.clientWidth*2||900, H=canvas.height=canvas.clientHeight*2||520;
+  ctx.clearRect(0,0,W,H);
+  if(pts.length<2) return;
+  const xs=pts.map(p=>p[0]), ys=pts.map(p=>p[1]);
+  const xmin=Math.min(...xs), xmax=Math.max(...xs), ymin=Math.min(...ys), ymax=Math.max(...ys);
+  const pad=60;
+  const sx=(xmax-xmin)||1, sy=(ymax-ymin)||1;
+  const mx=i=> pad + i/(xs.length-1||1)*(W-2*pad);
+  const px=v=> H-pad - (v-ymin)/sy*(H-2*pad);
+  const py=v=> H-pad - (v-ymin)/sy*(H-2*pad);
+  // 座標軸
+  ctx.strokeStyle='#30363d'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(pad,H-pad); ctx.lineTo(W-pad,H-pad); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(pad,pad); ctx.lineTo(pad,H-pad); ctx.stroke();
+  ctx.fillStyle='#8b949e'; ctx.font='20px sans-serif';
+  ctx.fillText(xlab, W/2-20, H-16);
+  ctx.fillText(ylab, 6, pad-10);
+  // 散點
+  ctx.fillStyle='#58a6ff';
+  pts.forEach(p=>{
+    ctx.beginPath(); ctx.arc(pad+(p[0]-xmin)/sx*(W-2*pad), H-pad-(p[1]-ymin)/sy*(H-2*pad), 3.5, 0, 2*Math.PI); ctx.fill();
+  });
+}
+function blDrawTimeSeries(canvas, series){
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width=canvas.clientWidth*2||900, H=canvas.height=canvas.clientHeight*2||520;
+  ctx.clearRect(0,0,W,H);
+  if(series.length<2) return;
+  const allY=series.flatMap(s=>[s[1],s[2]]).filter(v=>isFinite(v));
+  const ymin=Math.min(...allY), ymax=Math.max(...allY);
+  const pad=60, sx=(series.length-1)||1, sy=(ymax-ymin)||1;
+  ctx.strokeStyle='#30363d'; ctx.beginPath(); ctx.moveTo(pad,H-pad); ctx.lineTo(W-pad,H-pad); ctx.stroke();
+  const drawLine=(key,color)=>{
+    ctx.strokeStyle=color; ctx.lineWidth=2; ctx.beginPath();
+    series.forEach((s,i)=>{
+      const x=pad+i/sx*(W-2*pad), y=H-pad-(s[key]-ymin)/sy*(H-2*pad);
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    });
+    ctx.stroke();
+  };
+  drawLine(1,'#3fb950'); // 實測
+  drawLine(2,'#f0883e'); // 預測
+  ctx.fillStyle='#8b949e'; ctx.font='18px sans-serif';
+  ctx.fillText('— 實測 COP（綠）  — 預測 COP（橘）  X=資料序', pad, H-16);
+}
+
+// ---- 報告 ----
+function blGenerateReport(){
+  const R=blResult; if(!R){ alert('請先執行迴歸或套用係數'); return; }
+  const rep=document.getElementById('bl-report');
+  rep.style.display='block';
+  const valid=blData.filter(r=>r.valid);
+  const excluded=blData.length-valid.length;
+  const dtList=valid.map(r=>r.dt).filter(Boolean);
+  const range=dtList.length? (dtList[0]+' ~ '+dtList[dtList.length-1]) : '（無時間資訊）';
+  let html='';
+  html+=`<h3>冰水空調系統基準線 A0/A1/A2 分析報告</h3>`;
+  const row=(k,v)=>`<div class="report-row"><span>${k}</span><span>${v}</span></div>`;
+  html+=row('分析資料期間', range);
+  html+=row('原始資料數', blData.length);
+  html+=row('有效資料數', valid.length);
+  html+=row('排除資料數', excluded);
+  html+=row('來源', R.source);
+  html+=`<h3>A0 / A1 / A2</h3>`;
+  html+=row('A0', R.A0.toFixed(4));
+  html+=row('A1', R.A1.toFixed(4));
+  html+=row('A2', R.A2.toFixed(4));
+  html+=row('文件參考 A0/A1/A2', `${BL_REF.A0} / ${BL_REF.A1} / ${BL_REF.A2}`);
+  html+=row('A0 差異', (R.A0-BL_REF.A0).toFixed(3)+'（'+((R.A0-BL_REF.A0)/BL_REF.A0*100).toFixed(2)+'%）');
+  html+=row('A1 差異', (R.A1-BL_REF.A1).toFixed(3)+'（'+((R.A1-BL_REF.A1)/BL_REF.A1*100).toFixed(2)+'%）');
+  html+=row('A2 差異', (R.A2-BL_REF.A2).toFixed(3)+'（'+((R.A2-BL_REF.A2)/BL_REF.A2*100).toFixed(2)+'%）');
+  if(R.stats){
+    html+=`<h3>統計結果（Y 迴歸）</h3>`;
+    html+=row('N', R.stats.N);
+    html+=row('R²', R.stats.R2.toFixed(4));
+    html+=row('Adjusted R²', R.stats.AdjR2.toFixed(4));
+    html+=row('RMSE（Y）', R.stats.RMSE.toFixed(4));
+    html+=row('MAE（Y）', R.stats.MAE.toFixed(4));
+  }
+  if(R.COPstats){
+    html+=`<h3>COP 驗證統計</h3>`;
+    html+=row('COP RMSE', R.COPstats.RMSE.toFixed(4));
+    html+=row('COP MAE', R.COPstats.MAE.toFixed(4));
+    html+=row('COP MAPE', R.COPstats.MAPE.toFixed(2)+'%');
+  }
+  html+=`<h3>使用的公式</h3>`;
+  html+=`<div style="font-family:Consolas,monospace;font-size:.85em;line-height:1.7">1/COP = -1 + (T_cwRT/T_chwST) + [ -A0 + A1×T_cwRT - A2×(T_cwRPT/T_chwST) ] / Q_evap<br>本報告係數：A0=${R.A0.toFixed(4)}, A1=${R.A1.toFixed(4)}, A2=${R.A2.toFixed(4)}</div>`;
+  html+=`<h3>資料品質說明</h3>`;
+  html+=row('排除原因', excluded? blData.filter(r=>!r.valid).map(r=>`[${r.dt||'?'}] ${r.reason}`).join('；').substring(0,500) : '無排除');
+  rep.innerHTML=html;
+}
+
+// ---- CSV 匯出 ----
+function blExportCSV(){
+  const R=blResult; if(!R){ alert('請先執行迴歸'); return; }
+  const prep=blPrep();
+  const Ypred=R.B? prep.Y.map((_,i)=>R.B.B0+R.B.B1*prep.X1[i]+R.B.B2*prep.X2[i]) : null;
+  let csv='';
+  // summary
+  if(R.B){
+    csv+=`# SUMMARY\nN,${R.stats.N},A0,${R.A0},A1,${R.A1},A2,${R.A2},B0,${R.B.B0},B1,${R.B.B1},B2,${R.B.B2},R2,${R.stats.R2},AdjR2,${R.stats.AdjR2},RMSE,${R.stats.RMSE},MAE,${R.stats.MAE}\n`;
+  } else {
+    csv+=`# SUMMARY (reference/manual, no OLS)\nN,${R.copRows.length},A0,${R.A0},A1,${R.A1},A2,${R.A2},B0,,B1,,B2,,R2,,AdjR2,,RMSE,,MAE,\n`;
+  }
+  csv+='\n';
+  csv+='DateTime,T_cwRT,T_cwRPT,T_chwST,Q_evap,COP_measured,Y,X1,X2,Predicted_Y,Residual_Y,Predicted_COP,COP_Error,COP_Error_pct\n';
+  R.copRows.forEach((c,i)=>{
+    const r=c.rec;
+    const x1=r.tcwrt, x2=r.tcwrpt/r.tchwst;
+    const y=r.qevap*(1/r.cop+1-r.tcwrt/r.tchwst);
+    const py=Ypred?Ypred[i]:'';
+    const ry=(Ypred!==null&&isFinite(Ypred[i]))? y-Ypred[i]:'';
+    const cp=isFinite(c.copP)?c.copP:'';
+    const err=isFinite(c.err)?c.err:'';
+    const epp=isFinite(c.errPct)?c.errPct:'';
+    csv+=[r.dt,r.tcwrt,r.tcwrpt,r.tchwst,r.qevap,r.cop,y,x1,x2,py,ry,cp,err,epp].join(',')+'\n';
+  });
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='baseline_A0A1A2_analysis.csv';
+  a.click();
+}
+
+// ---- localStorage ----
+function blSaveStorage(){
+  try{
+    const clean=blData.map(r=>({dt:r.dt,tcwrt:r.tcwrpt,tcwRPT:r.tcwrpt,tchwst:r.tchwst,qevap:r.qevap,cop:r.cop,valid:r.valid,reason:r.reason,marked:r.marked}));
+    localStorage.setItem(BL_STORAGE_KEY, JSON.stringify(clean));
+  }catch(e){}
+}
+function blLoadStorage(){
+  try{
+    const s=localStorage.getItem(BL_STORAGE_KEY);
+    if(!s) return;
+    const arr=JSON.parse(s);
+    if(!Array.isArray(arr)) return;
+    blData=arr.map(r=>({dt:r.dt,tcwrt:+r.tcwrpt,tcwrpt:+r.tcwrpt,tchwst:+r.tchwst,qevap:+r.qevap,cop:+r.cop,valid:!!r.valid,reason:r.reason||'',marked:!!r.marked}));
+    blData.forEach(blValidateRecord);
+    blRenderManualTable(); blRunQC();
+  }catch(e){}
+}
+// 模式切換
+function blInitModes(){
+  document.querySelectorAll('[data-blmode]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('[data-blmode]').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.bl-input[data-blinput]').forEach(el=>el.classList.remove('active'));
+      const inp=document.querySelector('.bl-input[data-blinput="'+btn.dataset.blmode+'"]');
+      if(inp) inp.classList.add('active');
+    });
+  });
+  document.querySelectorAll('[data-blreg]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('[data-blreg]').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.bl-input[data-blreginput]').forEach(el=>el.classList.remove('active'));
+      const inp=document.querySelector('.bl-input[data-blreginput="'+btn.dataset.blreg+'"]');
+      if(inp) inp.classList.add('active');
+    });
+  });
 }
 
 // ============ TAB 5: FLOW CALCULATOR ============
@@ -666,6 +1359,9 @@ function calcFlow(){
 
 // ============ INIT ============
 fillRTTable();
+blInitCSV();
+blInitModes();
+blLoadStorage();
 
 // ============ TAB 6: PIPE VELOCITY ============
 const PIPE_DATA = [
