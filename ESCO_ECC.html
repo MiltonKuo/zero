@@ -94,6 +94,7 @@ tr.baseline td{background:rgba(88,166,255,.05)}
 .bl-coef-table .coef-diff.positive{color:#3fb950}
 .bl-coef-table .coef-diff.negative{color:#f85149}
 .bl-coef-table .coef-pct{font-size:.85em;color:#8b949e}
+.bl-unit-notice{background:rgba(255,196,0,.08);border:1px solid rgba(255,196,0,.4);border-radius:6px;padding:10px;font-size:.8em;color:#ffd700;margin:8px 0;line-height:1.5}
 .bl-stat-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin:10px 0}
 .bl-canvas{width:100%;height:260px;background:#161b22;border:1px solid #30363d;border-radius:6px;margin:8px 0}
 .bl-report{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:14px;margin:10px 0;font-size:.85em;line-height:1.8}
@@ -439,6 +440,92 @@ OLS: Y = B0 + B1×X1 + B2×X2 → A0 = -B0, A1 = B1, A2 = -B2
 </div>
 <div class="section-note"><b>說明：</b>差異 = 計算值 − 文件參考值；差異 % = 差異 ÷ 參考值 × 100%。工具僅顯示實際差異，不自行判定「合格／不合格」。</div>
 </div>
+
+<!-- 4b. Q_evap 單位驗證 -->
+<div class="section" style="margin-top:14px">
+<div class="section-title" style="font-size:.9em">【4b】Q_evap 單位驗證</div>
+<div class="section-note" style="margin:6px 0"><b>方法：</b>對每一種候選單位，使用<b>同一組文件參考係數</b>（A0=9593.1、A1=56.912、A2=6952.0），把同一個實際冷量轉換成該單位後代回原始公式計算 COP。僅顯示各單位下的計算結果與 COP 範圍，<b>不自行宣稱哪一個單位就是文件真正使用的單位</b>。</div>
+<div class="bl-unit-notice">⚠️ 僅靠係數本身（9593.1 / 56.912 / 6952.0）<b>無法唯一確定 Q_evap 的物理單位</b>。係數與 Q_evap 單位是一對綁定的尺度；若無文件中原始回歸資料，工具不會猜測單位，僅呈現各單位下的數值行為供工程人員比對。</div>
+<div class="input-group" style="margin:8px 0"><label>實際冷量 Q_evap（以 kW 為基準輸入，工具會自動換算成各單位）</label><input type="number" id="bl-u-kw" value="800" step="any"></div>
+<div class="bl-btn-row"><button class="bl-btn primary" onclick="blUnitVerify()">▶ 執行單位驗證</button></div>
+<div id="bl-unit-results" style="display:none">
+<div class="table-scroll">
+<table class="bl-coef-table" id="bl-unit-table">
+<thead><tr><th>單位</th><th>換算後 Q</th><th>COP（代回原始公式）</th><th>有限正值？</th><th>最小 COP</th><th>最大 COP</th><th>平均 COP</th></tr></thead>
+<tbody id="bl-unit-tbody"></tbody>
+</table>
+</div>
+<div class="section-note" style="margin-top:8px"><b>換算係數（以 kW 為基準）：</b>kW=1、W=0.001、RT=0.2843、kcal/h=0.001163、kJ/h=0.0002778、kcal/min=0.06978。同一冷量在不同單位下數值不同，代回固定係數後的 COP 也不同。</div>
+</div>
+</div>
+
+<!-- 4c. 係數單位縮放說明 -->
+<div class="section">
+<div class="section-title" style="font-size:.9em">【4c】係數單位縮放（數學說明）</div>
+<div class="calc-chain">
+<div class="section-title" style="font-size:.85em;margin-top:0">為什麼換 Q_evap 單位時，A0/A1/A2 也要同比例縮放？</div>
+<div class="calc-step">原始公式：<span class="step-result">[−A0 + A1·T_cwRT − A2·(T_cwRPT/T_chwST)] / Q_evap</span></div>
+<div class="calc-step">設 Q_U2 = k × Q_U1（單位 U1→U2 的換算尺度 k）</div>
+<div class="calc-step">要讓公式數值完全不變，分母 Q_evap 變成 k 倍時，分子也須變成 k 倍：</div>
+<div class="calc-step"><span class="step-result">A0_U2 = k·A0_U1，A1_U2 = k·A1_U1，A2_U2 = k·A2_U1</span></div>
+</div>
+<div class="input-group" style="margin:8px 0"><label>換算尺度 k（例如 kW→W 的 k=0.001）</label><input type="number" id="bl-scale-k" value="0.001" step="any"></div>
+<div class="bl-btn-row"><button class="bl-btn" onclick="blScaleCoeffs()">▶ 計算縮放後係數</button></div>
+<div id="bl-scale-out" style="display:none;margin-top:8px">
+<div class="result-card" style="margin-bottom:8px"><div class="label">A0（縮放後）</div><div class="value" id="bl-scale-A0">—</div></div>
+<div class="result-card" style="margin-bottom:8px"><div class="label">A1（縮放後）</div><div class="value" id="bl-scale-A1">—</div></div>
+<div class="result-card" style="margin-bottom:8px"><div class="label">A2（縮放後）</div><div class="value" id="bl-scale-A2">—</div></div>
+</div>
+<div class="section-note" style="margin-top:6px"><b>證明：</b>原式分子 M=−A0+A1·X1−A2·X2。單位換算後 Q' = k·Q，分子 M' = k·M = −(k·A0)+ (k·A1)·X1 −(k·A2)·X2，故新係數恰為原係數 ×k。若不縮放，代回後 COP 會等比例錯 k 倍。</div>
+</div>
+
+<!-- 4d. 原始文件係數重現檢查 -->
+<div class="section">
+<div class="section-title" style="font-size:.9em">【4d】原始文件係數重現檢查</div>
+<div class="section-note" style="margin:6px 0">對<b>使用者輸入的歷史資料</b>（T_cwRT、T_cwRPT、T_chwST、Q_evap、COP）：先算 Y、X1、X2，再做 OLS（Y = B0+B1X1+B2X2），轉成 A0=−B0、A1=B1、A2=−B2，最後與文件參考 9593.1 / 56.912 / 6952.0 比較。</div>
+<div class="bl-unit-notice">📌 若使用者提供的資料<b>與原文件不是同一批</b>，工具只顯示「本資料重新迴歸所得係數」與「文件參考係數」兩者差異，<b>不會判定「文件係數錯誤」</b>。不同資料樣本本就應得到不同係數。</div>
+<div class="bl-btn-row"><button class="bl-btn primary" onclick="blRunRegression(); blReproduceCheck();">▶ 用目前資料重現檢查</button></div>
+<div id="bl-reproduce" style="display:none">
+<div class="table-scroll">
+<table class="bl-coef-table">
+<thead><tr><th>來源</th><th>A0</th><th>A1</th><th>A2</th></tr></thead>
+<tbody>
+<tr><td>本資料重新迴歸</td><td class="num" id="bl-rep-A0">—</td><td class="num" id="bl-rep-A1">—</td><td class="num" id="bl-rep-A2">—</td></tr>
+<tr><td>文件參考</td><td class="num">9593.1</td><td class="num">56.912</td><td class="num">6952.0</td></tr>
+<tr><td>差異（本資料−文件）</td><td class="num" id="bl-rep-A0d">—</td><td class="num" id="bl-rep-A1d">—</td><td class="num" id="bl-rep-A2d">—</td></tr>
+<tr><td>差異 %</td><td class="num" id="bl-rep-A0p">—</td><td class="num" id="bl-rep-A1p">—</td><td class="num" id="bl-rep-A2p">—</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+
+<!-- 4e. 數學一致性測試 -->
+<div class="section">
+<div class="section-title" style="font-size:.9em">【4e】數學一致性測試（可重現 / 可驗證）</div>
+<div class="section-note" style="margin:6px 0">指定一組測試係數 A0_test/A1_test/A2_test，用<b>原始 COP 公式</b>產生 COP，再將該批資料送回 OLS，確認還原係數 ≈ 測試係數並顯示誤差。測試資料保證 X1、X2 有<b>充分獨立變異</b>（避免矩陣接近奇異）。</div>
+<div class="input-grid" style="grid-template-columns:repeat(3,1fr)">
+<div class="input-group"><label>A0_test</label><input type="number" id="bl-tA0" value="120.0" step="any"></div>
+<div class="input-group"><label>A1_test</label><input type="number" id="bl-tA1" value="4.0" step="any"></div>
+<div class="input-group"><label>A2_test</label><input type="number" id="bl-tA2" value="-90.0" step="any"></div>
+</div>
+<div class="bl-btn-row"><button class="bl-btn primary" onclick="blConsistencyTest()">▶ 執行一致性測試</button></div>
+<div id="bl-consistency" style="display:none">
+<div class="table-scroll">
+<table class="bl-coef-table">
+<thead><tr><th>係數</th><th>指定（test）</th><th>還原（recovered）</th><th>誤差</th></tr></thead>
+<tbody>
+<tr><td>A0</td><td class="num" id="bl-tc-tA0">—</td><td class="num" id="bl-tc-rA0">—</td><td class="num" id="bl-tc-eA0">—</td></tr>
+<tr><td>A1</td><td class="num" id="bl-tc-tA1">—</td><td class="num" id="bl-tc-rA1">—</td><td class="num" id="bl-tc-eA1">—</td></tr>
+<tr><td>A2</td><td class="num" id="bl-tc-tA2">—</td><td class="num" id="bl-tc-rA2">—</td><td class="num" id="bl-tc-eA2">—</td></tr>
+</tbody>
+</table>
+</div>
+<div id="bl-tc-conditions" class="section-note" style="margin-top:6px">—</div>
+<div id="bl-tc-verdict" class="section-note" style="margin-top:4px"></div>
+</div>
+</div>
+
 
 <!-- 5. COP 驗證 -->
 <div class="section">
@@ -998,6 +1085,132 @@ function blPredictCOP(A0,A1,A2,r){
   const denom = -1 + (r.tcwrt/r.tchwst) + (-A0 + A1*r.tcwrt - A2*x2)/r.qevap;
   if(denom===0) return NaN;
   return 1/denom;
+}
+// ===== Q_evap 單位驗證（§26 新增）=====
+// 換算尺度：以 kW 為基準。把 1 kW 的冷量換算成各單位下的數值：
+const BL_UNIT_FACTORS = {
+  'kW':       1.0,
+  'W':        1000.0,
+  'RT':       0.2843,      // 1 RT = 3.5168 kW → 1 kW = 0.2843 RT
+  'kcal/h':   860.0,       // 1 kW = 860 kcal/h
+  'kJ/h':     3600.0,      // 1 kW = 3600 kJ/h
+  'kcal/min': 14.33        // 860 kcal/h ÷ 60 = 14.33 kcal/min
+};
+// 換算係數：對任意冷量 Q_kW，Q_u = Q_kW × BL_UNIT_FACTORS[u]
+// 計算某單位下、把基準冷量 Q_kW 換算後代回原始公式（使用文件參考係數）的 COP 統計
+function blUnitVerify(){
+  const qKw = parseFloat(document.getElementById('bl-u-kw').value);
+  if(!isFinite(qKw) || qKw<=0){ alert('請輸入有效的實際冷量（kW）'); return; }
+  // 取目前資料的有效筆計算；若無資料，用單一基準冷量+代表性溫度
+  const prep = blPrep();
+  const units = ['kW','W','RT','kcal/h','kJ/h','kcal/min'];
+  const tbody = document.getElementById('bl-unit-tbody');
+  tbody.innerHTML = '';
+  units.forEach(u=>{
+    const f = BL_UNIT_FACTORS[u];
+    const copVals = [];
+    if(prep.recs.length){
+      prep.recs.forEach(r=>{
+        // 把該筆 Q 從 kW 換算到單位 u
+        const q_u = r.qevap * f;
+        const A0=BL_REF.A0, A1=BL_REF.A1, A2=BL_REF.A2;
+        const x2 = r.tcwrpt/r.tchwst;
+        const denom = -1 + (r.tcwrt/r.tchwst) + (-A0 + A1*r.tcwrt - A2*x2)/q_u;
+        const cop = denom===0? NaN : 1/denom;
+        copVals.push(cop);
+      });
+    } else {
+      // 無資料：用基準冷量 + 代表性溫度（cwRT=30, cwRPT=33, chwST=7）
+      const q_u = qKw * f;
+      const A0=BL_REF.A0, A1=BL_REF.A1, A2=BL_REF.A2;
+      const x2 = 33/7;
+      const denom = -1 + (30/7) + (-A0 + A1*30 - A2*x2)/q_u;
+      copVals.push(denom===0? NaN : 1/denom);
+    }
+    const finite = copVals.filter(c=>isFinite(c));
+    const pos = finite.filter(c=>c>0);
+    let singleCOP='—', minCOP='—', maxCOP='—', avgCOP='—';
+    if(prep.recs.length===0){
+      singleCOP = copVals[0].toFixed(4);
+      minCOP = copVals[0].toFixed(4); maxCOP=copVals[0].toFixed(4); avgCOP=copVals[0].toFixed(4);
+    } else if(finite.length){
+      minCOP = Math.min(...finite).toFixed(4);
+      maxCOP = Math.max(...finite).toFixed(4);
+      avgCOP = (finite.reduce((a,b)=>a+b,0)/finite.length).toFixed(4);
+    }
+    const posLabel = (pos.length===finite.length && finite.length>0)? '<span style="color:#3fb950">是</span>' : (finite.length===0? '<span style="color:#f85149">否（NaN）</span>' : '<span style="color:#ffd700">部分/否</span>');
+    const q_u = qKw * f;
+    tbody.insertAdjacentHTML('beforeend',
+      `<tr><td>${u}</td><td class="num">${q_u.toFixed(4)}</td><td class="num">${prep.recs.length? avgCOP : singleCOP}</td><td>${posLabel}</td><td class="num">${minCOP}</td><td class="num">${maxCOP}</td><td class="num">${avgCOP}</td></tr>`);
+  });
+  document.getElementById('bl-unit-results').style.display='block';
+}
+// ===== 係數單位縮放（§27）=====
+function blScaleCoeffs(){
+  const k = parseFloat(document.getElementById('bl-scale-k').value);
+  if(!isFinite(k)){ alert('請輸入有效的換算尺度 k'); return; }
+  document.getElementById('bl-scale-A0').textContent = (k*BL_REF.A0).toPrecision(6);
+  document.getElementById('bl-scale-A1').textContent = (k*BL_REF.A1).toPrecision(6);
+  document.getElementById('bl-scale-A2').textContent = (k*BL_REF.A2).toPrecision(6);
+  document.getElementById('bl-scale-out').style.display='block';
+}
+// ===== 原始文件係數重現檢查（§28）=====
+function blReproduceCheck(){
+  // blResult 已含重新迴歸的 A0/A1/A2
+  const rep = document.getElementById('bl-reproduce');
+  if(!blResult || blResult.type!=='regress'){ alert('請先執行「重新迴歸」取得本資料係數'); return; }
+  const A0=blResult.A0, A1=blResult.A1, A2=blResult.A2;
+  document.getElementById('bl-rep-A0').textContent = A0.toPrecision(6);
+  document.getElementById('bl-rep-A1').textContent = A1.toPrecision(6);
+  document.getElementById('bl-rep-A2').textContent = A2.toPrecision(6);
+  document.getElementById('bl-rep-A0d').textContent = (A0-BL_REF.A0).toPrecision(4);
+  document.getElementById('bl-rep-A1d').textContent = (A1-BL_REF.A1).toPrecision(4);
+  document.getElementById('bl-rep-A2d').textContent = (A2-BL_REF.A2).toPrecision(4);
+  document.getElementById('bl-rep-A0p').textContent = BL_REF.A0? ((A0-BL_REF.A0)/BL_REF.A0*100).toFixed(2)+'%' : '—';
+  document.getElementById('bl-rep-A1p').textContent = BL_REF.A1? ((A1-BL_REF.A1)/BL_REF.A1*100).toFixed(2)+'%' : '—';
+  document.getElementById('bl-rep-A2p').textContent = BL_REF.A2? ((A2-BL_REF.A2)/BL_REF.A2*100).toFixed(2)+'%' : '—';
+  rep.style.display='block';
+}
+// ===== 數學一致性測試（§29：可重現/可驗證）=====
+function blConsistencyTest(){
+  const A0t=parseFloat(document.getElementById('bl-tA0').value);
+  const A1t=parseFloat(document.getElementById('bl-tA1').value);
+  const A2t=parseFloat(document.getElementById('bl-tA2').value);
+  if(![A0t,A1t,A2t].every(isFinite)){ alert('請輸入有效的測試係數'); return; }
+  // 生成一批 X1、X2 充分獨立變異的測試資料（避免矩陣接近奇異）
+  // X1 = T_cwRT 固定區間散布；X2 = T_cwRPT/T_chwST 用獨立隨機比
+  const rng=(seed=>{let s=seed;return()=>{s=(s*9301+49297)%233280;return s/233280;};})(42);
+  const N=60, recs=[];
+  for(let i=0;i<N;i++){
+    const x1 = 26 + rng()*8;                 // T_cwRT 26–34（充分變異）
+    const x2 = 3.2 + rng()*2.3;             // T_cwRPT/T_chwST 3.2–5.5（獨立變異）
+    const q  = 600 + rng()*800;             // Q_evap 600–1400 kW
+    // 由原始公式反推 COP：1/COP = -1 + x1/t3 ... 需 T_chwST；令 T_chwST=8 固定，T_cwRPT=x2*8
+    const t3 = 8.0;
+    const t1 = x1;
+    const t2 = x2*t3;
+    const denom = -1 + (t1/t3) + (-A0t + A1t*t1 - A2t*x2)/q;
+    const cop = 1/denom;
+    recs.push({dt:'test', tcwrt:t1, tcwrpt:t2, tchwst:t3, qevap:q, cop});
+  }
+  // 送入 OLS
+  const Y=recs.map(r=> r.qevap*(1/r.cop + 1 - r.tcwrt/r.tchwst));
+  const X1=recs.map(r=> r.tcwrt), X2=recs.map(r=> r.tcwrpt/r.tchwst);
+  const fit = blOLS(Y,X1,X2);
+  const cdiv = document.getElementById('bl-consistency');
+  if(!fit){ cdiv.style.display='block'; document.getElementById('bl-tc-verdict').textContent='⚠️ 測試矩陣奇異（請檢查 X1/X2 變異）'; return; }
+  const rA0=-fit.B0, rA1=fit.B1, rA2=-fit.B2;
+  document.getElementById('bl-tc-tA0').textContent=A0t; document.getElementById('bl-tc-tA1').textContent=A1t; document.getElementById('bl-tc-tA2').textContent=A2t;
+  document.getElementById('bl-tc-rA0').textContent=rA0.toPrecision(8); document.getElementById('bl-tc-rA1').textContent=rA1.toPrecision(8); document.getElementById('bl-tc-rA2').textContent=rA2.toPrecision(8);
+  document.getElementById('bl-tc-eA0').textContent=(rA0-A0t).toExponential(3); document.getElementById('bl-tc-eA1').textContent=(rA1-A1t).toExponential(3); document.getElementById('bl-tc-eA2').textContent=(rA2-A2t).toExponential(3);
+  // 條件檢查：X1、X2 變異量
+  const varr=(a)=>{const m=a.reduce((x,y)=>x+y,0)/a.length;return a.reduce((s,y)=>s+(y-m)*(y-m),0)/a.length;};
+  document.getElementById('bl-tc-conditions').textContent = `N=${N}｜Var(X1)=${varr(X1).toFixed(4)}｜Var(X2)=${varr(X2).toFixed(4)}（兩變數均具充分獨立變異，矩陣非奇異）`;
+  const ok = Math.abs(rA0-A0t)/Math.max(1,Math.abs(A0t))<1e-3 && Math.abs(rA1-A1t)/Math.max(1,Math.abs(A1t))<1e-3 && Math.abs(rA2-A2t)/Math.max(1,Math.abs(A2t))<1e-3;
+  document.getElementById('bl-tc-verdict').innerHTML = ok
+    ? '<span style="color:#3fb950">✓ 一致性測試通過：還原係數 ≈ 指定係數（相對誤差 < 0.1%），A0=−B0 / A1=B1 / A2=−B2 符號正確。</span>'
+    : '<span style="color:#ffd700">還原係數與指定係數差異偏大，請檢查資料或變異量。</span>';
+  cdiv.style.display='block';
 }
 function blStats(Y, Ypred){
   const n=Y.length;
