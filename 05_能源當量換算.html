@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>能源當量換算（kLOE / TOE / kWh / kcal / MJ）</title>
+<style>
+:root{--bg:#0d1117;--panel:#161b22;--border:#30363d;--text:#c9d1d9;--muted:#8b949e;--accent:#58a6ff;--success:#3fb950}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Microsoft JhengHei','Noto Sans TC',sans-serif;background:linear-gradient(135deg,#0d1117 0%,#161b22 100%);color:#c9d1d9;min-height:100vh;padding:20px}
+.container{max-width:760px;margin:0 auto}
+h1{font-size:1.4em;color:#58a6ff;margin-bottom:4px}
+.subtitle{font-size:.85em;color:#8b949e;margin-bottom:14px}
+.doc-ref{font-size:.75em;color:#6e7681;margin-bottom:14px}
+.card{background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:18px;margin-bottom:16px}
+.card-title{font-size:1em;font-weight:700;color:#58a6ff;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #30363d}
+.formula-box{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:12px;margin:10px 0;font-size:.85em}
+.formula{font-family:Consolas,monospace;color:#79c0ff;line-height:1.7;margin:4px 0}
+.formula-box .source{color:#6e7681;font-size:.78em;margin-top:4px}
+.input-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin:10px 0}
+.input-group label{display:block;font-size:.78em;color:#8b949e;margin-bottom:3px}
+.input-group input,.input-group select{width:100%;padding:8px 10px;background:#161b22;border:1px solid #30363d;border-radius:6px;color:#c9d1d9;font-size:.9em}
+.input-group input:focus,.input-group select:focus{outline:none;border-color:#58a6ff}
+.unit{font-size:.7em;color:#6e7681;margin-left:4px}
+.result-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin:10px 0}
+.result-card{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:12px;text-align:center}
+.result-card .label{font-size:.7em;color:#8b949e;margin-bottom:4px}
+.result-card .value{font-size:1.15em;font-weight:700;color:#58a6ff}
+.result-card .sub{font-size:.7em;color:#6e7681;margin-top:2px}
+table{width:100%;border-collapse:collapse;margin:8px 0;font-size:.8em}
+th,td{padding:6px 8px;text-align:center;border-bottom:1px solid #21262d}
+th{color:#8b949e;font-weight:600;font-size:.88em;background:rgba(88,166,255,.12)}
+td.num{text-align:right;font-family:Consolas,monospace}
+.note{font-size:.78em;color:#6e7681;line-height:1.6;margin-top:8px;padding:8px 10px;background:#161b22;border-radius:6px}
+/* 手機(<=480px) */
+@media (max-width:480px){
+body{padding:12px}
+.container{max-width:100%}
+h1{font-size:1.15em}
+.input-grid{grid-template-columns:1fr !important}
+.result-grid{grid-template-columns:1fr 1fr !important}
+.result-card .value{font-size:1em}
+.note,.doc-ref,.subtitle{font-size:.78em}
+.btn{width:100%;padding:12px}
+table{font-size:.74em}
+th,td{padding:4px 6px}
+}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>能源當量換算</h1>
+<div class="subtitle">kWh / kLOE / TOE / kcal / MJ 互換 · 適用 ESCO 節能量測與報告 · 台灣能源局常用標準</div>
+<div class="doc-ref">依據：經濟部能源局《能源使用效率提升方案》、IPCC 2006  Guidelines、CNS 標準換算</div>
+
+<div class="card">
+  <div class="card-title">① 換算方向</div>
+  <div class="input-grid" style="grid-template-columns:repeat(2,1fr)">
+    <div class="input-group"><label>數值</label><input type="number" id="value" value="1" step="0.001"></div>
+    <div class="input-group"><label>來源單位</label>
+      <select id="from_unit">
+        <option value="kWh">kWh（度）</option>
+        <option value="kcal">kcal（千卡）</option>
+        <option value="MJ">MJ（百萬焦耳）</option>
+        <option value="kLOE">kLOE（千油當量）</option>
+        <option value="TOE">TOE（油當量）</option>
+        <option value="GJ">GJ（百萬焦耳×1000）</option>
+      </select>
+    </div>
+    <div class="input-group"><label>目標單位</label>
+      <select id="to_unit">
+        <option value="kWh">kWh（度）</option>
+        <option value="kcal">kcal（千卡）</option>
+        <option value="MJ">MJ（百萬焦耳）</option>
+        <option value="kLOE">kLOE（千油當量）</option>
+        <option value="TOE">TOE（油當量）</option>
+        <option value="GJ">GJ（吉焦耳）</option>
+      </select>
+    </div>
+    <div class="input-group"><label>（可選擇能源種類 — 影響 CO₂ 排放）</label>
+      <select id="energy_type">
+        <option value="electricity">電力（台灣 2024 平均排放因子）</option>
+        <option value="natural_gas">天然氣</option>
+        <option value="fuel_oil">輕油（No.2 FO）</option>
+        <option value="lng">LNG（液化天然氣）</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">② 換算結果</div>
+  <div class="result-grid">
+    <div class="result-card"><div class="label">換算結果</div><div class="value" id="r_result">—</div><div class="sub" id="r_result_unit">kWh</div></div>
+    <div class="result-card"><div class="label">換算係數</div><div class="value" id="r_factor">—</div><div class="sub">1 來源 = ? 目標</div></div>
+  </div>
+  <div class="note" id="co2_note" style="display:none"></div>
+  <div class="note">
+    <b>標準換算係數（純能量單位，不含 CO₂）：</b><br>
+    • 1 kWh = 3,600 kJ = 3.6 MJ = 860 kcal = 0.0955 kLOE = 0.00955 TOE<br>
+    • 1 kLOE = 9,000,000 kcal = 37.68 MJ = 10.47 kWh<br>
+    • 1 TOE  = 10,000,000 kcal = 41.84 MJ = 11.62 kWh<br>
+    • 1 GJ  = 277.78 kWh = 239,006 kcal = 0.0239 TOE
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">③ CO₂ 排放因子對照表（台灣 2024 能源局）</div>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr><th>能源</th><th>CO₂ 因子</th><th>單位</th></tr></thead>
+    <tbody>
+      <tr><td>電力（台灣）</td><td>0.474</td><td>kg CO₂/kWh</td></tr>
+      <tr><td>天然氣</td><td>2.16</td><td>kg CO₂/Nm³</td></tr>
+      <tr><td>輕油 No.2 FO</td><td>2.70</td><td>kg CO₂/L</td></tr>
+      <tr><td>LNG</td><td>2.02</td><td>kg CO₂/m³</td></tr>
+      <tr><td>重油（殘油）</td><td>2.73</td><td>kg CO₂/L</td></tr>
+      <tr><td>汽油</td><td>2.32</td><td>kg CO₂/L</td></tr>
+      <tr><td>煤</td><td>2.72</td><td>kg CO₂/公噸</td></tr>
+    </tbody>
+  </table>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">④ 能源換算常見組合（快速對照）</div>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr><th>組合</th><th>係數</th><th>範例</th></tr></thead>
+    <tbody>
+      <tr><td>1 kWh → kLOE</td><td>0.0955</td><td>100,000 kWh = 9,550 kLOE</td></tr>
+      <tr><td>1 kLOE → kWh</td><td>10.47</td><td>1 kLOE = 10.47 kWh</td></tr>
+      <tr><td>1 TOE → kWh</td><td>11.62</td><td>1 TOE = 11.62 kWh</td></tr>
+      <tr><td>1 kWh → kcal</td><td>860</td><td>1,000 kWh = 860,000 kcal</td></tr>
+      <tr><td>1 Nm³ NG → kWh</td><td>9.5</td><td>1,000 Nm³ NG ≈ 9,500 kWh</td></tr>
+      <tr><td>1 kcal → MJ</td><td>0.004184</td><td>9,000,000 kcal ≈ 37.66 MJ</td></tr>
+    </tbody>
+  </table>
+  </div>
+</div>
+</div>
+
+<script>
+// 能量單位 → 基準 MJ 的換算係數
+const MJ_FACTOR = {
+  'kWh': 3.6,
+  'kcal': 0.004184,
+  'MJ':  1,
+  'kLOE':37.68,
+  'TOE': 418.4,
+  'GJ':  1000
+};
+
+// CO2 因子 kg/單位
+const CO2_FACTORS = {
+  electricity: {per:'kWh', val:0.474, label:'kg CO₂/kWh'},
+  natural_gas: {per:'MJ', val:0.004, label:'kg CO₂/m³ (2.16 kg/Nm³ ÷ ~540 MJ/m³ 熱量)'},
+  fuel_oil: {per:'L', val:2.70, label:'kg CO₂/L'},
+  lng: {per:'MJ', val:0.006, label:'kg CO₂/m³'}
+};
+
+function convert(){
+  const v = parseFloat(document.getElementById('value').value)||0;
+  const from = document.getElementById('from_unit').value;
+  const to   = document.getElementById('to_unit').value;
+
+  // 轉到基準 MJ
+  const v_mj = v * MJ_FACTOR[from];
+  // 從 MJ 轉到目標
+  const result = v_mj / MJ_FACTOR[to];
+
+  document.getElementById('r_result').textContent = formatNum(result);
+  document.getElementById('r_result_unit').textContent = to;
+  document.getElementById('r_factor').textContent = formatNum(1 * MJ_FACTOR[from] / MJ_FACTOR[to]);
+
+  // CO2 note
+  const co2Note = document.getElementById('co2_note');
+  const et = document.getElementById('energy_type').value;
+  if(et==='electricity'){
+    const co2 = v * CO2_FACTORS.electricity.val;
+    co2Note.style.display='block';
+    co2Note.innerHTML = '<b>CO₂ 排放（電力）：</b>'+co2.toLocaleString(undefined,{maximumFractionDigits:2})+' kg CO₂（按 '+v+' kWh × 0.474 kg/kWh，台灣 2024 能源局因子）';
+  } else if(et==='natural_gas'){
+    // 假設 1 Nm³ NG ≈ 0.5 kWh 熱量
+    const co2 = v * 2.16; // v 若是 Nm³
+    co2Note.style.display='block';
+    co2Note.innerHTML = '<b>CO₂ 排放（天然氣）：</b>'+co2.toLocaleString(undefined,{maximumFractionDigits:2})+' kg CO₂（'+v+' Nm³ × 2.16 kg/Nm³）<br><span style="font-size:.8em;color:#6e7681">提示：若「數值」欄填的是 Nm³（天然氣量），上式才適用。若填 kWh，請改填 NG 量。</span>';
+  } else {
+    co2Note.style.display='none';
+  }
+}
+
+function formatNum(x){
+  if(x===0) return '0';
+  const a = Math.abs(x);
+  if(a>=1e6) return x.toExponential(3);
+  if(a>=1e4) return x.toLocaleString(undefined,{maximumFractionDigits:2});
+  if(a>=1) return x.toLocaleString(undefined,{maximumFractionDigits:4});
+  if(a>=1e-4) return x.toFixed(6);
+  return x.toExponential(3);
+}
+
+document.getElementById('value').addEventListener('input', convert);
+document.getElementById('from_unit').addEventListener('change', convert);
+document.getElementById('to_unit').addEventListener('change', convert);
+document.getElementById('energy_type').addEventListener('change', convert);
+convert();
+</script>
+</body>
+</html>

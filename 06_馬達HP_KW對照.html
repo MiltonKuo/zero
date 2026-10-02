@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>馬達 HP/kW 對照與效率查表</title>
+<style>
+:root{--bg:#0d1117;--panel:#161b22;--border:#30363d;--text:#c9d1d9;--muted:#8b949e;--accent:#58a6ff;--success:#3fb950}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Microsoft JhengHei','Noto Sans TC',sans-serif;background:linear-gradient(135deg,#0d1117 0%,#161b22 100%);color:#c9d1d9;min-height:100vh;padding:20px}
+.container{max-width:860px;margin:0 auto}
+h1{font-size:1.4em;color:#58a6ff;margin-bottom:4px}
+.subtitle{font-size:.85em;color:#8b949e;margin-bottom:14px}
+.doc-ref{font-size:.75em;color:#6e7681;margin-bottom:14px;line-height:1.7}
+.card{background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:18px;margin-bottom:16px}
+.card-title{font-size:1em;font-weight:700;color:#58a6ff;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #30363d}
+.formula-box{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:12px;margin:10px 0;font-size:.85em}
+.formula{font-family:Consolas,monospace;color:#79c0ff;line-height:1.7;margin:4px 0}
+.formula-box .source{color:#6e7681;font-size:.78em;margin-top:4px}
+.input-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin:10px 0}
+.input-group label{display:block;font-size:.78em;color:#8b949e;margin-bottom:3px}
+.input-group input,.input-group select{width:100%;padding:8px 10px;background:#161b22;border:1px solid #30363d;border-radius:6px;color:#c9d1d9;font-size:.9em}
+.input-group input:focus,.input-group select:focus{outline:none;border-color:#58a6ff}
+.unit{font-size:.7em;color:#6e7681;margin-left:4px}
+.hint{font-size:.68em;color:#6e7681;margin-top:3px}
+.btn{padding:10px 20px;background:#238636;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:.9em;font-weight:600;margin:8px 0}
+.btn:hover{background:#2ea043}
+.result-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin:10px 0}
+.result-card{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:12px;text-align:center}
+.result-card .label{font-size:.7em;color:#8b949e;margin-bottom:4px}
+.result-card .value{font-size:1.2em;font-weight:700;color:#58a6ff}
+.result-card .sub{font-size:.7em;color:#6e7681;margin-top:2px}
+.result-card.success .value{color:#3fb950}
+table{width:100%;border-collapse:collapse;margin:8px 0;font-size:.8em}
+th,td{padding:6px 8px;text-align:center;border-bottom:1px solid #21262d}
+th{color:#8b949e;font-weight:600;font-size:.88em;background:rgba(88,166,255,.12)}
+td.num{text-align:right;font-family:Consolas,monospace}
+tr.total td{font-weight:700;border-top:2px solid #30363d}
+tr.highlight td{background:rgba(88,166,255,.12)}
+.note{font-size:.78em;color:#6e7681;line-height:1.6;margin-top:8px;padding:8px 10px;background:#161b22;border-radius:6px}
+/* 手機(<=480px) */
+@media (max-width:480px){
+body{padding:12px}
+.container{max-width:100%}
+h1{font-size:1.15em}
+.input-grid{grid-template-columns:1fr !important}
+.result-grid{grid-template-columns:1fr 1fr !important}
+.result-card .value{font-size:1em}
+.note,.doc-ref,.subtitle{font-size:.78em}
+.btn{width:100%;padding:12px}
+table{font-size:.74em}
+th,td{padding:4px 6px}
+}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>馬達 HP/kW 對照與效率查表</h1>
+<div class="subtitle">馬達 HP↔kW 換算、IE1/IE2/IE3/IE4 效率查表、輸入功率計算 · 單位 HP、kW、%</div>
+<div class="doc-ref">依據：1 HP = 0.746 kW、IEC 60034-30 效率等級（IE1~IE4）、NEMA MG-1、各廠銘牌數據（ABB/Siemens/WEG）</div>
+
+<div class="card">
+  <div class="card-title">① HP ↔ kW 換算</div>
+  <div class="formula-box">
+    <div class="formula">P(kW) = P(HP) × 0.746<br>
+    P(HP) = P(kW) ÷ 0.746</div>
+    <div class="source">1 英制馬力（HP）= 0.746 kW。馬達「額定輸出功率」常用 HP（1/2、1、2、3、5、7.5、10 HP），銘牌上 kW 值為輸出功率</div>
+  </div>
+  <div class="input-grid" style="grid-template-columns:1fr 1fr 1fr">
+    <div class="input-group"><label>數值</label><input type="number" id="motor_val" value="5" step="0.1" min="0"></div>
+    <div class="input-group"><label>來源單位</label>
+      <select id="motor_from">
+        <option value="hp">HP（英制馬力）</option>
+        <option value="kw">kW</option>
+      </select>
+    </div>
+    <div class="input-group"><label>換算結果</label><input type="text" id="motor_result" readonly style="background:#161b22;border-color:#58a6ff"></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">② 輸入功率（依效率等級）</div>
+  <div class="formula-box">
+    <div class="formula">P_in(kW) = P_out(kW) / η<br>
+    年耗電(kWh) = P_in × 年運轉時數 × 台數</div>
+    <div class="source">IE1/IE2/IE3/IE4 為 IEC 60034-30 效率等級。IE4（超高效）較 IE3（高頻效率）同容量效率高 1.3%~1.9%。低負載時差額更大（25% 負載時 IE4 再省約 10%）</div>
+  </div>
+  <div class="input-grid">
+    <div class="input-group"><label>輸出功率 P_out</label>
+      <input type="number" id="p_out" value="30" step="0.5" min="0">
+      <div class="unit">kW</div>
+    </div>
+    <div class="input-group"><label>效率等級</label>
+      <select id="ie_class">
+        <option value="ie1">IE1（基準效率）</option>
+        <option value="ie2">IE2（高頻效率）</option>
+        <option value="ie3" selected>IE3（高頻效率，常見預設）</option>
+        <option value="ie4">IE4（超高效）</option>
+        <option value="manual">手動效率</option>
+      </select>
+    </div>
+    <div class="input-group" id="manual_eff_group" style="display:none"><label>手動效率</label>
+      <input type="number" id="manual_eff" value="94.0" step="0.1" min="50" max="99.9">
+      <div class="unit">%</div>
+    </div>
+    <div class="input-group"><label>年運轉時數</label>
+      <input type="number" id="run_hours" value="4000" step="100" min="0">
+      <div class="unit">h/年</div>
+    </div>
+    <div class="input-group"><label>台數</label>
+      <input type="number" id="count" value="1" step="1" min="1">
+      <div class="unit">台</div>
+    </div>
+    <div class="input-group"><label>電價</label>
+      <input type="number" id="price" value="5.0" step="0.1" min="0">
+      <div class="unit">元/kWh</div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">③ 效率等級查表（同容量 IE 級對比）</div>
+  <button class="btn" onclick="calcAll()">▶ 計算輸入功率與效率對比</button>
+  <div class="result-grid" style="display:none" id="results">
+    <div class="result-card"><div class="label">選定等級輸入功率</div><div class="value" id="r_pin">—</div><div class="sub">kW</div></div>
+    <div class="result-card"><div class="label">年耗電</div><div class="value" id="r_annual_kwh">—</div><div class="sub">kWh/年</div></div>
+    <div class="result-card success"><div class="label">年電費</div><div class="value" id="r_annual_cost">—</div><div class="sub">元/年</div></div>
+    <div class="result-card success"><div class="label">vs IE1 節省</div><div class="value" id="r_vs_ie1">—</div><div class="sub">元/年</div></div>
+  </div>
+
+  <div style="overflow-x:auto;margin-top:14px">
+  <table id="ie_table">
+    <thead>
+      <tr><th>效率等級</th><th>30 kW 典型效率</th><th>50 kW 典型效率</th><th>75 kW 典型效率</th><th>100 kW 典型效率</th></tr>
+    </thead>
+    <tbody id="ie_tbody"></tbody>
+  </table>
+  </div>
+  <div class="note">
+    典型效率依 50 Hz、3 相、NEMA/IEC 標準值近似。同容量 IE4 較 IE3 高約 1.3%~1.9%、較 IE2 高約 2.5%~3.5%。
+    低負載（25%）時 IE4 相對 IE3 可再省 ~10%。投資回收：多數馬達升級 IE3→IE4 約 2~4 年。
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">④ 常用 HP↔kW 對照</div>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr><th>HP</th><th>kW</th><th>HP</th><th>kW</th><th>HP</th><th>kW</th></tr></thead>
+    <tbody>
+      <tr><td class="num">1/2</td><td class="num">0.373</td><td class="num">5</td><td class="num">3.73</td><td class="num">10</td><td class="num">7.46</td></tr>
+      <tr><td class="num">3/4</td><td class="num">0.559</td><td class="num">7.5</td><td class="num">5.60</td><td class="num">15</td><td class="num">11.19</td></tr>
+      <tr><td class="num">1</td><td class="num">0.746</td><td class="num">10</td><td class="num">7.46</td><td class="num">20</td><td class="num">14.92</td></tr>
+      <tr><td class="num">1.5</td><td class="num">1.12</td><td class="num">15</td><td class="num">11.19</td><td class="num">25</td><td class="num">18.65</td></tr>
+      <tr><td class="num">2</td><td class="num">1.49</td><td class="num">20</td><td class="num">14.92</td><td class="num">30</td><td class="num">22.38</td></tr>
+      <tr><td class="num">3</td><td class="num">2.24</td><td class="num">25</td><td class="num">18.65</td><td class="num">40</td><td class="num">29.84</td></tr>
+      <tr><td class="num">4</td><td class="num">2.98</td><td class="num">30</td><td class="num">22.38</td><td class="num">50</td><td class="num">37.30</td></tr>
+    </tbody>
+  </table>
+  </div>
+</div>
+</div>
+
+<script>
+// IE 效率典型值（依容量查表）
+const IE_EFF = {
+  ie1:{30:87.0, 50:89.0, 75:90.0, 100:91.0},
+  ie2:{30:89.5, 50:91.5, 75:92.5, 100:93.5},
+  ie3:{30:91.0, 50:94.0, 75:95.8, 100:96.5},
+  ie4:{30:92.5, 50:95.6, 75:97.1, 100:98.0}
+};
+const IE_NAMES = {ie1:'IE1（基準）',ie2:'IE2（高頻）',ie3:'IE3（高頻）',ie4:'IE4（超高效）'};
+
+function nearestCap(kw){
+  const caps = [30,50,75,100];
+  return caps.reduce((a,b)=> Math.abs(b-kw) < Math.abs(a-kw) ? b : a);
+}
+
+document.getElementById('ie_class').addEventListener('change', function(){
+  document.getElementById('manual_eff_group').style.display = this.value==='manual'?'block':'none';
+});
+
+// HP/KW 換算（即時）
+function updateMotorResult(){
+  const v = parseFloat(document.getElementById('motor_val').value)||0;
+  const from = document.getElementById('motor_from').value;
+  let result, toLabel;
+  if(from==='hp'){
+    const kw = v*0.746;
+    result = kw.toFixed(3)+' kW';
+    toLabel = '(kW)';
+  } else {
+    const hp = v/0.746;
+    result = hp.toFixed(2)+' HP';
+    toLabel = '(HP)';
+  }
+  document.getElementById('motor_result').value = result;
+}
+document.getElementById('motor_val').addEventListener('input', updateMotorResult);
+document.getElementById('motor_from').addEventListener('change', updateMotorResult);
+
+function calcAll(){
+  const p_out = parseFloat(document.getElementById('p_out').value)||0;
+  const ieClass = document.getElementById('ie_class').value;
+  const hours = parseFloat(document.getElementById('run_hours').value)||0;
+  const count = parseInt(document.getElementById('count').value)||1;
+  const price = parseFloat(document.getElementById('price').value)||0;
+
+  let eff;
+  if(ieClass==='manual'){
+    eff = parseFloat(document.getElementById('manual_eff').value)||94;
+  } else {
+    const cap = nearestCap(p_out);
+    eff = IE_EFF[ieClass][cap];
+  }
+  const effDec = eff/100;
+  const p_in = p_out / effDec;
+  const annual_kwh = p_in * hours * count;
+  const annual_cost = annual_kwh * price;
+
+  // 對照 IE1 節省
+  const cap = nearestCap(p_out);
+  const ie1_kwh = (p_out / IE_EFF.ie1[cap]) * hours * count;
+  const vs_ie1 = Math.max(0, (ie1_kwh - annual_kwh) * price);
+
+  document.getElementById('r_pin').textContent = p_in.toFixed(2);
+  document.getElementById('r_pin').closest('.result-card').classList.add('success');
+  document.getElementById('r_annual_kwh').textContent = annual_kwh.toLocaleString(undefined,{maximumFractionDigits:0});
+  document.getElementById('r_annual_cost').textContent = annual_cost.toLocaleString(undefined,{maximumFractionDigits:0});
+  document.getElementById('r_vs_ie1').textContent = vs_ie1.toLocaleString(undefined,{maximumFractionDigits:0});
+
+  document.getElementById('results').style.display='grid';
+
+  // 填 IE 對照表（依當前 p_out 取最近容量）
+  const tbody = document.getElementById('ie_tbody');
+  const caps = [30,50,75,100];
+  const chosen = caps.reduce((a,b)=> Math.abs(b-p_out) < Math.abs(a-p_out) ? b : a);
+  let html = '';
+  ['ie1','ie2','ie3','ie4'].forEach(cls=>{
+    html += '<tr'+(cls===ieClass?' class="highlight"':'')+'>';
+    html += '<td><b>'+IE_NAMES[cls]+'</b></td>';
+    caps.forEach(c=>{
+      const isChosen = c===chosen;
+      html += '<td class="num'+(isChosen?' style="color:#58a6ff;font-weight:700"':'')+'">'+IE_EFF[cls][c]+'</td>';
+    });
+    html += '</tr>';
+  });
+  tbody.innerHTML = html;
+}
+
+updateMotorResult();
+calcAll();
+</script>
+</body>
+</html>

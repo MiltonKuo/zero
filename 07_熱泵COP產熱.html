@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>熱泵產熱 COP 計算</title>
+<style>
+:root{--bg:#0d1117;--panel:#161b22;--border:#30363d;--text:#c9d1d9;--muted:#8b949e;--accent:#58a6ff;--success:#3fb950;--warn:#f0883e;--danger:#f85149}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Microsoft JhengHei','Noto Sans TC',sans-serif;background:linear-gradient(135deg,#0d1117 0%,#161b22 100%);color:#c9d1d9;min-height:100vh;padding:20px}
+.container{max-width:820px;margin:0 auto}
+h1{font-size:1.4em;color:#58a6ff;margin-bottom:4px}
+.subtitle{font-size:.85em;color:#8b949e;margin-bottom:14px}
+.doc-ref{font-size:.75em;color:#6e7681;margin-bottom:14px;line-height:1.7}
+.card{background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:18px;margin-bottom:16px}
+.card-title{font-size:1em;font-weight:700;color:#58a6ff;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #30363d}
+.formula-box{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:12px;margin:10px 0;font-size:.85em}
+.formula{font-family:Consolas,monospace;color:#79c0ff;line-height:1.7;margin:4px 0}
+.formula-box .source{color:#6e7681;font-size:.78em;margin-top:4px}
+.input-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin:10px 0}
+.input-group label{display:block;font-size:.78em;color:#8b949e;margin-bottom:3px}
+.input-group input,.input-group select{width:100%;padding:8px 10px;background:#161b22;border:1px solid #30363d;border-radius:6px;color:#c9d1d9;font-size:.9em}
+.input-group input:focus,.input-group select:focus{outline:none;border-color:#58a6ff}
+.unit{font-size:.7em;color:#6e7681;margin-left:4px}
+.hint{font-size:.68em;color:#6e7681;margin-top:3px}
+.btn{padding:10px 20px;background:#238636;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:.9em;font-weight:600;margin:8px 0}
+.btn:hover{background:#2ea043}
+.result-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin:10px 0}
+.result-card{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:12px;text-align:center}
+.result-card .label{font-size:.7em;color:#8b949e;margin-bottom:4px}
+.result-card .value{font-size:1.2em;font-weight:700;color:#58a6ff}
+.result-card .sub{font-size:.7em;color:#6e7681;margin-top:2px}
+.result-card.success .value{color:#3fb950}
+table{width:100%;border-collapse:collapse;margin:8px 0;font-size:.8em}
+th,td{padding:6px 8px;text-align:center;border-bottom:1px solid #21262d}
+th{color:#8b949e;font-weight:600;font-size:.88em;background:rgba(88,166,255,.12)}
+td.num{text-align:right;font-family:Consolas,monospace}
+tr.total td{font-weight:700;border-top:2px solid #30363d}
+tr.highlight td{background:rgba(88,166,255,.12)}
+.verdict{padding:12px;border-radius:6px;margin:10px 0;font-weight:700;font-size:.95em}
+.verdict.pass{background:rgba(63,185,80,.15);color:#3fb950;border:1px solid #3fb950}
+.verdict.warn{background:rgba(240,136,62,.15);color:#f0883e;border:1px solid #f0883e}
+.verdict.fail{background:rgba(248,81,73,.15);color:#f85149;border:1px solid #f85149}
+.note{font-size:.78em;color:#6e7681;line-height:1.6;margin-top:8px;padding:8px 10px;background:#161b22;border-radius:6px}
+.calc-chain{background:#161b22;border-radius:6px;padding:12px;margin:10px 0}
+.calc-step{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #21262d;font-size:.85em}
+.calc-step:last-child{border-bottom:none}
+.calc-step .step-num{background:#3881e8;color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:.75em;flex-shrink:0}
+/* 手機(<=480px) */
+@media (max-width:480px){
+body{padding:12px}
+.container{max-width:100%}
+h1{font-size:1.15em}
+.input-grid{grid-template-columns:1fr !important}
+.result-grid{grid-template-columns:1fr 1fr !important}
+.result-card .value{font-size:1em}
+.note,.doc-ref,.subtitle{font-size:.78em}
+.btn{width:100%;padding:12px}
+table{font-size:.74em}
+th,td{padding:4px 6px}
+}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>熱泵產熱 COP 計算</h1>
+<div class="subtitle">空氣源熱泵 / 水熱泵 產熱效率 · COP_heat 計算與節能效益 · 單位 kcal/h、kW、COP</div>
+<div class="doc-ref">依據：熱泵產熱公式、ASHP/COP 定義、ESCO 熱泵案常用估算。熱泵額定產熱通常以 kcal/h 或 kW 標示</div>
+
+<div class="card">
+  <div class="card-title">① 熱泵參數</div>
+  <div class="formula-box">
+    <div class="formula">COP_heat = Q_heat / P_input<br>
+    年產熱(kWh) = Q_heat(kW) × 年運轉時數 × 台數<br>
+    年省燃料(kWh) = 年產熱 × (1/η_fuel − 1/COP_heat)</div>
+    <div class="source">熱泵 COP_heat 通常 2.5~5.0。若熱泵取代鍋爐（η_fuel 0.8~0.95），每 1 kWh 電可取代 2.5~5 kWh 等價燃料熱</div>
+  </div>
+  <div class="input-grid">
+    <div class="input-group"><label>額定產熱量 Q_heat</label>
+      <input type="number" id="q_heat" value="30" step="1" min="0">
+      <div class="unit">kW（額定產熱）</div>
+      <div class="hint">若銘牌以 kcal/h 標示，除以 860 換算 kW</div>
+    </div>
+    <div class="input-group"><label>額定產熱 kcal/h（選填，自動換算 kW）</label>
+      <input type="number" id="q_heat_kcal" step="100" min="0" placeholder="自動">
+      <div class="unit">kcal/h</div>
+      <div class="hint">填入 25,800 kcal/h = 30 kW</div>
+    </div>
+    <div class="input-group"><label>熱泵輸入功率 P_in</label>
+      <input type="number" id="p_in" value="10" step="0.5" min="0">
+      <div class="unit">kW（額定電耗）</div>
+    </div>
+    <div class="input-group"><label>熱泵 COP（自動，可改）</label>
+      <input type="number" id="cop" step="0.1" min="0" placeholder="自動">
+      <div class="unit">COP_heat</div>
+      <div class="hint">填入 q_heat 與 p_in 後自動計算</div>
+    </div>
+    <div class="input-group"><label>年運轉時數</label>
+      <input type="number" id="hours" value="2000" step="100" min="0">
+      <div class="unit">h/年</div>
+    </div>
+    <div class="input-group"><label>台數</label>
+      <input type="number" id="count" value="1" step="1" min="1">
+      <div class="unit">台</div>
+    </div>
+    <div class="input-group"><label>取代鍋爐燃料效率</label>
+      <input type="number" id="eta_fuel" value="85" step="1" min="50" max="99">
+      <div class="unit">%</div>
+      <div class="hint">舊系統若以鍋爐產熱，填鍋爐效率（常見 80~95%）</div>
+    </div>
+    <div class="input-group"><label>燃料（取代後節省）</label>
+      <select id="fuel_type">
+        <option value="ng">天然氣（LHV ≈ 9.5 kWh/Nm³）</option>
+        <option value="oil">重油（LHV ≈ 10.5 kWh/L）</option>
+        <option value="electric_heater">電熱（kWh 直接）</option>
+      </select>
+    </div>
+    <div class="input-group"><label>燃料單價</label>
+      <input type="number" id="fuel_price" value="13.84" step="0.01" min="0">
+      <div class="unit">依燃料類型（NG:元/Nm³、油:元/L、電:元/kWh）</div>
+    </div>
+    <div class="input-group"><label>電價</label>
+      <input type="number" id="price" value="5.0" step="0.1" min="0">
+      <div class="unit">元/kWh</div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">② 計算結果</div>
+  <button class="btn" onclick="calc()">▶ 計算熱泵節能效果</button>
+  <div class="result-grid" style="display:none" id="result">
+    <div class="result-card"><div class="label">COP_heat</div><div class="value" id="r_cop">—</div><div class="sub">產熱 ÷ 電耗</div></div>
+    <div class="result-card"><div class="label">年產熱</div><div class="value" id="r_annual_heat">—</div><div class="sub">kWh/年</div></div>
+    <div class="result-card"><div class="label">年電耗（熱泵）</div><div class="value" id="r_annual_kwh">—</div><div class="sub">kWh/年</div></div>
+    <div class="result-card success"><div class="label">年省燃料（vs 鍋爐）</div><div class="value" id="r_save_fuel">—</div><div class="sub">依燃料類型</div></div>
+    <div class="result-card success"><div class="label">年節省金額</div><div class="value" id="r_save_amt">—</div><div class="sub">元/年</div></div>
+    <div class="result-card"><div class="label">節能率（熱效率視角）</div><div class="value" id="r_save_pct">—</div><div class="sub">相對舊鍋爐產熱</div></div>
+  </div>
+  <div id="verdict"></div>
+  <div class="calc-chain" id="chain" style="display:none">
+    <div class="calc-step"><span class="step-num">1</span>COP_heat = Q_heat / P_in<span style="margin-left:auto" id="chain1">—</span></div>
+    <div class="calc-step"><span class="step-num">2</span>年產熱 = Q_heat × 時數 × 台數<span style="margin-left:auto" id="chain2">—</span></div>
+    <div class="calc-step"><span class="step-num">3</span>舊鍋爐需燃料 = 年產熱 / η_fuel<span style="margin-left:auto" id="chain3">—</span></div>
+    <div class="calc-step"><span class="step-num">4</span>熱泵需電 = 年產熱 / COP<span style="margin-left:auto" id="chain4">—</span></div>
+    <div class="calc-step"><span class="step-num">5</span>省燃料 = 舊鍋爐燃料 − 熱泵電當量<span style="margin-left:auto" id="chain5">—</span></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">③ 熱泵 COP 參考值（依類型與條件）</div>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr><th>熱泵類型</th><th>COP_heat 範圍</th><th>適用條件</th></tr></thead>
+    <tbody>
+      <tr><td>空氣源熱泵（ASHP）</td><td>2.5 ~ 3.5</td><td>外氣 0~15℃、50℃ 熱水</td></tr>
+      <tr class="highlight"><td>空氣源熱泵（低溫 0℃ 以下）</td><td>1.8 ~ 2.5</td><td>冬季低溫、COP 下滑明顯</td></tr>
+      <tr><td>水熱泵（地源）</td><td>3.5 ~ 5.0</td><td>地溫穩定 15~20℃、COP 高且穩定</td></tr>
+      <tr class="highlight"><td>水熱泵（廢熱回收）</td><td>4.0 ~ 6.0</td><td>回收廢熱、低源溫</td></tr>
+      <tr><td>水冷式熱泵（冰水主機熱源側）</td><td>3.0 ~ 4.5</td><td>冰水 6℃ / 冷卻水 30℃</td></tr>
+      <tr><td>鍋爐產熱（比較基準）</td><td>0.8 ~ 0.95</td><td>鍋爐效率，無 COP 概念</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="note">
+    <b>熱泵 vs 鍋爐節能量測：</b><br>
+    • 熱泵 1 kWh 電 → COP_heat × 1 kWh 產熱；鍋爐 1 kWh 等價燃料 → η_fuel × 1 kWh 產熱<br>
+    • 若 COP_heat &gt; η_fuel，熱泵節能。常見：COP 3.0 vs 鍋爐 0.85 → 節熱效率 ~72%<br>
+    • 低負載時熱泵 COP 下降，需以「實際運轉 COP」估算（額定 COP 為全負載值）
+  </div>
+</div>
+</div>
+
+<script>
+// kcal/h → kW 即時換算
+document.getElementById('q_heat_kcal').addEventListener('input', function(){
+  const v = parseFloat(this.value);
+  if(!isNaN(v) && v>0){
+    document.getElementById('q_heat').value = (v/860).toFixed(1);
+  }
+});
+
+function calc(){
+  let q_heat = parseFloat(document.getElementById('q_heat').value)||0;
+  const p_in = parseFloat(document.getElementById('p_in').value)||0;
+  const hours = parseFloat(document.getElementById('hours').value)||0;
+  const count = parseInt(document.getElementById('count').value)||1;
+  const eta_fuel = (parseFloat(document.getElementById('eta_fuel').value)||85)/100;
+  const fuel_type = document.getElementById('fuel_type').value;
+  const fuel_price = parseFloat(document.getElementById('fuel_price').value)||0;
+  const price = parseFloat(document.getElementById('price').value)||0;
+
+  if(q_heat<=0 || p_in<=0){
+    document.getElementById('verdict').innerHTML='<div class="verdict fail">✗ 產熱量或功率 &gt; 0 請確認</div>';
+    document.getElementById('result').style.display='none';
+    document.getElementById('chain').style.display='none';
+    return;
+  }
+
+  const cop = q_heat / p_in;
+  document.getElementById('cop').value = cop.toFixed(2);
+
+  const annual_heat = q_heat * hours * count; // kWh 熱
+  const annual_kwh = p_in * hours * count;     // kWh 電（熱泵）
+  const old_fuel_kwh = annual_heat / eta_fuel;  // 舊鍋爐燃料當量 kWh
+
+  // 燃料節省（kWh 等價視角）
+  const save_kwh_equiv = Math.max(0, old_fuel_kwh - annual_kwh);
+
+  // 依燃料類型換算實際燃料量與金額
+  let fuel_unit, fuel_qty, save_fuel_str;
+  if(fuel_type==='ng'){
+    fuel_unit = 'Nm³';
+    // 天然氣熱值 ≈ 8500 kcal/m³ ≈ 10.44 kWh/m³ (LHV)；取 0.5 kWh/m³ 是錯誤的
+    // 正確：1 Nm³ NG 熱值 ≈ 9.5~10 kWh（LHV）
+    const ng_kwh_per_m3 = 9.5;
+    const old_ng_m3 = old_fuel_kwh / ng_kwh_per_m3;
+    fuel_qty = old_ng_m3;
+    save_fuel_str = save_kwh_equiv.toFixed(0)+' kWh 當量（約 '+ (save_kwh_equiv/ng_kwh_per_m3).toFixed(0)+' Nm³ NG）';
+  } else if(fuel_type==='oil'){
+    fuel_unit = 'L';
+    const oil_kwh_per_L = 10.5; // 1L 重油 ≈ 10.5 kWh（LHV ~10,000 kcal/L）
+    const old_oil_L = old_fuel_kwh / oil_kwh_per_L;
+    fuel_qty = old_oil_L;
+    save_fuel_str = save_kwh_equiv.toFixed(0)+' kWh 當量（約 '+ (save_kwh_equiv/oil_kwh_per_L).toFixed(0)+' L 重油）';
+  } else {
+    fuel_unit = 'kWh';
+    fuel_qty = old_fuel_kwh;
+    save_fuel_str = save_kwh_equiv.toFixed(0)+' kWh';
+  }
+
+  // 金額：舊燃料費用 - 新電費
+  const old_fuel_cost = fuel_qty * fuel_price;
+  const new_elec_cost = annual_kwh * price;
+  const save_amt = Math.max(0, old_fuel_cost - new_elec_cost);
+  const save_pct = eta_fuel>0 ? (1 - (annual_kwh/old_fuel_kwh)) * 100 : 0;
+
+  document.getElementById('r_cop').textContent = cop.toFixed(2);
+  document.getElementById('r_annual_heat').textContent = annual_heat.toLocaleString(undefined,{maximumFractionDigits:0});
+  document.getElementById('r_annual_kwh').textContent = annual_kwh.toLocaleString(undefined,{maximumFractionDigits:0});
+  document.getElementById('r_save_fuel').textContent = save_fuel_str;
+  document.getElementById('r_save_amt').textContent = save_amt.toLocaleString(undefined,{maximumFractionDigits:0});
+  document.getElementById('r_save_pct').textContent = save_pct.toFixed(1)+'%';
+
+  document.getElementById('chain1').textContent = q_heat+' / '+p_in+' = '+cop.toFixed(2);
+  document.getElementById('chain2').textContent = q_heat+' × '+hours.toLocaleString()+' × '+count+' = '+annual_heat.toLocaleString(undefined,{maximumFractionDigits:0})+' kWh';
+  document.getElementById('chain3').textContent = annual_heat.toLocaleString(undefined,{maximumFractionDigits:0})+' / '+eta_fuel+' = '+old_fuel_kwh.toLocaleString(undefined,{maximumFractionDigits:0})+' kWh 當量';
+  document.getElementById('chain4').textContent = annual_heat.toLocaleString(undefined,{maximumFractionDigits:0})+' / '+cop.toFixed(2)+' = '+annual_kwh.toLocaleString(undefined,{maximumFractionDigits:0})+' kWh 電';
+  document.getElementById('chain5').textContent = save_kwh_equiv.toFixed(0)+' kWh 當量';
+
+  document.getElementById('result').style.display='grid';
+  document.getElementById('chain').style.display='block';
+
+  const v = document.getElementById('verdict');
+  if(save_amt>0){
+    v.innerHTML = '<div class="verdict pass">✓ 熱泵 vs 鍋爐 年省 '+save_amt.toLocaleString()+' 元（COP '+cop.toFixed(1)+' vs η '+eta_fuel.toFixed(2)+'）</div>';
+  } else {
+    v.innerHTML = '<div class="verdict warn">△ 燃料省幅極低或為負 — 可能熱泵 COP 過低或燃料價格偏低，建議重新評估</div>';
+  }
+}
+</script>
+</body>
+</html>

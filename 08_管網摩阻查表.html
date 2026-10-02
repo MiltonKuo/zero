@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>管網摩阻 / 壓力損失查表</title>
+<style>
+:root{--bg:#0d1117;--panel:#161b22;--border:#30363d;--text:#c9d1d9;--muted:#8b949e;--accent:#58a6ff;--success:#3fb950;--warn:#f0883e;--danger:#f85149}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Microsoft JhengHei','Noto Sans TC',sans-serif;background:linear-gradient(135deg,#0d1117 0%,#161b22 100%);color:#c9d1d9;min-height:100vh;padding:20px}
+.container{max-width:860px;margin:0 auto}
+h1{font-size:1.4em;color:#58a6ff;margin-bottom:4px}
+.subtitle{font-size:.85em;color:#8b949e;margin-bottom:14px}
+.doc-ref{font-size:.75em;color:#6e7681;margin-bottom:14px;line-height:1.7}
+.card{background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:18px;margin-bottom:16px}
+.card-title{font-size:1em;font-weight:700;color:#58a6ff;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #30363d}
+.formula-box{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:12px;margin:10px 0;font-size:.85em}
+.formula{font-family:Consolas,monospace;color:#79c0ff;line-height:1.7;margin:4px 0}
+.formula-box .source{color:#6e7681;font-size:.78em;margin-top:4px}
+.input-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin:10px 0}
+.input-group label{display:block;font-size:.78em;color:#8b949e;margin-bottom:3px}
+.input-group input,.input-group select{width:100%;padding:8px 10px;background:#161b22;border:1px solid #30363d;border-radius:6px;color:#c9d1d9;font-size:.9em}
+.input-group input:focus,.input-group select:focus{outline:none;border-color:#58a6ff}
+.unit{font-size:.7em;color:#6e7681;margin-left:4px}
+.hint{font-size:.68em;color:#6e7681;margin-top:3px}
+.btn{padding:10px 20px;background:#238636;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:.9em;font-weight:600;margin:8px 0}
+.btn:hover{background:#2ea043}
+.result-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin:10px 0}
+.result-card{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:12px;text-align:center}
+.result-card .label{font-size:.7em;color:#8b949e;margin-bottom:4px}
+.result-card .value{font-size:1.2em;font-weight:700;color:#58a6ff}
+.result-card .sub{font-size:.7em;color:#6e7681;margin-top:2px}
+.result-card.success .value{color:#3fb950}
+table{width:100%;border-collapse:collapse;margin:8px 0;font-size:.8em}
+th,td{padding:6px 8px;text-align:center;border-bottom:1px solid #21262d}
+th{color:#8b949e;font-weight:600;font-size:.88em;background:rgba(88,166,255,.12)}
+td.num{text-align:right;font-family:Consolas,monospace}
+tr.total td{font-weight:700;border-top:2px solid #30363d}
+tr.highlight td{background:rgba(88,166,255,.12)}
+td.ok{color:#3fb950}
+td.warn{color:#f0883e}
+td.bad{color:#f85149}
+.verdict{padding:12px;border-radius:6px;margin:10px 0;font-weight:700;font-size:.95em}
+.verdict.pass{background:rgba(63,185,80,.15);color:#3fb950;border:1px solid #3fb950}
+.verdict.warn{background:rgba(240,136,62,.15);color:#f0883e;border:1px solid #f0883e}
+.verdict.fail{background:rgba(248,81,73,.15);color:#f85149;border:1px solid #f85149}
+.note{font-size:.78em;color:#6e7681;line-height:1.6;margin-top:8px;padding:8px 10px;background:#161b22;border-radius:6px}
+.calc-chain{background:#161b22;border-radius:6px;padding:12px;margin:10px 0}
+.calc-step{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #21262d;font-size:.85em}
+.calc-step:last-child{border-bottom:none}
+.calc-step .step-num{background:#3881e8;color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:.75em;flex-shrink:0}
+/* 手機(<=480px) */
+@media (max-width:480px){
+body{padding:12px}
+.container{max-width:100%}
+h1{font-size:1.15em}
+.input-grid{grid-template-columns:1fr !important}
+.result-grid{grid-template-columns:1fr 1fr !important}
+.result-card .value{font-size:1em}
+.note,.doc-ref,.subtitle{font-size:.78em}
+.btn{width:100%;padding:12px}
+table{font-size:.74em}
+th,td{padding:4px 6px}
+}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>管網摩阻 / 壓力損失查表</h1>
+<div class="subtitle">冰水管 / 熱水循環管 摩阻、流速、管徑校核 · 單位 L/min、mmH₂O/m、Pa/m</div>
+<div class="doc-ref">依據：Reynolds 數 + Colebrook 式、ASME B36.10 鋼管、HVAC 管路摩阻慣用值（冰水管 30~60 L/min、迴水管 48~90 L/min）</div>
+
+<div class="card">
+  <div class="card-title">① 管路參數</div>
+  <div class="formula-box">
+    <div class="formula">Re = V·D/ν<br>
+    f（Colebrook）：1/√f = −2log( f/(3.7) + ε/D/(3.7...)[truncated]
+    摩阻 hf = f × (L/D) × (V²/2g)</div>
+    <div class="source">V=流速、D=管徑、ν=運動粘性係數（水 20℃=1.004×10⁻⁶ m²/s）、ε=管壁粗糙度。hf 為每公尺摩壓損失（mmH₂O/m）</div>
+  </div>
+  <div class="input-grid">
+    <div class="input-group"><label>流量 Q</label>
+      <input type="number" id="q_flow" value="1667" step="1" min="0">
+      <div class="unit">L/min</div>
+    </div>
+    <div class="input-group"><label>管徑 DN</label>
+      <select id="dn">
+        <option value="25">DN25（1"）</option>
+        <option value="32">DN32（1 1/4"）</option>
+        <option value="40">DN40（1 1/2"）</option>
+        <option value="50">DN50（2"）</option>
+        <option value="65">DN65（2 1/2"）</option>
+        <option value="80">DN80（3"）</option>
+        <option value="100">DN100（4"）</option>
+        <option value="125">DN125（5"）</option>
+        <option value="150" selected>DN150（6"）</option>
+        <option value="200">DN200（8"）</option>
+        <option value="250">DN250（10"）</option>
+        <option value="300">DN300（12"）</option>
+      </select>
+      <div class="unit">依 ASME B36.10 內徑</div>
+    </div>
+    <div class="input-group"><label>鋼級別</label>
+      <select id="grade">
+        <option value="std" selected>STD（標準管）</option>
+        <option value="xs">XS（加厚管）</option>
+        <option value="sch80">SCH80（厚管）</option>
+      </select>
+    </div>
+    <div class="input-group"><label>管長（直線）</label>
+      <input type="number" id="pipe_len" value="50" step="1" min="0">
+      <div class="unit">m</div>
+    </div>
+    <div class="input-group"><label>管件當量長度</label>
+      <input type="number" id="equivalent_len" value="20" step="1" min="0">
+      <div class="unit">m（彎頭、閥門合計）</div>
+      <div class="hint">每個 90° 彎頭約 2~3m、閥門約 5m（視類型）</div>
+    </div>
+    <div class="input-group"><label>水管材質</label>
+      <select id="pipe_mat">
+        <option value="0.045" selected>熱鍍鋅鋼管（ε=0.045mm）</option>
+        <option value="0.04">黑色碳鋼管（ε=0.04mm）</option>
+        <option value="0.26">舊管（ε=0.26mm）</option>
+      </select>
+    </div>
+    <div class="input-group"><label>水溫</label>
+      <select id="temp">
+        <option value="1.004" selected>20℃（ν=1.004×10⁻⁶）</option>
+        <option value="1.569">10℃（ν=1.569×10⁻⁶）</option>
+        <option value="0.893">25℃（ν=0.893×10⁻⁶）</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">② 計算結果</div>
+  <button class="btn" onclick="calc()">▶ 計算流速與摩阻</button>
+  <div class="result-grid" style="display:none" id="result">
+    <div class="result-card"><div class="label">流速 V</div><div class="value" id="r_vel">—</div><div class="sub">L/min</div></div>
+    <div class="result-card"><div class="label">Reynolds 數</div><div class="value" id="r_re">—</div><div class="sub">—</div></div>
+    <div class="result-card"><div class="label">摩阻係數 f</div><div class="value" id="r_f">—</div><div class="sub">Colebrook</div></div>
+    <div class="result-card"><div class="label">每公尺摩壓</div><div class="value" id="r_hf">—</div><div class="sub">mmH₂O/m</div></div>
+    <div class="result-card success"><div class="label">總摩壓損失</div><div class="value" id="r_total">—</div><div class="sub">mmH₂O</div></div>
+    <div class="result-card success"><div class="label">流速判定</div><div class="value" id="r_verdict_vel">—</div><div class="sub">依管型</div></div>
+  </div>
+  <div id="verdict"></div>
+  <div class="calc-chain" id="chain" style="display:none">
+    <div class="calc-step"><span class="step-num">1</span>管徑內徑 D（依 DN + 級別）<span style="margin-left:auto" id="chain1">—</span></div>
+    <div class="calc-step"><span class="step-num">2</span>流速 V = Q / 斷面積<span style="margin-left:auto" id="chain2">—</span></div>
+    <div class="calc-step"><span class="step-num">3</span>Re = V·D/ν<span style="margin-left:auto" id="chain3">—</span></div>
+    <div class="calc-step"><span class="step-num">4</span>Colebrook 迭代 f<span style="margin-left:auto" id="chain4">—</span></div>
+    <div class="calc-step"><span class="step-num">5</span>hf = f × (L_total/D) × V²/2g<span style="margin-left:auto" id="chain5">—</span></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">③ 冰水管流速 / 摩阻慣用值查表</div>
+  <div class="note" style="margin-bottom:8px">依管徑顯示建議流速範圍與每 10m 摩壓（依 Colebrook 計算、水 20℃）</div>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr><th>DN</th><th>內徑 STD</th><th>建議流速 (L/min)</th><th>每 10m 摩壓</th></tr></thead>
+    <tbody id="speed_table"></tbody>
+  </table>
+  </div>
+  <div class="note">
+    <b>冰水管流速慣用值：</b><br>
+    • 供水管：30~60 L/min（主管 60~90 L/min）<br>
+    • 迴水管：48~90 L/min<br>
+    • 管徑 ≤ DN50：建議 ≤ 90 L/min<br>
+    • 每 10m 摩壓 &gt; 100 mmH₂O 時建議加大管徑（避免系統壓損失過高）
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">④ 管件當量長度速查（依管徑比例）</div>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr><th>管件</th><th>當量長度（管徑倍數）</th><th>DN100 當量 m</th><th>DN150 當量 m</th></tr></thead>
+    <tbody>
+      <tr><td>90° 標準彎頭</td><td>20~30 × D</td><td class="num">2.0~3.0</td><td class="num">3.0~4.5</td></tr>
+      <tr><td>90° 長彎頭（L/R=1.5）</td><td>15~20 × D</td><td class="num">1.5~2.0</td><td class="num">2.3~3.0</td></tr>
+      <tr class="total"><td>全開標準球閥</td><td>3~4 × D</td><td class="num">0.3~0.4</td><td class="num">0.5~0.6</td></tr>
+      <tr><td>全開蝶閥（6"以上）</td><td>1.5~2 × D</td><td class="num">0.15~0.2</td><td class="num">0.23~0.3</td></tr>
+      <tr><td>T 型分岔</td><td>50 × D</td><td class="num">5.0</td><td class="num">7.5</td></tr>
+      <tr><td>閥門（半開）</td><td>100~200 × D</td><td class="num">10~20</td><td class="num">15~30</td></tr>
+    </tbody>
+  </table>
+  </div>
+</div>
+</div>
+
+<script>
+// 依 DN + 級別取內徑（ASME B36.10 標準值 mm）
+const PIPE_ID = {
+  25:{std:21.3, xs:19.0, sch80:16.8},
+  32:{std:26.6, xs:23.8, sch80:21.3},
+  40:{std:40.9, xs:36.8, sch80:33.4},
+  50:{std:52.5, xs:48.8, sch80:44.8},
+  65:{std:62.7, xs:58.4, sch80:53.5},
+  80:{std:77.9, xs:73.7, sch80:68.3},
+  100:{std:102.3, xs:97.2, sch80:90.1},
+  125:{std:128.2, xs:122.0, sch80:114.3},
+  150:{std:154.1, xs:148.0, sch80:140.0},
+  200:{std:202.6, xs:195.5, sch80:185.9},
+  250:{std:254.5, xs:247.0, sch80:234.9},
+  300:{std:304.8, xs:296.8, sch80:283.0}
+};
+
+// 流速建議（依管徑、供水/迴水）
+const VEL_RANGE = {
+  25:[0.5,1.5], 32:[0.5,1.5], 40:[0.6,1.5], 50:[0.8,1.8],
+  65:[0.8,2.0], 80:[1.0,2.0], 100:[1.0,2.0], 125:[1.0,2.0],
+  150:[1.0,2.0], 200:[1.2,2.0], 250:[1.2,2.0], 300:[1.5,2.5]
+};
+
+// Colebrook 迭代求 f
+function colebrook(Re, rel_rough){
+  if(Re < 2300) return 64/Math.max(Re,1); // 層流
+  let f = 0.02;
+  for(let i=0;i<50;i++){
+    const f_new = Math.pow(-2*Math.log10(rel_rough/3.7 + 2.51/(Math.sqrt(f)*Re)), -2);
+    if(Math.abs(f_new - f) < 1e-8) return f_new;
+    f = f_new;
+  }
+  return f;
+}
+
+// 填流速查表（依 Colebrook）
+(function buildSpeedTable(){
+  const tbody = document.getElementById('speed_table');
+  const dts = [50,80,100,150,200,250,300];
+  let html='';
+  dts.forEach(dn=>{
+    const inner = PIPE_ID[dn].std/1000; // m
+    const area = Math.PI*inner*inner/4;
+    const velMid = (VEL_RANGE[dn][0]+VEL_RANGE[dn][1])/2;
+    const q_m3h = velMid * area * 3600;
+    const Re = velMid * inner / 1.004e-6;
+    const f = colebrook(Re, 0.045e-3/inner);
+    const hf_10m = f * (10/inner) * (velMid*velMid/(2*9.81)) * 1000; // mmH2O/10m
+    const velText = (VEL_RANGE[dn][0]*60).toFixed(0)+'~'+(VEL_RANGE[dn][1]*60).toFixed(0)+' L/min';
+    const classText = hf_10m>100?'bad':(hf_10m>50?'warn':'ok');
+    html += '<tr'+(dn===150?' class="highlight"':'')+'><td class="num">'+dn+'</td><td class="num">'+PIPE_ID[dn].std+' mm</td><td class="num">'+velText+'</td><td class="num '+classText+'">'+hf_10m.toFixed(1)+' mmH₂O/10m</td></tr>';
+  });
+  tbody.innerHTML = html;
+})();
+
+function calc(){
+  const q = parseFloat(document.getElementById('q_flow').value)||0;
+  const dn = parseInt(document.getElementById('dn').value)||150;
+  const grade = document.getElementById('grade').value;
+  const len = parseFloat(document.getElementById('pipe_len').value)||0;
+  const equiv = parseFloat(document.getElementById('equivalent_len').value)||0;
+  const eps = parseFloat(document.getElementById('pipe_mat').value)||0.045; // mm
+  const nu = parseFloat(document.getElementById('temp').value)||1.004; // 1e-6
+
+  if(q<=0){document.getElementById('verdict').innerHTML='<div class="verdict fail">✗ 流量 &gt; 0 請確認</div>';return;}
+
+  const D = PIPE_ID[dn][grade]/1000; // m
+  const A = Math.PI*D*D/4;
+  const Q_m3s = q/60000;
+  const V = Q_m3s / A;
+  const Re = V * D / (nu*1e-6);
+  const f = colebrook(Re, eps*1e-3/D);
+  const L_total = len + equiv;
+  // hf 每公尺 mmH2O：hf = f*(L/D)*(V²/2g)  → 每公尺 = f*(1/D)*(V²/2g)*1000*... 水 mmH2O
+  const hf_per_m = f * (1/D) * (V*V/(2*9.81)) * 1000; // mmH2O/m
+  const total_h = hf_per_m * L_total;
+
+  document.getElementById('r_vel').textContent = (V*60).toFixed(1);
+  document.getElementById('r_re').textContent = Re.toLocaleString(undefined,{maximumFractionDigits:0});
+  document.getElementById('r_f').textContent = f.toFixed(4);
+  document.getElementById('r_hf').textContent = hf_per_m.toFixed(2);
+  document.getElementById('r_total').textContent = total_h.toLocaleString(undefined,{maximumFractionDigits:0});
+
+  // 流速判定
+  const [vmin,vmax] = VEL_RANGE[dn];
+  let velVerdict, verdictHtml;
+  if(V < vmin){
+    velVerdict = '偏低';
+    verdictHtml = '<div class="verdict pass">✓ 流速 '+(V*60).toFixed(1)+' L/min 低於建議下限（'+(vmin*60).toFixed(0)+' L/min），摩阻極低，可節能但注意管徑偏大可能投資過高</div>';
+  } else if(V <= vmax){
+    velVerdict = '正常';
+    verdictHtml = '<div class="verdict pass">✓ 流速 '+(V*60).toFixed(1)+' L/min 在建議範圍 '+(vmin*60).toFixed(0)+'~'+(vmax*60).toFixed(0)+' L/min 內</div>';
+  } else if(V <= vmax*1.3){
+    velVerdict = '偏高';
+    verdictHtml = '<div class="verdict warn">△ 流速 '+(V*60).toFixed(1)+' L/min 偏高于建議值（'+(vmax*60).toFixed(0)+' L/min），摩阻增加、噪聲與侵蝕風險，建議加大管徑或增加管數</div>';
+  } else {
+    velVerdict = '過高';
+    verdictHtml = '<div class="verdict fail">✗ 流速 '+(V*60).toFixed(1)+' L/min 過高（&gt;'+(vmax*1.3*60).toFixed(0)+' L/min），管路侵蝕與噪聲極端，務必加大管徑</div>';
+  }
+  document.getElementById('r_verdict_vel').textContent = velVerdict;
+  document.getElementById('verdict').innerHTML = verdictHtml;
+
+  document.getElementById('chain1').textContent = dn+' '+grade.toUpperCase()+' → 內徑 '+(D*1000)+' mm';
+  document.getElementById('chain2').textContent = (q/60000).toFixed(4)+' m³/s / '+(A).toFixed(4)+' m² = '+(V*60).toFixed(1)+' L/min';
+  document.getElementById('chain3').textContent = V.toFixed(2)+' × '+(D*1000)+' / '+(nu)+'e-6 = '+Re.toLocaleString(undefined,{maximumFractionDigits:0});
+  document.getElementById('chain4').textContent = 'ε/D = '+(eps/D*1000).toFixed(4)+' → f = '+f.toFixed(4);
+  document.getElementById('chain5').textContent = f.toFixed(4)+' × ('+L_total+'/'+(D*1000)+') × '+(V*V/(2*9.81)).toFixed(4)+' = '+total_h.toLocaleString(undefined,{maximumFractionDigits:0})+' mmH₂O';
+
+  document.getElementById('result').style.display='grid';
+  document.getElementById('chain').style.display='block';
+}
+calc();
+</script>
+</body>
+</html>

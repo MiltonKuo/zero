@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>變頻器（VFD）節能計算 — 立方律</title>
+<style>
+:root{--bg:#0d1117;--panel:#161b22;--border:#30363d;--text:#c9d1d9;--muted:#8b949e;--accent:#58a6ff;--success:#3fb950;--warn:#f0883e;--danger:#f85149}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Microsoft JhengHei','Noto Sans TC',sans-serif;background:linear-gradient(135deg,#0d1117 0%,#161b22 100%);color:#c9d1d9;min-height:100vh;padding:20px}
+.container{max-width:760px;margin:0 auto}
+h1{font-size:1.4em;color:#58a6ff;margin-bottom:4px}
+.subtitle{font-size:.85em;color:#8b949e;margin-bottom:14px}
+.doc-ref{font-size:.75em;color:#6e7681;margin-bottom:14px;line-height:1.7}
+.card{background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:18px;margin-bottom:16px}
+.card-title{font-size:1em;font-weight:700;color:#58a6ff;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #30363d}
+.formula-box{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:12px;margin:10px 0;font-size:.85em}
+.formula{font-family:Consolas,monospace;color:#79c0ff;line-height:1.7;margin:4px 0}
+.formula-box .source{color:#6e7681;font-size:.78em;margin-top:4px}
+.input-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin:10px 0}
+.input-group label{display:block;font-size:.78em;color:#8b949e;margin-bottom:3px}
+.input-group input,.input-group select{width:100%;padding:8px 10px;background:#161b22;border:1px solid #30363d;border-radius:6px;color:#c9d1d9;font-size:.9em}
+.input-group input:focus,.input-group select:focus{outline:none;border-color:#58a6ff}
+.unit{font-size:.7em;color:#6e7681;margin-left:4px}
+.hint{font-size:.68em;color:#6e7681;margin-top:3px}
+.btn{padding:10px 20px;background:#238636;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:.9em;font-weight:600;margin:8px 0}
+.btn:hover{background:#2ea043}
+.result-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin:10px 0}
+.result-card{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:12px;text-align:center}
+.result-card .label{font-size:.7em;color:#8b949e;margin-bottom:4px}
+.result-card .value{font-size:1.25em;font-weight:700;color:#58a6ff}
+.result-card .sub{font-size:.7em;color:#6e7681;margin-top:2px}
+.result-card.success .value{color:#3fb950}
+.result-card.warning .value{color:#f0883e}
+table{width:100%;border-collapse:collapse;margin:8px 0;font-size:.8em}
+th,td{padding:6px 8px;text-align:center;border-bottom:1px solid #21262d}
+th{color:#8b949e;font-weight:600;font-size:.88em;background:rgba(88,166,255,.12)}
+td.num{text-align:right;font-family:Consolas,monospace}
+tr.total td{font-weight:700;border-top:2px solid #30363d}
+.verdict{padding:12px;border-radius:6px;margin:10px 0;font-weight:700;font-size:.95em}
+.verdict.pass{background:rgba(63,185,80,.15);color:#3fb950;border:1px solid #3fb950}
+.verdict.warn{background:rgba(240,136,62,.15);color:#f0883e;border:1px solid #f0883e}
+.verdict.fail{background:rgba(248,81,73,.15);color:#f85149;border:1px solid #f85149}
+.note{font-size:.78em;color:#6e7681;line-height:1.6;margin-top:8px;padding:8px 10px;background:#161b22;border-radius:6px}
+.calc-chain{background:#161b22;border-radius:6px;padding:12px;margin:10px 0}
+.calc-step{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #21262d;font-size:.85em}
+.calc-step:last-child{border-bottom:none}
+.calc-step .step-num{background:#3881e8;color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:.75em;flex-shrink:0}
+/* 手機(<=480px) */
+@media (max-width:480px){
+body{padding:12px}
+.container{max-width:100%}
+h1{font-size:1.15em}
+.input-grid{grid-template-columns:1fr !important}
+.result-grid{grid-template-columns:1fr 1fr !important}
+.result-card .value{font-size:1em}
+.note,.doc-ref,.subtitle{font-size:.78em}
+.btn{width:100%;padding:12px}
+table{font-size:.74em}
+th,td{padding:4px 6px}
+}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>變頻器（VFD）節能計算</h1>
+<div class="subtitle">泵 / 風機 / 馬達加装變頻器 — 立方律估算節能效果 · 單位 kW、kWh/年、%</div>
+<div class="doc-ref">依據：變頻器應用節能技術手冊（台綠能）、經濟部能源局 e0406 form5、NEMA / AF&amp;R 立方律</div>
+
+<div class="card">
+  <div class="card-title">① 基本參數</div>
+  <div class="formula-box">
+    <div class="formula">泵風機節電：P<sub>new</sub> = P<sub>old</sub> × (N<sub>new</sub>/N<sub>old</sub>)<sup>3</sup><br>
+    （等比速度法）</div>
+    <div class="source">立方律（affinity law）：馬達功率隨轉速三次方變化。風量與轉速成正比、揚程與轉速平方成正比、功率與轉速三次方成正比。適用：泵、風機、軸流式設備</div>
+  </div>
+  <div class="input-grid">
+    <div class="input-group"><label>原（全速）馬額功率</label>
+      <input type="number" id="p_old" value="30" step="0.5" min="0">
+      <div class="unit">kW（額定）</div>
+      <div class="hint">變頻前全速運轉的馬達額定功率</div>
+    </div>
+    <div class="input-group"><label>全速頻率 / 轉速（N<sub>old</sub>）</label>
+      <input type="number" id="f_old" value="60" step="0.5" min="0">
+      <div class="unit">Hz 或 rpm（同單位即可，比例相同）</div>
+    </div>
+    <div class="input-group"><label>變頻後頻率 / 轉速（N<sub>new</sub>）</label>
+      <input type="number" id="f_new" value="48" step="0.5" min="0">
+      <div class="unit">Hz 或 rpm（同 N_old 單位）</div>
+    </div>
+    <div class="input-group"><label>年運轉時數</label>
+      <input type="number" id="hours" value="8000" step="100" min="0">
+      <div class="unit">h/年</div>
+    </div>
+    <div class="input-group"><label>電價</label>
+      <input type="number" id="price" value="5.0" step="0.1" min="0">
+      <div class="unit">元/kWh</div>
+    </div>
+    <div class="input-group"><label>變頻器效率損失</label>
+      <input type="number" id="vfd_loss" value="3" step="0.5" min="0" max="10">
+      <div class="unit">%</div>
+      <div class="hint">變頻器本身損失 2~5%，通常取 3%</div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">② 計算結果</div>
+  <button class="btn" onclick="calc()">▶ 計算節能效果</button>
+  <div class="result-grid" style="display:none" id="result">
+    <div class="result-card"><div class="label">轉速比 r = N<sub>new</sub>/N<sub>old</sub></div><div class="value" id="r_ratio">—</div><div class="sub">—</div></div>
+    <div class="result-card"><div class="label">變頻後泵/風機負載功率</div><div class="value" id="r_p_new">—</div><div class="sub">kW（立方律）</div></div>
+    <div class="result-card success"><div class="label">單機平均節功率</div><div class="value" id="r_save_kw">—</div><div class="sub">kW（已含 VFD 損失）</div></div>
+    <div class="result-card success"><div class="label">年節電量</div><div class="value" id="r_save_kwh">—</div><div class="sub">kWh/年</div></div>
+    <div class="result-card success"><div class="label">年節省金額</div><div class="value" id="r_save_amt">—</div><div class="sub">元/年</div></div>
+    <div class="result-card success"><div class="label">整體節能率</div><div class="value" id="r_save_pct">—</div><div class="sub">相對全速原功率</div></div>
+  </div>
+  <div id="verdict"></div>
+  <div class="calc-chain" id="chain" style="display:none">
+    <div class="calc-step"><span class="step-num">1</span>轉速比 r = N<sub>new</sub>/N<sub>old</sub><span style="margin-left:auto" id="chain1">—</span></div>
+    <div class="calc-step"><span class="step-num">2</span>立方律負載 P<sub>new</sub> = P<sub>old</sub> × r³<span style="margin-left:auto" id="chain2">—</span></div>
+    <div class="calc-step"><span class="step-num">3</span>扣 VFD 損失 P<sub>new</sub> × (1+loss%)<span style="margin-left:auto" id="chain3">—</span></div>
+    <div class="calc-step"><span class="step-num">4</span>節功率 = P<sub>old</sub> − P<sub>new_eff</sub><span style="margin-left:auto" id="chain4">—</span></div>
+    <div class="calc-step"><span class="step-num">5</span>年節電 = 節功率 × 年時數<span style="margin-left:auto" id="chain5">—</span></div>
+    <div class="calc-step"><span class="step-num">6</span>節能率 = 節功率 ÷ P<sub>old</sub><span style="margin-left:auto" id="chain6">—</span></div>
+  </div>
+  <div class="note" id="warning" style="display:none"></div>
+</div>
+
+<div class="card">
+  <div class="card-title">③ 立方律節能率速查表（依轉速比）</div>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr><th>轉速比 r = N_new/N_old</th><th>負載功率比 r³</th><th>節能率 = 1−r³</th><th>100%→減幅</th></tr></thead>
+    <tbody>
+      <tr><td>100%（全速）</td><td>1.000</td><td>0%</td><td>—</td></tr>
+      <tr><td>95%</td><td>0.857</td><td>14.3%</td><td>減 14.3%</td></tr>
+      <tr><td>90%</td><td>0.729</td><td>27.1%</td><td>減 27.1%</td></tr>
+      <tr><td>85%</td><td>0.614</td><td>38.6%</td><td>減 38.6%</td></tr>
+      <tr class="total"><td>80%</td><td>0.512</td><td>48.8%</td><td>減 48.8%</td></tr>
+      <tr><td>75%</td><td>0.422</td><td>57.8%</td><td>減 57.8%</td></tr>
+      <tr><td>70%</td><td>0.343</td><td>65.7%</td><td>減 65.7%</td></tr>
+      <tr class="total"><td>60%</td><td>0.216</td><td>78.4%</td><td>減 78.4%</td></tr>
+      <tr><td>50%</td><td>0.125</td><td>87.5%</td><td>減 87.5%</td></tr>
+      <tr><td>40%</td><td>0.064</td><td>93.6%</td><td>減 93.6%</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="note">
+    <b>立方律適用範圍與限制：</b><br>
+    • 適用：泵（离心式）、風機、軸流設備、開式水系統、風管風量調整<br>
+    • <b>不適用</b>：往復式壓縮機、定流量負載（恒壓鍋爐、精確控制迴路）、短時間全速運轉系統<br>
+    • 低轉速（&lt;40%）時泵氣蝕風險、風機氣流渦流，需確認泵曲線最低穩定運行點（NSR）<br>
+    • 本表為「平均運轉轉速比」估算，實際節能依實際調速分佈加權（可逐段計算加總）
+  </div>
+</div>
+</div>
+
+<script>
+function calc(){
+  const p_old = parseFloat(document.getElementById('p_old').value)||0;
+  const f_old = parseFloat(document.getElementById('f_old').value)||0;
+  const f_new = parseFloat(document.getElementById('f_new').value)||0;
+  const hours = parseFloat(document.getElementById('hours').value)||0;
+  const price = parseFloat(document.getElementById('price').value)||0;
+  const vfd_loss= parseFloat(document.getElementById('vfd_loss').value)||0;
+
+  if(f_old<=0 || f_new<=0 || p_old<=0){
+    document.getElementById('verdict').innerHTML = '<div class="verdict fail">✗ 參數不完整，請檢查 P_old、N_old、N_new 輸入</div>';
+    document.getElementById('result').style.display='none';
+    document.getElementById('chain').style.display='none';
+    document.getElementById('warning').style.display='none';
+    return;
+  }
+
+  const r = f_new / f_old;
+  const r3 = Math.pow(r,3);
+  const p_load = p_old * r3;              // 立方律負載
+  const p_new_eff = p_load * (1 + vfd_loss/100); // 扣 VFD 損失後總功耗
+  const save_kw = Math.max(0, p_old - p_new_eff);  // 節功率
+  const save_kwh = save_kw * hours;
+  const save_amt = save_kwh * price;
+  const save_pct = p_old>0 ? save_kw / p_old * 100 : 0;
+
+  document.getElementById('r_ratio').textContent = (r*100).toFixed(1)+'%';
+  document.getElementById('r_ratio').closest('.result-card').classList.add(r<0.4?'warning':'success');
+  document.getElementById('r_p_new').textContent = p_new_eff.toFixed(2);
+  document.getElementById('r_save_kw').textContent = save_kw.toFixed(2);
+  document.getElementById('r_save_kwh').textContent = save_kwh.toLocaleString(undefined,{maximumFractionDigits:0});
+  document.getElementById('r_save_amt').textContent = save_amt.toLocaleString(undefined,{maximumFractionDigits:0});
+  document.getElementById('r_save_pct').textContent = save_pct.toFixed(1)+'%';
+
+  document.getElementById('chain1').textContent = r.toFixed(3)+' = '+f_new+'/'+f_old;
+  document.getElementById('chain2').textContent = p_old+' × '+r3.toFixed(3)+' = '+p_load.toFixed(2)+' kW';
+  document.getElementById('chain3').textContent = p_load.toFixed(2)+' × '+(1+vfd_loss/100).toFixed(3)+' = '+p_new_eff.toFixed(2)+' kW';
+  document.getElementById('chain4').textContent = p_old+' − '+p_new_eff.toFixed(2)+' = '+save_kw.toFixed(2)+' kW';
+  document.getElementById('chain5').textContent = save_kw.toFixed(2)+' × '+hours.toLocaleString()+' h = '+save_kwh.toLocaleString(undefined,{maximumFractionDigits:0})+' kWh';
+  document.getElementById('chain6').textContent = save_kw.toFixed(2)+' ÷ '+p_old+' = '+save_pct.toFixed(1)+'%';
+
+  document.getElementById('result').style.display='grid';
+  document.getElementById('chain').style.display='block';
+
+  // 判定與警告
+  const verdict = document.getElementById('verdict');
+  const warning = document.getElementById('warning');
+  let warnText = '';
+  if(r < 0.4){
+    warnText = '⚠ 轉速比 '+ (r*100).toFixed(0) +'% 低於 40% — 泵可能進入氣蝕區或風機渦流區，建議確認泵曲線 NSR（最低穩定運行流量）與實際調速分佈';
+  }
+  if(r > 1.0){
+    warnText = '⚠ N_new &gt; N_old，轉速比 &gt;100%。變頻器通常無法超額定頻率大幅超轉，請確認數據（若用於超頻，立方律仍適用但須確認馬達與機械極限）';
+  }
+  warning.textContent = warnText;
+  warning.style.display = warnText?'block':'none';
+
+  if(save_pct>=30){
+    verdict.innerHTML = '<div class="verdict pass">✓ 節能率 '+save_pct.toFixed(1)+'%（≥30%）— 符合多數 ESCO 變頻案目標。立方律估算偏樂觀，建議實際量測驗證</div>';
+  } else if(save_pct>=10){
+    verdict.innerHTML = '<div class="verdict warn">△ 節能率 '+save_pct.toFixed(1)+'%（10~30%）— 可接受，但需確認調速範圍與實際分佈，部分时段可能全速運轉</div>';
+  } else {
+    verdict.innerHTML = '<div class="verdict fail">✗ 節能率 '+save_pct.toFixed(1)+'%（&lt;10%）— 變頻效益偏低，建議重新評估調速策略或改用其他節能措施</div>';
+  }
+}
+calc();
+</script>
+</body>
+</html>

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>冷卻水塔換氣計算</title>
+<style>
+:root{--bg:#0d1117;--panel:#161b22;--border:#30363d;--text:#c9d1d9;--muted:#8b949e;--accent:#58a6ff;--success:#3fb950;--warn:#f0883e;--danger:#f85149}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Microsoft JhengHei','Noto Sans TC',sans-serif;background:linear-gradient(135deg,#0d1117 0%,#161b22 100%);color:#c9d1d9;min-height:100vh;padding:20px}
+.container{max-width:780px;margin:0 auto}
+h1{font-size:1.4em;color:#58a6ff;margin-bottom:4px}
+.subtitle{font-size:.85em;color:#8b949e;margin-bottom:14px}
+.doc-ref{font-size:.75em;color:#6e7681;margin-bottom:14px;line-height:1.7}
+.card{background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:18px;margin-bottom:16px}
+.card-title{font-size:1em;font-weight:700;color:#58a6ff;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #30363d}
+.formula-box{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:12px;margin:10px 0;font-size:.85em}
+.formula{font-family:Consolas,monospace;color:#79c0ff;line-height:1.7;margin:4px 0}
+.formula-box .source{color:#6e7681;font-size:.78em;margin-top:4px}
+.input-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin:10px 0}
+.input-group label{display:block;font-size:.78em;color:#8b949e;margin-bottom:3px}
+.input-group input,.input-group select{width:100%;padding:8px 10px;background:#161b22;border:1px solid #30363d;border-radius:6px;color:#c9d1d9;font-size:.9em}
+.input-group input:focus,.input-group select:focus{outline:none;border-color:#58a6ff}
+.unit{font-size:.7em;color:#6e7681;margin-left:4px}
+.hint{font-size:.68em;color:#6e7681;margin-top:3px}
+.btn{padding:10px 20px;background:#238636;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:.9em;font-weight:600;margin:8px 0}
+.btn:hover{background:#2ea043}
+.result-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin:10px 0}
+.result-card{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:12px;text-align:center}
+.result-card .label{font-size:.7em;color:#8b949e;margin-bottom:4px}
+.result-card .value{font-size:1.2em;font-weight:700;color:#58a6ff}
+.result-card .sub{font-size:.7em;color:#6e7681;margin-top:2px}
+.result-card.success .value{color:#3fb950}
+table{width:100%;border-collapse:collapse;margin:8px 0;font-size:.8em}
+th,td{padding:6px 8px;text-align:center;border-bottom:1px solid #21262d}
+th{color:#8b949e;font-weight:600;font-size:.88em;background:rgba(88,166,255,.12)}
+td.num{text-align:right;font-family:Consolas,monospace}
+tr.total td{font-weight:700;border-top:2px solid #30363d}
+.verdict{padding:12px;border-radius:6px;margin:10px 0;font-weight:700;font-size:.95em}
+.verdict.pass{background:rgba(63,185,80,.15);color:#3fb950;border:1px solid #3fb950}
+.verdict.warn{background:rgba(240,136,62,.15);color:#f0883e;border:1px solid #f0883e}
+.verdict.fail{background:rgba(248,81,73,.15);color:#f85149;border:1px solid #f85149}
+.note{font-size:.78em;color:#6e7681;line-height:1.6;margin-top:8px;padding:8px 10px;background:#161b22;border-radius:6px}
+.calc-chain{background:#161b22;border-radius:6px;padding:12px;margin:10px 0}
+.calc-step{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #21262d;font-size:.85em}
+.calc-step:last-child{border-bottom:none}
+.calc-step .step-num{background:#3881e8;color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:.75em;flex-shrink:0}
+/* 手機(<=480px) */
+@media (max-width:480px){
+body{padding:12px}
+.container{max-width:100%}
+h1{font-size:1.15em}
+.input-grid{grid-template-columns:1fr !important}
+.result-grid{grid-template-columns:1fr 1fr !important}
+.result-card .value{font-size:1em}
+.note,.doc-ref,.subtitle{font-size:.78em}
+.btn{width:100%;padding:12px}
+table{font-size:.74em}
+th,td{padding:4px 6px}
+}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>冷卻水塔換氣計算</h1>
+<div class="subtitle">ESCO 冷卻水塔 / 換氣量評估 · 散熱負荷、排氣量、補充水量 · 單位 kW、kg/h、m³/h、RT</div>
+<div class="doc-ref">依據：ASHRAE Handbook — HVAC Systems 換熱塔篇、冷卻水塔標準（CNS-7938）、冷凍空調設計慣用公式</div>
+
+<div class="card">
+  <div class="card-title">① 冷卻水塔散熱計算</div>
+  <div class="formula-box">
+    <div class="formula">冷卻負荷（RT）= 冰機散熱 ÷ 3.517<br>
+    換熱水量 = 冷卻負荷 × (換熱水 ΔT / 5) × 21 kg/min/RT<br>
+    排氣量 = 換熱水 × 換熱水比熱 × ΔT / (排濕 + 排熱)</div>
+    <div class="source">換熱水每 1°C 溫升約散 1 RT 熱量；實際依 ΔT 與排濕比例修正。常用基準：換熱水溫差 5℃ 時約 21 kg/min 換熱水 / RT</div>
+  </div>
+  <div class="input-grid">
+    <div class="input-group"><label>換熱水熱負荷</label>
+      <input type="number" id="load_rt" value="100" step="1" min="0">
+      <div class="unit">RT（冷機散熱量）</div>
+      <div class="hint">1 RT = 3.517 kW；若用 kW 填入需除 3.517</div>
+    </div>
+    <div class="input-group"><label>換熱水 ΔT（進－出）</label>
+      <input type="number" id="dtemp" value="5" step="0.5" min="1" max="15">
+      <div class="unit">℃</div>
+      <div class="hint">標準 5℃；大型冷卻水系統 5~8℃</div>
+    </div>
+    <div class="input-group"><label>濕球溫度</label>
+      <input type="number" id="wetbulb" value="28" step="0.5" min="0">
+      <div class="unit">℃</div>
+      <div class="hint">台灣夏季典型 25~29℃</div>
+    </div>
+    <div class="input-group"><label>冷卻水塔型</label>
+      <select id="tower_type">
+        <option value="0.05">逆流式（排濕比 5%）</option>
+        <option value="0.08">橫流式（排濕比 8%）</option>
+        <option value="0.10">高負荷（排濕比 10%）</option>
+      </select>
+      <div class="hint">排濕比指每 kg 排氣中帶走之蒸發水比例</div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">② 計算結果</div>
+  <button class="btn" onclick="calc()">▶ 計算換氣量</button>
+  <div class="result-grid" style="display:none" id="result">
+    <div class="result-card"><div class="label">換熱水流量</div><div class="value" id="r_water">—</div><div class="sub">kg/min</div></div>
+    <div class="result-card"><div class="label">換熱水量（體積）</div><div class="value" id="r_water_m3">—</div><div class="sub">m³/h</div></div>
+    <div class="result-card success"><div class="label">補充水量</div><div class="value" id="r_makeup">—</div><div class="sub">m³/h（排濕+飛散）</div></div>
+    <div class="result-card success"><div class="label">排氣量</div><div class="value" id="r_air">—</div><div class="sub">m³/h（乾氣基準）</div></div>
+  </div>
+  <div id="verdict"></div>
+  <div class="calc-chain" id="chain" style="display:none">
+    <div class="calc-step"><span class="step-num">1</span>換熱水量 = RT × 21 × (5/ΔT)<span style="margin-left:auto" id="chain1">—</span></div>
+    <div class="calc-step"><span class="step-num">2</span>體積流量 = 質量流量 / 密度<span style="margin-left:auto" id="chain2">—</span></div>
+    <div class="calc-step"><span class="step-num">3</span>換濕負荷 = 換熱水 × ΔT × 比熱<span style="margin-left:auto" id="chain3">—</span></div>
+    <div class="calc-step"><span class="step-num">4</span>排氣量 = 換濕負荷 ÷ (排濕效率 × 4.186 × ΔT)<span style="margin-left:auto" id="chain4">—</span></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">③ 換熱水流量速查表（RT × ΔT）</div>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr><th>RT ↓ / ΔT →</th><th>3℃</th><th>4℃</th><th>5℃</th><th>6℃</th><th>8℃</th></tr></thead>
+    <tbody id="ref_table"></tbody>
+  </table>
+  </div>
+  <div class="note">流量 = RT × 21 × (5/ΔT) kg/min；體積約 1 kg ≈ 1 L（水密度 1 kg/L）</div>
+</div>
+
+<div class="card">
+  <div class="card-title">④ 補充水量參考（依換熱水型）</div>
+  <table>
+    <thead><tr><th>項目</th><th>比例</th><th>說明</th></tr></thead>
+    <tbody>
+      <tr><td>蒸發損失（evaporation loss）</td><td class="num">0.8% × 換熱水量</td><td>≈每 1°C 溫升 + 8% × 排濕量；常用 0.8% 近似</td></tr>
+      <tr><td>飛散損失（drift loss）</td><td class="num">0.001~0.01%</td><td>含排濕比，依水塔型：逆流 0.001%、橫流 0.01%</td></tr>
+      <tr><td>排氣損失（blowdown）</td><td class="num">0.1~0.3%</td><td>依水質、換水循環次數（3~10 次換水）</td></tr>
+      <tr class="total"><td>總補充量</td><td class="num">約 1~3%</td><td>依水質與型取 1~3% 換熱水量</td></tr>
+    </tbody>
+  </table>
+  <div class="note">
+    <b>ESC 常用補充水量估算：</b><br>
+    補充量 ≈ 0.008 × 換熱水量 × 換水次數 + 飛散量。
+    依水質換水次數 3~10 次換水，換氣水塔建議補充 1~3% 換熱水量。
+  </div>
+</div>
+</div>
+
+<script>
+const R = 3.517;
+const c_ref = 1.0;
+const dts = [3,4,5,6,8];
+const rts = [10,20,50,100,200,500,1000];
+
+// Build reference table
+(function buildTable(){
+  const tbody = document.getElementById('ref_table');
+  rts.forEach(rt=>{
+    let row = '<tr><td>'+rt+' RT</td>';
+    dts.forEach(dt=>{
+      const kg_min = rt * 21 * (5/dt);
+      row += '<td class="num">'+kg_min.toFixed(0)+'</td>';
+    });
+    row += '</tr>';
+    tbody.innerHTML += row;
+  });
+})();
+
+function calc(){
+  const load_rt = parseFloat(document.getElementById('load_rt').value)||0;
+  const dtemp   = parseFloat(document.getElementById('dtemp').value)||5;
+  const wetb    = parseFloat(document.getElementById('wetbulb').value)||28;
+  const evap    = parseFloat(document.getElementById('tower_type').value)||0.05;
+  if(load_rt<=0){document.getElementById('verdict').innerHTML='<div class="verdict fail">✗ 換熱負荷 &gt; 0 請確認</div>';return;}
+
+  // 換熱水量 kg/min（1 RT = 3.517 kW = 21 kg/min 換熱水 @ ΔT=5℃）
+  const water_kg_min = load_rt * 21 * (5/dtemp);
+  const water_m3_h   = water_kg_min * 60 / 1000; // 1 kg ≈ 1 L
+
+  // 換濕負荷 kW = RT × 3.517
+  const load_kW = load_rt * R;
+
+  // 排氣量 m³/h（以換濕負荷估算：排氣量 = 換濕負荷 ÷ (比熱×排濕比×ΔT)）
+  // 比熱 c_ref = 1.0 kcal/kg℃ 換算為 4.186 kJ/kgK；換濕效率 = evap（0.05~0.10）
+  const air_m3_h = load_kW / (evap * 4.186 * dtemp);
+
+  document.getElementById('r_water').textContent = water_kg_min.toFixed(0);
+  document.getElementById('r_water_m3').textContent = water_m3_h.toFixed(1);
+  document.getElementById('r_makeup').textContent = (water_m3_h*0.02).toFixed(1)+'~'+(water_m3_h*0.03).toFixed(1);
+  document.getElementById('r_air').textContent = air_m3_h.toFixed(0);
+
+  document.getElementById('chain1').textContent = load_rt+' × 21 × (5/'+dtemp+') = '+water_kg_min.toFixed(0)+' kg/min';
+  document.getElementById('chain2').textContent = water_kg_min.toFixed(0)+' kg/min / 1000 × 60 = '+water_m3_h.toFixed(1)+' m³/h';
+  document.getElementById('chain3').textContent = load_kW.toFixed(0)+' kW（全散到換氣塔）';
+  document.getElementById('chain4').textContent = load_kW.toFixed(0)+' / ('+evap+' × 4.186 × '+dtemp+') = '+air_m3_h.toFixed(0)+' m³/h';
+
+  document.getElementById('result').style.display='grid';
+  document.getElementById('chain').style.display='block';
+
+  const v = document.getElementById('verdict');
+  if(wetb > 30){
+    v.innerHTML = '<div class="verdict fail">✗ 濕球 '+wetb+'℃ 偏高 — 換氣效率受限，建議加裝排濕設備或擴充水塔換氣面</div>';
+  } else if(wetb >= 25){
+    v.innerHTML = '<div class="verdict warn">△ 濕球 '+wetb+'℃ — 屬台灣夏季正常範圍，換氣量計算可用；實際排氣需考慮換濕效率（換氣效率 0.7~0.9）</div>';
+  } else {
+    v.innerHTML = '<div class="verdict pass">✓ 濕球 '+wetb+'℃ 範圍正常，換氣量估算可用</div>';
+  }
+}
+
+function air_kwh(load_kW, evap, dtemp){
+  return load_kW / (evap * c_ref * dtemp) * 3600 / 1000;
+}
+function calc_kwh(load_kW, evap, dtemp){
+  return air_kwh(load_kW, evap, dtemp);
+}
+</script>
+</body>
+</html>

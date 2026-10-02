@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>照明 LED 替換節能計算</title>
+<style>
+:root{--bg:#0d1117;--panel:#161b22;--border:#30363d;--text:#c9d1d9;--muted:#8b949e;--accent:#58a6ff;--success:#3fb950;--warning:#f0883e;--danger:#f85149}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Microsoft JhengHei','Noto Sans TC',sans-serif;background:linear-gradient(135deg,#0d1117 0%,#161b22 100%);color:#c9d1d9;min-height:100vh;padding:20px}
+.container{max-width:700px;margin:0 auto}
+h1{font-size:1.4em;color:#58a6ff;margin-bottom:4px}
+.subtitle{font-size:.85em;color:#8b949e;margin-bottom:14px}
+.doc-ref{font-size:.75em;color:#6e7681;margin-bottom:14px}
+.card{background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:18px;margin-bottom:16px}
+.card-title{font-size:1em;font-weight:700;color:#58a6ff;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #30363d}
+.formula-box{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:12px;margin:10px 0;font-size:.85em}
+.formula{font-family:Consolas,monospace;color:#79c0ff;line-height:1.7;margin:4px 0}
+.formula-box .source{color:#6e7681;font-size:.78em;margin-top:4px}
+.input-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin:10px 0}
+.input-group label{display:block;font-size:.78em;color:#8b949e;margin-bottom:3px}
+.input-group input{width:100%;padding:8px 10px;background:#161b22;border:1px solid #30368d;border-radius:6px;color:#c9d1d9;font-size:.9em}
+.input-group input:focus{outline:none;border-color:#58a6ff}
+.unit{font-size:.7em;color:#6e7681;margin-left:4px}
+.hint{font-size:.68em;color:#6e7681;margin-top:3px}
+.btn{padding:10px 20px;background:#238636;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:.9em;font-weight:600;margin:8px 0}
+.btn:hover{background:#2ea043}
+.result-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin:10px 0}
+.result-card{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:12px;text-align:center}
+.result-card .label{font-size:.7em;color:#8b949e;margin-bottom:4px}
+.result-card .value{font-size:1.2em;font-weight:700;color:#58a6ff}
+.result-card .sub{font-size:.7em;color:#6e7681;margin-top:2px}
+.result-card.success .value{color:#3fb950}
+table{width:100%;border-collapse:collapse;margin:8px 0;font-size:.8em}
+th,td{padding:6px 8px;text-align:center;border-bottom:1px solid #21262d}
+th{color:#8b949e;font-weight:600;font-size:.88em;background:rgba(88,166,255,.12)}
+td.num{text-align:right;font-family:Consolas,monospace}
+tr.total td{font-weight:700;border-top:2px solid #30363d}
+tr.highlight td{background:rgba(63,185,80,.15)}
+.verdict{padding:12px;border-radius:6px;margin:10px 0;font-weight:700;font-size:.95em}
+.verdict.pass{background:rgba(63,185,80,.15);color:#3fb950;border:1px solid #3fb950}
+.note{font-size:.78em;color:#6e7681;line-height:1.6;margin-top:8px;padding:8px 10px;background:#161b22;border-radius:6px}
+/* 手機(<=480px) */
+@media (max-width:480px){
+body{padding:12px}
+.container{max-width:100%}
+h1{font-size:1.15em}
+.input-grid{grid-template-columns:1fr !important}
+.result-grid{grid-template-columns:1fr 1fr !important}
+.result-card .value{font-size:1em}
+.note,.doc-ref,.subtitle{font-size:.78em}
+.btn{width:100%;padding:12px}
+table{font-size:.74em}
+th,td{padding:4px 6px}
+}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>照明 LED 替換節能計算</h1>
+<div class="subtitle">ESCO 照明系統節能评估 · LED 替換螢光燈 / 高壓水銀燈 / 鹵素燈 · 單位：kWh/年、度電/年</div>
+<div class="doc-ref">適用範圍：室內/室外一般照明、招牌/廣告燈、路燈替換 · 光源：T8/T5/直管/球泡/投光燈</div>
+
+<div class="card">
+  <div class="card-title">① 燈具參數</div>
+  <div class="input-grid" style="grid-template-columns:repeat(2,1fr)">
+    <div class="input-group"><label>替換前燈具（舊）</label>
+      <select id="old_type">
+        <option value="T8_36">T8 直管螢光燈 36W（含安定器）</option>
+        <option value="T8_28">T8 直管螢光燈 28W（含安定器）</option>
+        <option value="T8_18">T8 直管螢光燈 18W（含安定器）</option>
+        <option value="T5_28">T5 直管螢光燈 28W（含電子安定器）</option>
+        <option value="T5_14">T5 直管螢光燈 14W（含電子安定器）</option>
+        <option value="HG_400">高壓水銀燈 400W</option>
+        <option value="HG_250">高壓水銀燈 250W</option>
+        <option value="HG_1000">高壓水銀燈 1000W</option>
+        <option value="HAL_700">鹵素燈 700W</option>
+        <option value="HAL_1000">鹵素燈 1000W</option>
+        <option value="CUSTOM_OLD">自訂（手動輸入）</option>
+      </select>
+      <div class="hint">舊燈實際功耗 = 燈具標稱功率 + 安定器損耗（~10%）</div>
+    </div>
+    <div class="input-group"><label>替換前功耗 kW（自動計算，可修改）</label>
+      <input type="number" id="old_kw" step="0.001" min="0" value="0.036">
+      <div class="unit">kW / 盞</div>
+    </div>
+    <div class="input-group"><label>替換後燈具（新）</label>
+      <select id="new_type">
+        <option value="LED_14">LED 直管燈 14W</option>
+        <option value="LED_9">LED 直管燈 9W</option>
+        <option value="LED_12">LED 球泡燈 12W</option>
+        <option value="LED_18">LED 球泡燈 18W</option>
+        <option value="LED_50">LED 投光燈 50W</option>
+        <option value="LED_100">LED 投光燈 100W</option>
+        <option value="LED_150">LED 投光燈 150W</option>
+        <option value="LED_200">LED 投光燈 200W</option>
+        <option value="CUSTOM_NEW">自訂（手動輸入）</option>
+      </select>
+      <div class="hint">LED 燈具無安定器，實際功耗 = 標稱功率</div>
+    </div>
+    <div class="input-group"><label>替換後功耗 kW（自動計算，可修改）</label>
+      <input type="number" id="new_kw" step="0.001" min="0" value="0.014">
+      <div class="unit">kW / 盞</div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">② 數量與使用時數</div>
+  <div class="input-grid">
+    <div class="input-group"><label>燈具數量（盞）</label><input type="number" id="count" value="10" min="1" step="1"></div>
+    <div class="input-group"><label>每日使用時數</label><input type="number" id="hours_day" value="12" min="0" step="0.5"><div class="unit">h/日</div></div>
+    <div class="input-group"><label>年使用天數</label><input type="number" id="days_year" value="365" min="1" step="1"><div class="unit">日/年</div></div>
+    <div class="input-group"><label>年運轉天數折扣率</label><input type="number" id="utilization" value="100" min="0" max="100" step="1"><div class="unit">%</div><div class="hint">若部分時間僅部分燈具開啟，可低於 100%</div></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">③ 電價與計算</div>
+  <div class="input-grid">
+    <div class="input-group"><label>電價</label><input type="number" id="price" value="5.0" step="0.1" min="0"><div class="unit">元/kWh</div></div>
+    <div class="input-group"><label>LED 燈具壽命</label><input type="number" id="led_life" value="50000" min="1" step="1"><div class="unit">小時</div></div>
+    <div class="input-group"><label>舊燈具壽命</label><input type="number" id="old_life" value="10000" min="1" step="1"><div class="unit">小時</div></div>
+    <div class="input-group"><label>年替換次數差 = （舊燈壽命 ÷ LED 壽命）－ 1</label><input type="number" id="replaces" step="0.01" min="0" disabled></div>
+  </div>
+  <button class="btn" onclick="calc()">▶ 計算節能效果</button>
+</div>
+
+<div class="card" style="display:none" id="results">
+  <div class="card-title">計算結果</div>
+  <div class="result-grid">
+    <div class="result-card"><div class="label">單盞年用電（舊）</div><div class="value" id="r_old_kwh">—</div><div class="sub">kWh/年</div></div>
+    <div class="result-card"><div class="label">單盞年用電（新）</div><div class="value" id="r_new_kwh">—</div><div class="sub">kWh/年</div></div>
+    <div class="result-card success"><div class="label">年節能</div><div class="value" id="r_saving_kwh">—</div><div class="sub">kWh/年（全部燈具）</div></div>
+    <div class="result-card success"><div class="label">年節能金額</div><div class="value" id="r_saving_amt">—</div><div class="sub">元/年</div></div>
+    <div class="result-card"><div class="label">節能率</div><div class="value" id="r_rate">—</div><div class="sub">%（相對舊燈）</div></div>
+  </div>
+  <div id="verdict_box"></div>
+  <div class="note" id="notes_box"></div>
+</div>
+
+<div class="card">
+  <div class="card-title">常用燈具對照表</div>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr><th>燈具</th><th>標稱功率</th><th>實際功率</th><th>流明</th><th>EPC（lm/W）</th><th>典型壽命</th></tr></thead>
+    <tbody>
+      <tr><td>T8 36W 螢光燈</td><td>36W</td><td>40W</td><td>3,300 lm</td><td>82.5</td><td>10,000 h</td></tr>
+      <tr><td>T8 28W 螢光燈</td><td>28W</td><td>31W</td><td>2,600 lm</td><td>84.5</td><td>10,000 h</td></tr>
+      <tr><td>T5 28W 電子安定器</td><td>28W</td><td>30W</td><td>2,850 lm</td><td>95</td><td>12,000 h</td></tr>
+      <tr class="highlight"><td>LED 直管 14W（替 T8 36W）</td><td>14W</td><td>14W</td><td>1,400 lm</td><td>100</td><td>50,000 h</td></tr>
+      <tr><td>LED 直管 9W（替 T8 28W）</td><td>9W</td><td>9W</td><td>900 lm</td><td>100</td><td>50,000 h</td></tr>
+      <tr class="highlight"><td>LED 球泡 12W（替 T8 36W）</td><td>12W</td><td>12W</td><td>1,300 lm</td><td>108</td><td>50,000 h</td></tr>
+      <tr><td>高壓水銀 400W</td><td>400W</td><td>450W</td><td>28,000 lm</td><td>62</td><td>10,000 h</td></tr>
+      <tr class="highlight"><td>LED 投光 50W（替 400W 水銀）</td><td>50W</td><td>50W</td><td>6,000 lm</td><td>120</td><td>50,000 h</td></tr>
+      <tr><td>LED 投光 100W（替 400W 水銀）</td><td>100W</td><td>100W</td><td>12,000 lm</td><td>120</td><td>50,000 h</td></tr>
+      <tr><td>鹵素燈 700W</td><td>700W</td><td>700W</td><td>9,000 lm</td><td>13</td><td>2,000 h</td></tr>
+      <tr class="highlight"><td>LED 投光 100W（替 700W 鹵素）</td><td>100W</td><td>100W</td><td>12,000 lm</td><td>120</td><td>50,000 h</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="note">EPC = 光輸出（lm）÷ 功耗（W）。同類比較：LED 100~130 lm/W，T5 95，T8 80，水銀 60，鹵素 13。</div>
+</div>
+</div>
+
+<script>
+// 自動填功耗
+const OLD_W = {T8_36:40,T8_28:31,T8_18:19,T5_28:30,T5_14:15,HG_400:450,HG_250:275,HG_1000:1080,HAL_700:700,HAL_1000:1000};
+const NEW_W = {LED_14:14,LED_9:9,LED_12:12,LED_18:18,LED_50:50,LED_100:100,LED_150:150,LED_200:200};
+document.getElementById('old_type').addEventListener('change', e=>{
+  const v = e.target.value;
+  if(OLD_W[v]!==undefined) document.getElementById('old_kw').value = (OLD_W[v]/1000).toFixed(3);
+});
+document.getElementById('new_type').addEventListener('change', e=>{
+  const v = e.target.value;
+  if(NEW_W[v]!==undefined) document.getElementById('new_kw').value = (NEW_W[v]/1000).toFixed(3);
+});
+
+function calc(){
+  const old_kw = parseFloat(document.getElementById('old_kw').value)||0;
+  const new_kw = parseFloat(document.getElementById('new_kw').value)||0;
+  const count  = parseInt(document.getElementById('count').value)||0;
+  const h_d    = parseFloat(document.getElementById('hours_day').value)||0;
+  const d_y    = parseFloat(document.getElementById('days_year').value)||0;
+  const util   = (parseFloat(document.getElementById('utilization').value)||100)/100;
+  const price  = parseFloat(document.getElementById('price').value)||0;
+  const old_life = parseInt(document.getElementById('old_life').value)||0;
+  const new_life = parseInt(document.getElementById('led_life').value)||0;
+
+  const annual_h = h_d * d_y * util;
+  const old_kwh  = old_kw * count * annual_h;
+  const new_kwh  = new_kw * count * annual_h;
+  const save_kwh = Math.max(0, old_kwh - new_kwh);
+  const save_amt = save_kwh * price;
+  const rate = old_kwh>0 ? save_kwh/old_kwh*100 : 0;
+
+  document.getElementById('r_old_kwh').textContent = old_kwh.toLocaleString(undefined,{maximumFractionDigits:0});
+  document.getElementById('r_new_kwh').textContent = new_kwh.toLocaleString(undefined,{maximumFractionDigits:0});
+  document.getElementById('r_saving_kwh').textContent = save_kwh.toLocaleString(undefined,{maximumFractionDigits:0});
+  document.getElementById('r_saving_amt').textContent = save_amt.toLocaleString(undefined,{maximumFractionDigits:0});
+  document.getElementById('r_rate').textContent = rate.toFixed(1)+'%';
+
+  // 年度替換次數差
+  if(old_life>0 && new_life>0){
+    const old_repl = annual_h/old_life;
+    const new_repl = annual_h/new_life;
+    const diff = Math.max(0, old_repl - new_repl);
+    document.getElementById('replaces').value = diff.toFixed(2);
+  }
+
+  const vBox = document.getElementById('verdict_box');
+  const nBox = document.getElementById('notes_box');
+  if(rate>=50){
+    vBox.innerHTML = '<div class="verdict pass">✓ 節能效果顯著（節能率 '+rate.toFixed(1)+'%）— 通常 ESCO 照明案目標 ≥ 50%</div>';
+  } else if(rate>0){
+    vBox.innerHTML = '<div class="verdict warn">△ 節能 '+rate.toFixed(1)+'% — 可改善，建議確認燈具選型或增加使用時數</div>';
+  } else {
+    vBox.innerHTML = '<div class="verdict fail">✗ 無節能 — 新燈功率未低於舊燈，檢查輸入</div>';
+  }
+
+  const lines = [];
+  lines.push('年使用時數：'+annual_h.toLocaleString()+' h/年（'+h_d+' h/日 × '+d_y+' 日 × '+util*100+'%）');
+  lines.push('總燈數：'+count+' 盞 × '+old_kw+' kW/盞 → 舊燈年用電 '+old_kwh.toLocaleString()+' kWh');
+  lines.push('總燈數：'+count+' 盞 × '+new_kw+' kW/盞 → 新燈年用電 '+new_kwh.toLocaleString()+' kWh');
+  lines.push('年節能：'+save_kwh.toLocaleString()+' kWh × '+price+' 元/kWh = '+save_amt.toLocaleString()+' 元/年');
+  nBox.innerHTML = lines.map(l=>'• '+l).join('<br>');
+
+  document.getElementById('results').style.display='block';
+}
+</script>
+</body>
+</html>

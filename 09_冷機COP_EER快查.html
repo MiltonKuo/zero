@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>冷機 COP / EER / kW-RT 快查</title>
+<style>
+:root{--bg:#0d1117;--panel:#161b22;--border:#30363d;--text:#c9d1d9;--muted:#8b949e;--accent:#58a6ff;--success:#3fb950;--warn:#f0883e;--danger:#f85149}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Microsoft JhengHei','Noto Sans TC',sans-serif;background:linear-gradient(135deg,#0d1117 0%,#161b22 100%);color:#c9d1d9;min-height:100vh;padding:20px}
+.container{max-width:820px;margin:0 auto}
+h1{font-size:1.4em;color:#58a6ff;margin-bottom:4px}
+.subtitle{font-size:.85em;color:#8b949e;margin-bottom:14px}
+.doc-ref{font-size:.75em;color:#6e7681;margin-bottom:14px;line-height:1.7}
+.card{background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:18px;margin-bottom:16px}
+.card-title{font-size:1em;font-weight:700;color:#58a6ff;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #30363d}
+.formula-box{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:12px;margin:10px 0;font-size:.85em}
+.formula{font-family:Consolas,monospace;color:#79c0ff;line-height:1.7;margin:4px 0}
+.formula-box .source{color:#6e7681;font-size:.78em;margin-top:4px}
+.input-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin:10px 0}
+.input-group label{display:block;font-size:.78em;color:#8b949e;margin-bottom:3px}
+.input-group input,.input-group select{width:100%;padding:8px 10px;background:#161b22;border:1px solid #30363d;border-radius:6px;color:#c9d1d9;font-size:.9em}
+.input-group input:focus,.input-group select:focus{outline:none;border-color:#58a6ff}
+.unit{font-size:.7em;color:#6e7681;margin-left:4px}
+.hint{font-size:.68em;color:#6e7681;margin-top:3px}
+.result-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin:10px 0}
+.result-card{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:12px;text-align:center}
+.result-card .label{font-size:.7em;color:#8b949e;margin-bottom:4px}
+.result-card .value{font-size:1.2em;font-weight:700;color:#58a6ff}
+.result-card .sub{font-size:.7em;color:#6e7681;margin-top:2px}
+.result-card.success .value{color:#3fb950}
+table{width:100%;border-collapse:collapse;margin:8px 0;font-size:.8em}
+th,td{padding:6px 8px;text-align:center;border-bottom:1px solid #21262d}
+th{color:#8b949e;font-weight:600;font-size:.88em;background:rgba(88,166,255,.12)}
+td.num{text-align:right;font-family:Consolas,monospace}
+tr.total td{font-weight:700;border-top:2px solid #30363d}
+tr.highlight td{background:rgba(88,166,255,.12)}
+.verdict{padding:12px;border-radius:6px;margin:10px 0;font-weight:700;font-size:.95em}
+.verdict.pass{background:rgba(63,185,80,.15);color:#3fb950;border:1px solid #3fb950}
+.verdict.warn{background:rgba(240,136,62,.15);color:#f0883e;border:1px solid #f0883e}
+.verdict.fail{background:rgba(248,81,73,.15);color:#f85149;border:1px solid #f85149}
+.note{font-size:.78em;color:#6e7681;line-height:1.6;margin-top:8px;padding:8px 10px;background:#161b22;border-radius:6px}
+/* 手機(<=480px) */
+@media (max-width:480px){
+body{padding:12px}
+.container{max-width:100%}
+h1{font-size:1.15em}
+.input-grid{grid-template-columns:1fr !important}
+.result-grid{grid-template-columns:1fr 1fr !important}
+.result-card .value{font-size:1em}
+.note,.doc-ref,.subtitle{font-size:.78em}
+.btn{width:100%;padding:12px}
+table{font-size:.74em}
+th,td{padding:4px 6px}
+}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>冷機 COP / EER / kW-RT 快查</h1>
+<div class="subtitle">冰機效率單位互換：COP、EER、kW/RT、IPLV 快速查表與換算</div>
+<div class="doc-ref">1 RT = 3.517 kW；COP = 冷量/功率；EER = COP×3.412（英制 btu/W）；kW/RT = 3.517/COP</div>
+
+<div class="card">
+  <div class="card-title">① 效率單位互換</div>
+  <div class="formula-box">
+    <div class="formula">COP = Q_cool(W) / P_in(W)<br>
+    EER = COP × 3.412（btu/hr/W）<br>
+    kW/RT = 3.517 / COP<br>
+    W/RT = 3517 / COP</div>
+    <div class="source">冰機效率常用 COP（無因次）、kW/RT（每冷吨耗電）、EER（英制）三單位。依任一值可換其他單位</div>
+  </div>
+  <div class="input-grid" style="grid-template-columns:repeat(3,1fr)">
+    <div class="input-group"><label>COP</label><input type="number" id="cop_in" value="4.5" step="0.1" min="0"></div>
+    <div class="input-group"><label>kW/RT</label><input type="number" id="kwrt_in" step="0.01" min="0" placeholder="自動"></div>
+    <div class="input-group"><label>EER</label><input type="number" id="eer_in" step="0.1" min="0" placeholder="自動"></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">② 計算結果</div>
+  <div class="result-grid">
+    <div class="result-card"><div class="label">COP</div><div class="value" id="r_cop">—</div><div class="sub">—</div></div>
+    <div class="result-card"><div class="label">kW/RT</div><div class="value" id="r_kwrt">—</div><div class="sub">—</div></div>
+    <div class="result-card"><div class="label">EER</div><div class="value" id="r_eer">—</div><div class="sub">btu/hr/W</div></div>
+    <div class="result-card"><div class="label">W/RT</div><div class="value" id="r_wrt">—</div><div class="sub">—</div></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">③ COP 快查表（依 kW/RT）</div>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr><th>kW/RT</th><th>COP</th><th>EER</th><th>等級</th></tr></thead>
+    <tbody>
+      <tr><td class="num">0.70</td><td class="num">5.02</td><td class="num">17.1</td><td>高效</td></tr>
+      <tr class="highlight"><td class="num">0.80</td><td class="num">4.40</td><td class="num">15.0</td><td>高頻（ASHRAE 90.1 門檻）</td></tr>
+      <tr><td class="num">0.90</td><td class="num">3.91</td><td class="num">13.3</td><td>標準</td></tr>
+      <tr class="highlight"><td class="num">1.00</td><td class="num">3.52</td><td class="num">12.0</td><td>中頻（COP 3.5）</td></tr>
+      <tr><td class="num">1.20</td><td class="num">2.93</td><td class="num">10.0</td><td>低頻</td></tr>
+      <tr><td class="num">1.50</td><td class="num">2.34</td><td class="num">8.0</td><td>舊機</td></tr>
+      <tr><td class="num">2.00</td><td class="num">1.76</td><td class="num">6.0</td><td>低效</td></tr>
+    </tbody>
+  </table>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">④ 冰機效率參考（依類型與容量）</div>
+  <table>
+    <thead><tr><th>冰機類型</th><th>容量範圍</th><th>kW/RT（全負載）</th><th>備註</th></tr></thead>
+    <tbody>
+      <tr><td>螺旋式（冰水）</td><td>20~50 RT</td><td class="num">0.55~0.70</td><td>小型高效</td></tr>
+      <tr><td>螺旋式（冰水）</td><td>50~200 RT</td><td class="num">0.60~0.80</td><td>中頻</td></tr>
+      <tr class="highlight"><td>水冷螺式（大型）</td><td>200~500 RT</td><td class="num">0.70~0.90</td><td>ASHRAE 90.1 門檻</td></tr>
+      <tr><td>水冷螺式（超大型）</td><td>500~1000 RT</td><td class="num">0.80~1.00</td><td>COP 約 3.5</td></tr>
+      <tr class="highlight"><td>水冷渦卷式</td><td>20~120 RT</td><td class="num">0.55~0.75</td><td>小型醫院常規</td></tr>
+      <tr><td>水冷螺式（舊機）</td><td>100~300 RT</td><td class="num">1.00~1.50</td><td>升級潛力大</td></tr>
+      <tr><td>空冷螺式（小型）</td><td>10~60 RT</td><td class="num">1.20~1.60</td><td>空冷效率較低</td></tr>
+      <tr><td>空冷渦卷式</td><td>3~15 RT</td><td class="num">1.50~2.00</td><td>小冷房常規</td></tr>
+    </tbody>
+  </table>
+  <div class="note">
+    <b>PLR（部分負載）效率：</b><br>
+    冰機在 70~80% 負載時效率最高（IPLV 考量 100/75/50/25% 四檔加權）。
+    IPLV 通常較全負載 kW/RT 改善 10~20%。ESCO 驗證時需以實際運轉負載分佈計算。<br>
+    <b>判定標準：</b>ESCO 冰機案目標 kW/RT ≤ 0.90（全負載）屬高頻；≤ 1.00 屬中頻；&gt; 1.20 屬低效升級
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">⑤ IPLV 速算</div>
+  <div class="formula-box">
+    <div class="formula">IPLV = 400 ÷ (2×COP₁₀₀ + 6×COP₇₅ + 6×COP₅₀ + 3×COP₂₅)<br>
+    各負載 COP 越高越好（IPLV 為加權 COP）</div>
+    <div class="source">ASHRAE 90.1 加權：100%×20%、75%×30%、50%×40%、25%×10%。IPLV（COP 值）越高代表部分負載效率越好；COP 約 3.5 以上屬中頻、4.0 以上屬高效</div>
+  </div>
+  <div class="input-grid" style="grid-template-columns:repeat(4,1fr)">
+    <div class="input-group"><label>100% 負載 COP</label><input type="number" id="i100" value="3.9" step="0.1"></div>
+    <div class="input-group"><label>75% 負載 COP</label><input type="number" id="i75" value="4.1" step="0.1"></div>
+    <div class="input-group"><label>50% 負載 COP</label><input type="number" id="i50" value="4.3" step="0.1"></div>
+    <div class="input-group"><label>25% 負載 COP</label><input type="number" id="i25" value="3.7" step="0.1"></div>
+  </div>
+  <div class="result-card" style="margin-top:10px"><div class="label">IPLV（加權 COP）</div><div class="value" id="r_iplv">—</div><div class="sub">越高越好</div></div>
+  <div id="iplv_verdict"></div>
+</div>
+</div>
+
+<script>
+function updateConv(){
+  let cop, kwrt;
+  const copVal = parseFloat(document.getElementById('cop_in').value);
+  const kwrtVal = parseFloat(document.getElementById('kwrt_in').value);
+  if(!isNaN(copVal) && copVal>0){
+    cop = copVal;
+    kwrt = 3.517/cop;
+    document.getElementById('kwrt_in').value = kwrt.toFixed(2);
+  } else if(!isNaN(kwrtVal) && kwrtVal>0){
+    kwrt = kwrtVal;
+    cop = 3.517/kwrt;
+    document.getElementById('cop_in').value = cop.toFixed(2);
+  } else { return; }
+  const eer = cop * 3.412;
+  const wrt = 3517/cop;
+  document.getElementById('r_cop').textContent = cop.toFixed(2);
+  document.getElementById('r_kwrt').textContent = kwrt.toFixed(2);
+  document.getElementById('r_eer').textContent = eer.toFixed(1);
+  document.getElementById('r_wrt').textContent = wrt.toFixed(0);
+  document.getElementById('eer_in').value = eer.toFixed(1);
+
+  const v = document.getElementById('iplv_verdict');
+  if(cop>=4.5) v.innerHTML='<div class="verdict pass">✓ COP '+cop.toFixed(1)+' — 高頻冰機（kW/RT &lt; 0.79）</div>';
+  else if(cop>=3.5) v.innerHTML='<div class="verdict pass">✓ COP '+cop.toFixed(1)+' — 中頻冰機（ASHP 門檻）</div>';
+  else if(cop>=2.5) v.innerHTML='<div class="verdict warn">△ COP '+cop.toFixed(1)+' — 低頻冰機，建議升級</div>';
+  else v.innerHTML='<div class="verdict fail">✗ COP '+cop.toFixed(1)+' — 低效冰機，強烈建議升級</div>';
+}
+document.getElementById('cop_in').addEventListener('input', updateConv);
+document.getElementById('kwrt_in').addEventListener('input', updateConv);
+
+function calcIPLV(){
+  const w100 = parseFloat(document.getElementById('i100').value)||0;
+  const w75  = parseFloat(document.getElementById('i75').value)||0;
+  const w50  = parseFloat(document.getElementById('i50').value)||0;
+  const w25  = parseFloat(document.getElementById('i25').value)||0;
+  const denom = 2*w100 + 6*w75 + 6*w50 + 3*w25;
+  const iplv = denom>0 ? 400/denom : 0;
+  document.getElementById('r_iplv').textContent = iplv.toFixed(2);
+  const v = document.getElementById('iplv_verdict');
+  if(iplv >= 4.0) v.innerHTML='<div class="verdict pass">✓ IPLV '+iplv.toFixed(2)+'（COP）— 高效冰機（IPLV ≥ 4.0）</div>';
+  else if(iplv >= 3.5) v.innerHTML='<div class="verdict pass">✓ IPLV '+iplv.toFixed(2)+'（COP）— 中頻水平，符合 ASHRAE 90.1 門檻（IPLV ≥ 3.5）</div>';
+  else v.innerHTML='<div class="verdict warn">△ IPLV '+iplv.toFixed(2)+'（COP）— 偏低頻（&lt; 3.5），部分負載效率下滑，建議評估高效機型</div>';
+}
+['i100','i75','i50','i25'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', calcIPLV);
+});
+updateConv();
+calcIPLV();
+</script>
+</body>
+</html>
