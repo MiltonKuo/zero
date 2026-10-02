@@ -196,8 +196,20 @@ tr.baseline td{background:rgba(88,166,255,.05)}
   .result-grid{grid-template-columns:1fr !important}
 }
 </style>
+<style>
+.site-switch{position:fixed;bottom:18px;right:18px;z-index:999;display:flex;gap:8px}
+.site-switch a{display:inline-flex;align-items:center;gap:6px;padding:10px 16px;background:#1f6feb;color:#fff;text-decoration:none;border-radius:8px;font-size:.8em;font-weight:600;box-shadow:0 2px 10px rgba(0,0,0,.35);font-family:'Microsoft JhengHei','Noto Sans TC',sans-serif}
+.site-switch a:hover{background:#58a6ff}
+.site-switch a.home{background:#2ea043}
+.site-switch a.home:hover{background:#3fb950}
+@media (max-width:480px){.site-switch{bottom:12px;right:12px;left:12px;justify-content:center}.site-switch a{flex:1;justify-content:center}}
+</style>
 </head>
 <body>
+<div class="site-switch">
+<a class="home" href="ESCO_ECC.html">◎ 驗算工具</a>
+<a href="ESCO_ECC2.html">🧮 工具集</a>
+</div>
 <div class="container">
 <h1>ESCO 節能驗證與工程驗算工具 <span style="font-size:.5em;color:#8b949e">V4</span></h1>
 <p class="subtitle">工程計算、基準線迴歸與節能效益驗證 — 區分「可計算」「技術分析」「正式驗證」三層級，不預設特定廠區條件</p>
