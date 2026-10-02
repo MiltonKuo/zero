@@ -318,8 +318,8 @@ RT = 流量(L/min) × 溫差(℃) × 4.186(kcal/kg·℃) ÷ 60 ÷ 3.5168(kW/RT)<
 
 <div class="formula-box">
 <div class="formula">
-1/COP = -1 + (T_cwRT / T_chwST) + [ -A0 + A1×T_cwRT - A2×(T_cwRPT/T_chwST) ] / Q_evap<br>
-X1 = T_cwRT, X2 = T_cwRPT / T_chwST<br>
+1/COP = -1 + (T_cwRT / T_chwST) + [ -A0 + A1×T_cwRT - A2×(T_cwRT/T_chwST) ] / Q_evap<br>
+X1 = T_cwRT, X2 = T_cwRT / T_chwST<br>
 Y = Q_evap × [ 1/COP + 1 - T_cwRT/T_chwST ]<br>
 OLS: Y = B0 + B1×X1 + B2×X2 → A0 = -B0, A1 = B1, A2 = -B2
 </div>
@@ -336,8 +336,8 @@ OLS: Y = B0 + B1×X1 + B2×X2 → A0 = -B0, A1 = B1, A2 = -B2
 </div>
 
 <div class="bl-input active" data-blinput="paste">
-<div class="section-note" style="margin:6px 0"><b>格式：</b>每列一筆，欄位以空白或逗號分隔，順序為 <code>DateTime T_cwRT T_cwRPT T_chwST Q_evap COP</code>。首列可為標題，工具會自動跳過。可直接從 Excel 複製。</div>
-<textarea id="bl-textarea" placeholder="2024/01/01 12:00  30.2  33.5  6.8  1200  4.2&#10;2024/01/01 12:05  30.1  33.4  6.9  1200  4.3&#10;..."></textarea>
+<div class="section-note" style="margin:6px 0"><b>格式：</b>每列一筆，欄位以空白或逗號分隔，順序為 <code>DateTime T_cwRT T_chwST Q_evap COP</code>。首列可為標題，工具會自動跳過。可直接從 Excel 複製。</div>
+<textarea id="bl-textarea" placeholder="2024/01/01 12:00  30.2  6.8  1200  4.2&#10;2024/01/01 12:05  30.1  6.9  1200  4.3&#10;..."></textarea>
 <div class="bl-btn-row">
 <button class="bl-btn primary" onclick="blImportPaste()">匯入貼上資料</button>
 <button class="bl-btn" onclick="blClearAll()">清除資料</button>
@@ -348,7 +348,7 @@ OLS: Y = B0 + B1×X1 + B2×X2 → A0 = -B0, A1 = B1, A2 = -B2
 <div class="bl-input" data-blinput="manual">
 <div class="bl-data-table">
 <table id="bl-manual-table">
-<thead><tr><th>DateTime</th><th>T_cwRT</th><th>T_cwRPT</th><th>T_chwST</th><th>Q_evap</th><th>COP</th><th>標記</th><th>操作</th></tr></thead>
+<thead><tr><th>DateTime</th><th>T_cwRT</th><th>T_chwST</th><th>Q_evap</th><th>COP</th><th>標記</th><th>操作</th></tr></thead>
 <tbody id="bl-manual-tbody"></tbody>
 </table>
 </div>
@@ -358,7 +358,7 @@ OLS: Y = B0 + B1×X1 + B2×X2 → A0 = -B0, A1 = B1, A2 = -B2
 </div>
 
 <div class="bl-input" data-blinput="csv">
-<div class="section-note" style="margin:6px 0"><b>CSV 欄位：</b><code>DateTime,T_cwRT,T_cwRPT,T_chwST,Q_evap,COP</code>（可含標題列，工具會自動辨識）。拖曳檔案到下方虛線區，或點擊選擇檔案。</div>
+<div class="section-note" style="margin:6px 0"><b>CSV 欄位：</b><code>DateTime,T_cwRT,T_chwST,Q_evap,COP</code>（可含標題列，工具會自動辨識）。拖曳檔案到下方虛線區，或點擊選擇檔案。</div>
 <div id="bl-dropzone" style="border:2px dashed #30363d;border-radius:8px;padding:30px;text-align:center;color:#8b949e;font-size:.85em;cursor:pointer">
 📁 拖曳 CSV 檔案到這裡，或點擊選擇檔案<br>
 <span style="font-size:.75em;color:#6e7681">支援 .csv、.txt（UTF-8 或 ANSI）</span>
@@ -392,7 +392,7 @@ OLS: Y = B0 + B1×X1 + B2×X2 → A0 = -B0, A1 = B1, A2 = -B2
 </div>
 
 <div class="bl-input active" data-blreginput="regress">
-<button class="btn" onclick="blRunRegression()">▶ 執行 OLS 迴regression</button>
+<button class="btn" onclick="blRunRegression()">▶ 執行 OLS 迴歸</button>
 </div>
 
 <div class="bl-input" data-blreginput="ref">
@@ -932,12 +932,12 @@ function calcAH(){ return calcKA(); }
 
 // ============ TAB 4: BASELINE A0/A1/A2 REGRESSION ============
 // 原始公式（保持不變）：
-//   1/COP = -1 + (T_cwRT/T_chwST) + [ -A0 + A1*T_cwRT - A2*(T_cwRPT/T_chwST) ] / Q_evap
-// 迴歸變數：X1 = T_cwRT, X2 = T_cwRPT/T_chwST, Y = Q_evap*(1/COP + 1 - T_cwRT/T_chwST)
+//   1/COP = -1 + (T_cwRT/T_chwST) + [ -A0 + A1*T_cwRT - A2*(T_cwRT/T_chwST) ] / Q_evap
+// 迴歸變數：X1 = T_cwRT, X2 = T_cwRT/T_chwST, Y = Q_evap*(1/COP + 1 - T_cwRT/T_chwST)
 // OLS: Y = B0 + B1*X1 + B2*X2  →  A0 = -B0, A1 = B1, A2 = -B2
 // 文件參考係數（Q_evap 單位需與資料一致）：
 const BL_REF = { A0: 9593.1, A1: 56.912, A2: 6952.0 };
-let blData = [];        // {dt, tcwrt, tcwrpt, tchwst, qevap, cop, valid, reason, marked}
+let blData = [];        // {dt, tcwrt, tchwst, qevap, cop, valid, reason, marked}
 let blResult = null;    // 最近一次結果
 const BL_STORAGE_KEY = 'blA0A1Data_v1';
 
@@ -948,16 +948,25 @@ function blParseRows(text){
   for(let i=0;i<lines.length;i++){
     // 自動偵測分隔：逗號優先，否則空白
     let fields = lines[i].split(',').map(f=>f.trim());
-    if(fields.length<6){ fields = lines[i].split(/\s+/); }
+    if(fields.length<5){ fields = lines[i].split(/\s+/); }
     // 跳過標題列
     if(i===0 && !/^[\d.]/.test(fields[1]||'')) continue;
-    const dt = (fields[0]||'').toString();
-    const tcwrt = parseFloat(fields[1]);
-    const tcwrpt = parseFloat(fields[2]);
-    const tchwst = parseFloat(fields[3]);
-    const qevap = parseFloat(fields[4]);
-    const cop = parseFloat(fields[5]);
-    const rec = { dt, tcwrt, tcwrpt, tchwst, qevap, cop, valid:true, reason:'', marked:false };
+    // 處理 DateTime 含空格（如 "2024/01/01 12:00"）：空白分割後前兩個 token 是日期+時間
+    let dt, rest;
+    if(fields.length >= 5 && fields[0].match(/^\d{4}\/\d{2}\/\d{2}$/) && fields[1].match(/^\d{1,2}:\d{2}/)){
+      // 空白分割: fields[0]="2024/01/01", fields[1]="12:00" → 合併為 DateTime
+      dt = fields[0]+' '+fields[1];
+      rest = fields.slice(2);
+    } else {
+      // 逗號分割或 DateTime 無空格: fields[0]="2024/01/01 12:00"
+      dt = (fields[0]||'').toString();
+      rest = fields.slice(1);
+    }
+    const tcwrt = parseFloat(rest[0]);
+    const tchwst = parseFloat(rest[1]);
+    const qevap = parseFloat(rest[2]);
+    const cop = parseFloat(rest[3]);
+    const rec = { dt, tcwrt, tchwst, qevap, cop, valid:true, reason:'', marked:false };
     blValidateRecord(rec);
     rows.push(rec);
   }
@@ -969,7 +978,6 @@ function blParseRows(text){
 function blValidateRecord(r){
   const reasons = [];
   if(!isFinite(r.tcwrt)) reasons.push('T_cwRT 非數字');
-  if(!isFinite(r.tcwrpt)) reasons.push('T_cwRPT 非數字');
   if(!isFinite(r.tchwst)) reasons.push('T_chwST 非數字');
   if(!isFinite(r.qevap))  reasons.push('Q_evap 非數字');
   if(!isFinite(r.cop))    reasons.push('COP 非數字');
@@ -977,8 +985,8 @@ function blValidateRecord(r){
   if(isFinite(r.cop) && r.cop<=0)     reasons.push('COP <= 0');
   if(isFinite(r.tchwst) && r.tchwst===0) reasons.push('T_chwST = 0');
   // 能否算 X2 / Y
-  if(isFinite(r.tcwrpt)&&isFinite(r.tchwst)&&r.tchwst!==0){
-    const x2 = r.tcwrpt/r.tchwst;
+  if(isFinite(r.tcwrt)&&isFinite(r.tchwst)&&r.tchwst!==0){
+    const x2 = r.tcwrt/r.tchwst;
     if(!isFinite(x2)) reasons.push('X2 無法計算');
   }
   if(isFinite(r.tcwrt)&&isFinite(r.tchwst)&&isFinite(r.cop)&&isFinite(r.qevap)&&r.tchwst!==0&&r.cop>0){
@@ -1006,7 +1014,7 @@ function blClearAll(){
 }
 // 手動表格
 function blAddRow(){
-  const r = { dt:'', tcwrt:NaN, tcwrpt:NaN, tchwst:NaN, qevap:NaN, cop:NaN, valid:false, reason:'', marked:false };
+  const r = { dt:'', tcwrt:NaN, tchwst:NaN, qevap:NaN, cop:NaN, valid:false, reason:'', marked:false };
   blData.push(r);
   blSaveStorage();
   blRenderManualTable();
@@ -1021,7 +1029,6 @@ function blRenderManualTable(){
     return `<tr class="${cls}">
       <td><input value="${(r.dt||'').replace(/"/g,'&quot;')}" onblur="blEditCell(${i},'dt',this.value)" style="width:110px;background:#0d1117;border:1px solid #30363d;color:#c9d1d9;padding:2px 4px;border-radius:3px"></td>
       <td><input value="${num(r.tcwrt)}" onblur="blEditCell(${i},'tcwrt',this.value)" style="width:60px;background:#0d1117;border:1px solid #30363d;color:#c9d1d9;padding:2px 4px;border-radius:3px"></td>
-      <td><input value="${num(r.tcwrpt)}" onblur="blEditCell(${i},'tcwrpt',this.value)" style="width:60px;background:#0d1117;border:1px solid #30363d;color:#c9d1d9;padding:2px 4px;border-radius:3px"></td>
       <td><input value="${num(r.tchwst)}" onblur="blEditCell(${i},'tchwst',this.value)" style="width:60px;background:#0d1117;border:1px solid #30363d;color:#c9d1d9;padding:2px 4px;border-radius:3px"></td>
       <td><input value="${num(r.qevap)}" onblur="blEditCell(${i},'qevap',this.value)" style="width:60px;background:#0d1117;border:1px solid #30363d;color:#c9d1d9;padding:2px 4px;border-radius:3px"></td>
       <td><input value="${num(r.cop)}" onblur="blEditCell(${i},'cop',this.value)" style="width:60px;background:#0d1117;border:1px solid #30363d;color:#c9d1d9;padding:2px 4px;border-radius:3px"></td>
@@ -1068,7 +1075,7 @@ function blRunQC(){
   const valid = blData.filter(r=>r.valid).length;
   const excluded = total - valid;
   const seen = {}; let dups=0;
-  blData.forEach(r=>{ const k=[r.dt,r.tcwrt,r.tcwrpt,r.tchwst,r.qevap,r.cop].join('|'); if(seen[k]) dups++; seen[k]=1; });
+  blData.forEach(r=>{ const k=[r.dt,r.tcwrt,r.tchwst,r.qevap,r.cop].join('|'); if(seen[k]) dups++; seen[k]=1; });
   document.getElementById('bl-total-n').textContent = total;
   document.getElementById('bl-valid-n').textContent = valid;
   document.getElementById('bl-excluded-n').textContent = excluded;
@@ -1129,7 +1136,7 @@ function blPrep(){
   const recs = blData.filter(r=>r.valid);
   const Y=[],X1=[],X2=[],idx=[];
   recs.forEach((r,i)=>{
-    const x1=r.tcwrt, x2=r.tcwrpt/r.tchwst;
+    const x1=r.tcwrt, x2=r.tcwrt/r.tchwst;
     const y=r.qevap*(1/r.cop + 1 - r.tcwrt/r.tchwst);
     if(isFinite(y)&&isFinite(x1)&&isFinite(x2)){ Y.push(y); X1.push(x1); X2.push(x2); idx.push(i); }
   });
@@ -1137,7 +1144,7 @@ function blPrep(){
 }
 // COP 預測（代回原始公式）
 function blPredictCOP(A0,A1,A2,r){
-  const x2 = r.tcwrpt/r.tchwst;
+  const x2 = r.tcwrt/r.tchwst;
   const denom = -1 + (r.tcwrt/r.tchwst) + (-A0 + A1*r.tcwrt - A2*x2)/r.qevap;
   if(denom===0) return NaN;
   return 1/denom;
@@ -1250,13 +1257,13 @@ function blRenderResult(){
   // 公式顯示（依來源）
   const formulaEl=document.querySelector('#tab-baseline .formula-box .formula');
   if(R.type==='regress'){
-    formulaEl.innerHTML=`1/COP = -1 + (T_cwRT/T_chwST) + [ -${R.A0.toFixed(2)} + ${R.A1.toFixed(4)}×T_cwRT - ${R.A2.toFixed(2)}×(T_cwRPT/T_chwST) ] / Q_evap<br>`+
+    formulaEl.innerHTML=`1/COP = -1 + (T_cwRT/T_chwST) + [ -${R.A0.toFixed(2)} + ${R.A1.toFixed(4)}×T_cwRT - ${R.A2.toFixed(2)}×(T_cwRT/T_chwST) ] / Q_evap<br>`+
       `（OLS 重新迴歸結果：A0=-B0=${R.A0.toFixed(3)}, A1=B1=${R.A1.toFixed(4)}, A2=-B2=${R.A2.toFixed(3)}）`;
   } else if(R.type==='ref'){
-    formulaEl.innerHTML=`1/COP = -1 + (T_cwRT/T_chwST) + [ -9593.1 + 56.912×T_cwRT - 6952.0×(T_cwRPT/T_chwST) ] / Q_evap<br>`+
+    formulaEl.innerHTML=`1/COP = -1 + (T_cwRT/T_chwST) + [ -9593.1 + 56.912×T_cwRT - 6952.0×(T_cwRT/T_chwST) ] / Q_evap<br>`+
       `（文件參考係數直接代入）`;
   } else {
-    formulaEl.innerHTML=`1/COP = -1 + (T_cwRT/T_chwST) + [ -${R.A0.toFixed(2)} + ${R.A1.toFixed(4)}×T_cwRT - ${R.A2.toFixed(2)}×(T_cwRPT/T_chwST) ] / Q_evap<br>`+
+    formulaEl.innerHTML=`1/COP = -1 + (T_cwRT/T_chwST) + [ -${R.A0.toFixed(2)} + ${R.A1.toFixed(4)}×T_cwRT - ${R.A2.toFixed(2)}×(T_cwRT/T_chwST) ] / Q_evap<br>`+
       `（手動輸入係數）`;
   }
   blDrawCharts();
@@ -1307,8 +1314,7 @@ function blDrawScatter(canvas, pts, xlab, ylab){
   const xmin=Math.min(...xs), xmax=Math.max(...xs), ymin=Math.min(...ys), ymax=Math.max(...ys);
   const pad=60;
   const sx=(xmax-xmin)||1, sy=(ymax-ymin)||1;
-  const mx=i=> pad + i/(xs.length-1||1)*(W-2*pad);
-  const px=v=> H-pad - (v-ymin)/sy*(H-2*pad);
+  const mx=v=> pad + (v-xmin)/sx*(W-2*pad);
   const py=v=> H-pad - (v-ymin)/sy*(H-2*pad);
   // 座標軸
   ctx.strokeStyle='#30363d'; ctx.lineWidth=1;
@@ -1386,7 +1392,7 @@ function blGenerateReport(){
     html+=row('COP MAPE', R.COPstats.MAPE.toFixed(2)+'%');
   }
   html+=`<h3>使用的公式</h3>`;
-  html+=`<div style="font-family:Consolas,monospace;font-size:.85em;line-height:1.7">1/COP = -1 + (T_cwRT/T_chwST) + [ -A0 + A1×T_cwRT - A2×(T_cwRPT/T_chwST) ] / Q_evap<br>本報告係數：A0=${R.A0.toFixed(4)}, A1=${R.A1.toFixed(4)}, A2=${R.A2.toFixed(4)}</div>`;
+  html+=`<div style="font-family:Consolas,monospace;font-size:.85em;line-height:1.7">1/COP = -1 + (T_cwRT/T_chwST) + [ -A0 + A1×T_cwRT - A2×(T_cwRT/T_chwST) ] / Q_evap<br>本報告係數：A0=${R.A0.toFixed(4)}, A1=${R.A1.toFixed(4)}, A2=${R.A2.toFixed(4)}</div>`;
   html+=`<h3>資料品質說明</h3>`;
   html+=row('排除原因', excluded? blData.filter(r=>!r.valid).map(r=>`[${r.dt||'?'}] ${r.reason}`).join('；').substring(0,500) : '無排除');
   rep.innerHTML=html;
@@ -1405,17 +1411,17 @@ function blExportCSV(){
     csv+=`# SUMMARY (reference/manual, no OLS)\nN,${R.copRows.length},A0,${R.A0},A1,${R.A1},A2,${R.A2},B0,,B1,,B2,,R2,,AdjR2,,RMSE,,MAE,\n`;
   }
   csv+='\n';
-  csv+='DateTime,T_cwRT,T_cwRPT,T_chwST,Q_evap,COP_measured,Y,X1,X2,Predicted_Y,Residual_Y,Predicted_COP,COP_Error,COP_Error_pct\n';
+  csv+='DateTime,T_cwRT,T_chwST,Q_evap,COP_measured,Y,X1,X2,Predicted_Y,Residual_Y,Predicted_COP,COP_Error,COP_Error_pct\n';
   R.copRows.forEach((c,i)=>{
     const r=c.rec;
-    const x1=r.tcwrt, x2=r.tcwrpt/r.tchwst;
+    const x1=r.tcwrt, x2=r.tcwrt/r.tchwst;
     const y=r.qevap*(1/r.cop+1-r.tcwrt/r.tchwst);
     const py=Ypred?Ypred[i]:'';
     const ry=(Ypred!==null&&isFinite(Ypred[i]))? y-Ypred[i]:'';
     const cp=isFinite(c.copP)?c.copP:'';
     const err=isFinite(c.err)?c.err:'';
     const epp=isFinite(c.errPct)?c.errPct:'';
-    csv+=[r.dt,r.tcwrt,r.tcwrpt,r.tchwst,r.qevap,r.cop,y,x1,x2,py,ry,cp,err,epp].join(',')+'\n';
+    csv+=[r.dt,r.tcwrt,r.tchwst,r.qevap,r.cop,y,x1,x2,py,ry,cp,err,epp].join(',')+'\n';
   });
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
   const a=document.createElement('a');
@@ -1427,7 +1433,7 @@ function blExportCSV(){
 // ---- localStorage ----
 function blSaveStorage(){
   try{
-    const clean=blData.map(r=>({dt:r.dt,tcwrt:r.tcwrpt,tcwRPT:r.tcwrpt,tchwst:r.tchwst,qevap:r.qevap,cop:r.cop,valid:r.valid,reason:r.reason,marked:r.marked}));
+    const clean=blData.map(r=>({dt:r.dt,tcwrt:r.tcwrt,tchwst:r.tchwst,qevap:r.qevap,cop:r.cop,valid:r.valid,reason:r.reason,marked:r.marked}));
     localStorage.setItem(BL_STORAGE_KEY, JSON.stringify(clean));
   }catch(e){}
 }
@@ -1437,7 +1443,7 @@ function blLoadStorage(){
     if(!s) return;
     const arr=JSON.parse(s);
     if(!Array.isArray(arr)) return;
-    blData=arr.map(r=>({dt:r.dt,tcwrt:+r.tcwrpt,tcwrpt:+r.tcwrpt,tchwst:+r.tchwst,qevap:+r.qevap,cop:+r.cop,valid:!!r.valid,reason:r.reason||'',marked:!!r.marked}));
+    blData=arr.map(r=>({dt:r.dt,tcwrt:+r.tcwrt,tchwst:+r.tchwst,qevap:+r.qevap,cop:+r.cop,valid:!!r.valid,reason:r.reason||'',marked:!!r.marked}));
     blData.forEach(blValidateRecord);
     blRenderManualTable(); blRunQC();
   }catch(e){}
