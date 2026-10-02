@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ESCO ECC2 計算工具集</title>
+<style>
+:root{--bg:#0d1117;--panel:#161b22;--border:#30363d;--text:#c9d1d9;--muted:#8b949e;--accent:#58a6ff;--accent2:#1f6feb}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:'Microsoft JhengHei','Noto Sans TC',sans-serif;background:#0d1117;color:var(--text);display:flex;flex-direction:column;min-height:100vh}
+.header{background:linear-gradient(135deg,#0d1117,#161b22);border-bottom:1px solid var(--border);padding:14px 20px;flex-shrink:0}
+.header h1{font-size:1.3em;color:var(--accent);margin-bottom:2px}
+.header .sub{font-size:.78em;color:var(--muted)}
+.tabs{display:flex;flex-wrap:nowrap;gap:6px;padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tab{padding:8px 14px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--muted);cursor:pointer;font-size:.8em;white-space:nowrap;font-family:inherit}
+.tab:hover{border-color:var(--accent);color:var(--text)}
+.tab.active{background:var(--accent2);border-color:var(--accent2);color:#fff;font-weight:600}
+.hint{padding:8px 16px;font-size:.72em;color:var(--muted);background:var(--panel);border-bottom:1px solid var(--border);flex-shrink:0}
+.stage{flex:1 1 auto;position:relative;min-height:0}
+.frame-wrap{position:absolute;inset:0;display:none}
+.frame-wrap.active{display:block}
+.frame-wrap iframe{width:100%;height:100%;border:none;background:#0d1117}
+/* 手機(<=480px) */
+@media (max-width:480px){
+.header{padding:12px 14px}
+.header h1{font-size:1.1em}
+.tabs{padding:8px 12px;gap:6px}
+.tab{padding:7px 12px;font-size:.72em}
+.hint{font-size:.66em;padding:6px 12px}
+}
+</style>
+<style>
+.site-switch{position:fixed;bottom:18px;right:18px;z-index:999;display:flex;gap:8px}
+.site-switch a{display:inline-flex;align-items:center;gap:6px;padding:10px 16px;background:#2ea043;color:#fff;text-decoration:none;border-radius:8px;font-size:.8em;font-weight:600;box-shadow:0 2px 10px rgba(0,0,0,.35);font-family:'Microsoft JhengHei','Noto Sans TC',sans-serif}
+.site-switch a:hover{background:#3fb950}
+.site-switch a.calc{background:#1f6feb}
+.site-switch a.calc:hover{background:#58a6ff}
+@media (max-width:480px){.site-switch{bottom:12px;right:12px;left:12px;justify-content:center}.site-switch a{flex:1;justify-content:center}}
+</style>
+</head>
+<body>
+<div class="site-switch">
+<a class="calc" href="../ESCO_ECC.html">◎ 驗算工具</a>
+<a href="ESCO_ECC2.html">🧮 工具集</a>
+</div>
+<div class="header">
+<h1>ESCO ECC2 計算工具集</h1>
+<div class="sub">9 項節能計算 / 換算工具 · 點上方分頁切換 · 各工具獨立運作</div>
+</div>
+<div class="tabs" id="tabs">
+<button class="tab active" onclick="show(0)">01 變頻器節能</button>
+<button class="tab" onclick="show(1)">02 LED 照明替換</button>
+<button class="tab" onclick="show(2)">03 冷卻水塔換氣</button>
+<button class="tab" onclick="show(3)">04 LMTD 溫差</button>
+<button class="tab" onclick="show(4)">05 能源當量</button>
+<button class="tab" onclick="show(5)">06 馬達 HP/KW</button>
+<button class="tab" onclick="show(6)">07 熱泵 COP</button>
+<button class="tab" onclick="show(7)">08 管網摩阻</button>
+<button class="tab" onclick="show(8)">09 冷機 COP/EER</button>
+</div>
+<div class="stage" id="stage"></div>
+
+<script>
+const TOOLS = [
+  "01_變頻器節能計算.html",
+  "02_LED照明替換節能.html",
+  "03_冷卻水塔換氣計算.html",
+  "04_LMTD對數平均溫差.html",
+  "05_能源當量換算.html",
+  "06_馬達HP_KW對照.html",
+  "07_熱泵COP產熱.html",
+  "08_管網摩阻查表.html",
+  "09_冷機COP_EER快查.html"
+];
+const stage=document.getElementById('stage');
+TOOLS.forEach((f,i)=>{
+  const w=document.createElement('div');
+  w.className='frame-wrap'+(i===0?' active':'');
+  w.innerHTML='<iframe src="'+f+'" loading="'+(i===0?'eager':'lazy')+'"></iframe>';
+  stage.appendChild(w);
+});
+function show(i){
+  document.querySelectorAll('.tab').forEach((b,bi)=>b.classList.toggle('active',bi===i));
+  document.querySelectorAll('.frame-wrap').forEach((w,wi)=>w.classList.toggle('active',wi===i));
+  const ab=document.querySelectorAll('.tab')[i];
+  if(ab) ab.scrollIntoView({inline:'center',block:'nearest',behavior:'smooth'});
+}
+</script>
+</body>
+</html>
