@@ -385,13 +385,12 @@ COP<sub>預測</sub> = 1 / { -1 + (T_cwRT/T_chwST) + [ -A0 + A1×T_cwRT - A2×(T
 <div class="section">
 <div class="section-title" style="font-size:.9em">【3】填入 A0 / A1 / A2 並套用公式</div>
 <div class="input-grid" style="grid-template-columns:repeat(3,1fr)">
-<div class="input-group"><label>A0（已知係數）</label><input type="number" id="bl-mA0" value="9593.1" step="any"></div>
-<div class="input-group"><label>A1（已知係數）</label><input type="number" id="bl-mA1" value="56.912" step="any"></div>
-<div class="input-group"><label>A2（已知係數）</label><input type="number" id="bl-mA2" value="6952.0" step="any"></div>
+<div class="input-group"><label>A0（已知係數）</label><input type="number" id="bl-mA0" value="" step="any" placeholder=""></div>
+<div class="input-group"><label>A1（已知係數）</label><input type="number" id="bl-mA1" value="" step="any" placeholder=""></div>
+<div class="input-group"><label>A2（已知係數）</label><input type="number" id="bl-mA2" value="" step="any" placeholder=""></div>
 </div>
 <div class="bl-btn-row">
 <button class="btn" onclick="blApplyManualCoef()">▶ 套用係數，計算預測值與誤差</button>
-<button class="bl-btn" onclick="document.getElementById('bl-mA0').value='9593.1';document.getElementById('bl-mA1').value='56.912';document.getElementById('bl-mA2').value='6952.0'" style="margin-left:8px">填入文件參考值</button>
 </div>
 </div>
 
