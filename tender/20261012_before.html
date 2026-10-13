@@ -113,9 +113,9 @@ function syncFab(){
 let lastY=window.scrollY;
 window.addEventListener('scroll',()=>{
   const y=window.scrollY;
-  if (y <= bar.offsetHeight) bar.classList.remove('collapsed');
-  else if (y > lastY + 5) bar.classList.add('collapsed');
-  else if (lastY > y + 5) bar.classList.remove('collapsed');
+  if (y <= bar.offsetHeight) bar.classList.remove('collapsed');      // 滑到頂端 → 展開
+  else if (y > lastY + 4) bar.classList.add('collapsed');           // 往下滑 → 收合
+  // 往上滑但未到頂 → 維持目前狀態(不主動跳出)
   lastY=y; syncFab();
 }, {passive:true});
 fab.addEventListener('click',()=>{ bar.classList.remove('collapsed'); syncFab(); });
